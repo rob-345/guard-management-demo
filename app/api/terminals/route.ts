@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionFromRequest } from "@/lib/auth";
-import { getCollection } from "@/lib/mongodb";
 import { v4 as uuidv4 } from "uuid";
-import { HikvisionClient } from "@/lib/hikvision";
-import { Terminal } from "@/lib/types";
+import { z } from "zod";
+
+import { getSessionFromRequest } from "@/lib/auth";
+import { probeTerminal } from "@/lib/terminal-integration";
+import { getCollection } from "@/lib/mongodb";
+import type { Terminal } from "@/lib/types";
+
+const terminalCreateSchema = z
+  .object({
+    name: z.string().min(1),
+    ip_address: z.string().min(1),
+    username: z.string().min(1),
+    password: z.string().min(1),
+    site_id: z.string().min(1)
+  })
+  .strict();
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,18 +40,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, ip_address, username, password, site_id } = body;
+    const parsed = terminalCreateSchema.safeParse(body);
 
-    if (!name || !ip_address || !username || !password || !site_id) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid terminal payload" }, { status: 400 });
     }
+
+    const { name, ip_address, username, password, site_id } = parsed.data;
 
     const terminals = await getCollection<Terminal>("terminals");
     const now = new Date().toISOString();
+    const terminalId = uuidv4();
+    const callbackToken = uuidv4().replace(/-/g, "");
 
     const terminal: Terminal = {
-      id: uuidv4(),
-      edge_terminal_id: uuidv4().split("-")[0],
+      id: terminalId,
+      edge_terminal_id: terminalId,
+      device_uid: terminalId,
       name,
       ip_address,
       username,
@@ -47,18 +64,27 @@ export async function POST(request: NextRequest) {
       site_id,
       status: "offline",
       activation_status: "unknown",
+      webhook_status: "unset",
+      webhook_token: callbackToken,
       created_at: now,
       updated_at: now
     };
 
-    // Attempt to check activation status immediately
     try {
-      const client = new HikvisionClient(terminal);
-      terminal.activation_status = await client.getActivationStatus();
-      terminal.status = "online";
-      terminal.last_seen = now;
-    } catch (e) {
-      console.warn("Failed to reach terminal during registration:", e);
+      const probe = await probeTerminal(terminal);
+      terminal.status = probe.status ?? terminal.status;
+      terminal.activation_status = probe.activation_status ?? terminal.activation_status;
+      terminal.last_seen = probe.last_seen ?? terminal.last_seen;
+      terminal.device_uid = probe.device_uid ?? terminal.device_uid;
+      terminal.device_info = probe.device_info;
+      terminal.capability_snapshot = probe.capability_snapshot;
+      terminal.acs_work_status = probe.acs_work_status;
+      terminal.face_recognize_mode = probe.face_recognize_mode;
+      terminal.webhook_status = probe.webhook_status ?? terminal.webhook_status;
+      terminal.webhook_url = probe.webhook_url;
+      terminal.webhook_host_id = probe.webhook_host_id;
+    } catch (error) {
+      console.warn("Failed to probe terminal during registration:", error);
     }
 
     await terminals.insertOne({ ...terminal, _id: terminal.id });

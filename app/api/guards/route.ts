@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionFromRequest } from "@/lib/auth";
-import { getCollection } from "@/lib/mongodb";
 import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+
+import { getSessionFromRequest } from "@/lib/auth";
+import { parseGuardSubmission, storeGuardPhoto } from "@/lib/guard-media";
+import { getCollection } from "@/lib/mongodb";
+import type { Guard } from "@/lib/types";
+
+const guardCreateSchema = z
+  .object({
+    employee_number: z.string().min(1),
+    full_name: z.string().min(2),
+    phone_number: z.string().min(9),
+    email: z.string().email().optional().or(z.literal("")),
+    status: z.enum(["active", "suspended", "on_leave"]).optional(),
+    photo_url: z.string().optional().or(z.literal(""))
+  })
+  .strict();
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,29 +40,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { employee_number, full_name, phone_number, email, photo_url, status } = body;
+    const submission = await parseGuardSubmission(request);
+    const parsed = guardCreateSchema.safeParse({
+      employee_number: submission.employee_number,
+      full_name: submission.full_name,
+      phone_number: submission.phone_number,
+      email: submission.email,
+      status: submission.status,
+      photo_url: submission.photo_url
+    });
 
-    if (!employee_number || !full_name || !phone_number || !photo_url) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid guard payload" }, { status: 400 });
     }
 
-    const guards = await getCollection("guards");
+    const { employee_number, full_name, phone_number, email, status, photo_url } = parsed.data;
+    const guards = await getCollection<Guard>("guards");
 
-    // Check for existing employee number
     const existing = await guards.findOne({ employee_number });
     if (existing) {
       return NextResponse.json({ error: "Employee number already exists" }, { status: 400 });
     }
 
+    const photoFile = submission.photo_file instanceof File ? submission.photo_file : undefined;
+    if (!photoFile && !photo_url) {
+      return NextResponse.json({ error: "A guard photo upload is required" }, { status: 400 });
+    }
+
     const now = new Date().toISOString();
-    const guard = {
-      id: uuidv4(),
+    const guardId = uuidv4();
+    const photoMetadata = photoFile ? await storeGuardPhoto(photoFile) : {};
+
+    const guard: Guard = {
+      id: guardId,
       employee_number,
       full_name,
       phone_number,
       email: email || "",
-      photo_url,
+      photo_url: photo_url || undefined,
+      ...photoMetadata,
       facial_imprint_synced: false,
       status: status || "active",
       created_at: now,

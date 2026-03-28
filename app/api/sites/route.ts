@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+
 import { getSessionFromRequest } from "@/lib/auth";
 import { getCollection } from "@/lib/mongodb";
-import { v4 as uuidv4 } from "uuid";
+import type { Site } from "@/lib/types";
+
+const siteCreateSchema = z
+  .object({
+    name: z.string().min(1),
+    address: z.string().optional().or(z.literal("")),
+    region: z.string().optional().or(z.literal("")),
+    contact_person: z.string().optional().or(z.literal("")),
+    contact_phone: z.string().optional().or(z.literal("")),
+    latitude: z.union([z.number(), z.string()]).optional(),
+    longitude: z.union([z.number(), z.string()]).optional()
+  })
+  .strict();
+
+function parseCoordinate(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,22 +47,26 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, address, region, contact_person, contact_phone } = body;
+    const parsed = siteCreateSchema.safeParse(body);
 
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid site payload" }, { status: 400 });
     }
 
-    const sites = await getCollection("sites");
+    const { name, address, region, contact_person, contact_phone } = parsed.data;
+
+    const sites = await getCollection<Site>("sites");
     const now = new Date().toISOString();
 
-    const site = {
+    const site: Site = {
       id: uuidv4(),
       name,
       address,
       region,
       contact_person,
       contact_phone,
+      latitude: parseCoordinate(parsed.data.latitude),
+      longitude: parseCoordinate(parsed.data.longitude),
       created_at: now,
       updated_at: now
     };

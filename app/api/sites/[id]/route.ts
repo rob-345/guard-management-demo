@@ -8,12 +8,20 @@ import type { Site } from "@/lib/types";
 const siteUpdateSchema = z
   .object({
     name: z.string().min(1).optional(),
-    address: z.string().optional(),
-    region: z.string().optional(),
-    contact_person: z.string().optional(),
-    contact_phone: z.string().optional()
+    address: z.string().optional().or(z.literal("")),
+    region: z.string().optional().or(z.literal("")),
+    contact_person: z.string().optional().or(z.literal("")),
+    contact_phone: z.string().optional().or(z.literal("")),
+    latitude: z.union([z.number(), z.string()]).optional(),
+    longitude: z.union([z.number(), z.string()]).optional()
   })
   .strict();
+
+function parseCoordinate(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
 
 async function getSiteCollection() {
   return getCollection<Site>("sites");
@@ -46,7 +54,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: "Invalid site payload" }, { status: 400 });
   }
 
-  const updates = compactDefined(parsed.data);
+  const updates = compactDefined({
+    ...parsed.data,
+    latitude: parseCoordinate(parsed.data.latitude),
+    longitude: parseCoordinate(parsed.data.longitude)
+  });
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No updates provided" }, { status: 400 });
   }
@@ -78,6 +91,15 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (unauthorized) return unauthorized;
 
   const { id } = await params;
+  const terminals = await getCollection("terminals");
+  const terminalCount = await terminals.countDocuments({ site_id: id });
+  if (terminalCount > 0) {
+    return NextResponse.json(
+      { error: "Site has terminals assigned. Reassign them before deleting the site." },
+      { status: 409 }
+    );
+  }
+
   const sites = await getSiteCollection();
   const result = await sites.deleteOne({ id });
 

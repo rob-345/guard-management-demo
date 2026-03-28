@@ -11,6 +11,77 @@ export type AlertType =
 export type ClockingEventType = "clock_in" | "clock_out" | "unknown" | "stranger";
 export type AssignmentStatus = "active" | "replaced" | "completed";
 export type TerminalStatus = "online" | "offline" | "error";
+export type GuardFaceEnrollmentStatus =
+  | "pending"
+  | "syncing"
+  | "synced"
+  | "failed"
+  | "removing"
+  | "removed";
+
+export interface HikvisionDeviceInfo {
+  deviceName?: string;
+  deviceID?: string;
+  deviceId?: string;
+  serialNumber?: string;
+  subSerialNumber?: string;
+  macAddress?: string;
+  model?: string;
+  hardwareVersion?: string;
+  firmwareVersion?: string;
+  firmwareReleasedDate?: string;
+  deviceType?: string;
+  [key: string]: unknown;
+}
+
+export interface HikvisionHttpHostNotification {
+  id?: string;
+  url?: string;
+  protocolType?: string;
+  parameterFormatType?: string;
+  addressingFormatType?: string;
+  ipAddress?: string;
+  portNo?: number;
+  httpAuthenticationMethod?: string;
+  [key: string]: unknown;
+}
+
+export interface HikvisionAcsWorkStatus {
+  doorLockStatus?: number[];
+  doorStatus?: number[];
+  magneticStatus?: number[];
+  antiSneakStatus?: "open" | "close" | string;
+  hostAntiDismantleStatus?: "open" | "close" | string;
+  cardReaderOnlineStatus?: number[];
+  cardReaderAntiDismantleStatus?: number[];
+  cardReaderVerifyMode?: number[];
+  cardNum?: number;
+  netStatus?: string;
+  interfaceStatusList?: Array<{ id?: number; netStatus?: string }>;
+  sipStatus?: string;
+  ezvizStatus?: string;
+  voipStatus?: string;
+  wifiStatus?: string;
+  [key: string]: unknown;
+}
+
+export interface HikvisionCapabilitiesSnapshot {
+  system?: Record<string, unknown>;
+  accessControl?: Record<string, unknown>;
+  userInfo?: Record<string, unknown>;
+  fdLib?: Record<string, unknown>;
+  faceRecognizeMode?: Record<string, unknown>;
+  subscribeEvent?: Record<string, unknown>;
+  httpHosts?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface GuardPhotoMetadata {
+  photo_file_id?: string;
+  photo_filename?: string;
+  photo_mime_type?: string;
+  photo_size?: number;
+}
 
 export interface Guard {
   id: string;
@@ -19,6 +90,10 @@ export interface Guard {
   phone_number: string;
   email?: string;
   photo_url?: string;
+  photo_file_id?: string;
+  photo_filename?: string;
+  photo_mime_type?: string;
+  photo_size?: number;
   facial_imprint_synced: boolean;
   status: GuardStatus;
   created_at: string;
@@ -66,6 +141,7 @@ export interface GuardAssignment {
 export interface Terminal {
   id: string;
   edge_terminal_id: string;
+  device_uid?: string;
   name: string;
   site_id: string;
   ip_address?: string;
@@ -74,6 +150,14 @@ export interface Terminal {
   status: TerminalStatus;
   last_seen?: string;
   activation_status?: "unknown" | "activated" | "not_activated" | "error";
+  device_info?: HikvisionDeviceInfo;
+  capability_snapshot?: HikvisionCapabilitiesSnapshot;
+  acs_work_status?: HikvisionAcsWorkStatus;
+  face_recognize_mode?: string;
+  webhook_token?: string;
+  webhook_host_id?: string;
+  webhook_url?: string;
+  webhook_status?: "unset" | "configured" | "testing" | "active" | "error";
   created_at: string;
   updated_at?: string;
   // joined
@@ -111,4 +195,16 @@ export interface CurrentUser {
   email: string;
   name: string;
   initials: string;
+}
+
+export interface GuardFaceEnrollment {
+  id: string;
+  guard_id: string;
+  terminal_id: string;
+  status: GuardFaceEnrollmentStatus;
+  error?: string;
+  created_at: string;
+  updated_at: string;
+  synced_at?: string;
+  removed_at?: string;
 }

@@ -22,33 +22,29 @@ export async function POST(
       return NextResponse.json({ error: "Terminal not found" }, { status: 404 });
     }
 
-    // In a real demo, we'd use actual hardware credentials.
-    // For now, we'll simulate the Hikvision ISAPI call using our ported client.
     const client = new HikvisionClient(terminal);
-    
-    // Simulating activation process
-    // In a real device, this would require a challenge-response 
-    // or simply setting a password if it's inactive.
-    const status = await client.getActivationStatus();
-    
-    if (status === "activated") {
-      await collection.updateOne({ id }, { $set: { activation_status: "activated", updated_at: new Date().toISOString() } });
-      return NextResponse.json({ message: "Terminal updated as already activated" });
-    }
 
-    // Simulate successful activation
+    const status = await client.getActivationStatus();
+    const now = new Date().toISOString();
     await collection.updateOne(
-      { id }, 
-      { 
-        $set: { 
-          activation_status: "activated",
-          last_seen: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        } 
+      { id },
+      {
+        $set: {
+          activation_status: status,
+          status: status === "activated" ? "online" : "offline",
+          last_seen: status === "activated" ? now : terminal.last_seen,
+          updated_at: now
+        }
       }
     );
 
-    return NextResponse.json({ message: "Terminal activated successfully" });
+    return NextResponse.json({
+      message:
+        status === "activated"
+          ? "Terminal is activated"
+          : "Activation not completed; device still needs the Hikvision activation flow",
+      activation_status: status
+    });
   } catch (err) {
     console.error("Activation error:", err);
     return NextResponse.json(

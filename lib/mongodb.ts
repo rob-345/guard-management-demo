@@ -1,4 +1,4 @@
-import { MongoClient, Db } from "mongodb";
+import { MongoClient, Db, GridFSBucket } from "mongodb";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
@@ -66,4 +66,9 @@ export async function connectToDatabase() {
 export async function getCollection<T = any>(name: string) {
   const { db } = await connectToDatabase();
   return db.collection<T | any>(name);
+}
+
+export async function getGridFSBucket(bucketName = process.env.GRIDFS_BUCKET_NAME || "guard_photos") {
+  const { db } = await connectToDatabase();
+  return new GridFSBucket(db, { bucketName });
 }
