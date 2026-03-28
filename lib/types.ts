@@ -73,6 +73,7 @@ export interface HikvisionCapabilitiesSnapshot {
   faceRecognizeMode?: Record<string, unknown>;
   subscribeEvent?: Record<string, unknown>;
   httpHosts?: Record<string, unknown>;
+  picture?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -147,6 +148,7 @@ export interface Terminal {
   ip_address?: string;
   username?: string;
   password?: string;
+  snapshot_stream_id?: string;
   status: TerminalStatus;
   last_seen?: string;
   activation_status?: "unknown" | "activated" | "not_activated" | "error";

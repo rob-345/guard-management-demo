@@ -13,7 +13,8 @@ const terminalCreateSchema = z
     ip_address: z.string().min(1),
     username: z.string().min(1),
     password: z.string().min(1),
-    site_id: z.string().min(1)
+    site_id: z.string().min(1),
+    snapshot_stream_id: z.string().min(1).optional()
   })
   .strict();
 
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid terminal payload" }, { status: 400 });
     }
 
-    const { name, ip_address, username, password, site_id } = parsed.data;
+    const { name, ip_address, username, password, site_id, snapshot_stream_id } = parsed.data;
 
     const terminals = await getCollection<Terminal>("terminals");
     const now = new Date().toISOString();
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
       ip_address,
       username,
       password,
+      snapshot_stream_id: snapshot_stream_id || "1",
       site_id,
       status: "offline",
       activation_status: "unknown",

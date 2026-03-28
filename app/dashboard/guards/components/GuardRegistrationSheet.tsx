@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import {
+  Camera,
+  Loader2,
+  Trash2,
+  Upload
+} from "lucide-react";
+import { toast } from "sonner";
+
 import {
   Dialog,
   DialogContent,
@@ -26,11 +34,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-
 import { getApiErrorMessage } from "@/lib/http";
-import type { Guard } from "@/lib/types";
+import type { Guard, Terminal } from "@/lib/types";
+
+import { TerminalCameraCaptureDialog } from "./TerminalCameraCaptureDialog";
 
 const guardSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -42,12 +49,15 @@ const guardSchema = z.object({
 
 type GuardFormValues = z.infer<typeof guardSchema>;
 type GuardFormMode = "create" | "edit";
+type PhotoSource = "upload" | "camera";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   guard?: Guard | null;
   mode?: GuardFormMode;
+  terminals: Terminal[];
+  initialCameraTerminalId?: string | null;
 }
 
 function resolveGuardPhotoSrc(guard?: Guard | null) {
@@ -57,17 +67,54 @@ function resolveGuardPhotoSrc(guard?: Guard | null) {
   return null;
 }
 
+function resolveTerminalId(terminals: Terminal[], terminalId?: string | null) {
+  if (terminalId && terminals.some((terminal) => terminal.id === terminalId)) {
+    return terminalId;
+  }
+
+  return terminals[0]?.id || "";
+}
+
+async function syncGuardFaceToTerminal(guardId: string, terminalId: string) {
+  const res = await fetch(`/api/guards/${guardId}/face-sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ terminal_ids: [terminalId] })
+  });
+
+  if (!res.ok) {
+    throw new Error(await getApiErrorMessage(res, "Face sync failed"));
+  }
+
+  const data = await res.json().catch(() => null);
+  const synced = Boolean(data?.facial_imprint_synced) || (
+    Array.isArray(data?.results) && data.results.every((result: { status?: string }) => result.status === "synced")
+  );
+
+  return {
+    synced,
+    data
+  };
+}
+
 export function GuardRegistrationDialog({
   open,
   onOpenChange,
   guard = null,
-  mode = "create"
+  mode = "create",
+  terminals,
+  initialCameraTerminalId = null
 }: Props) {
   const router = useRouter();
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
+  const autoOpenedCameraRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
+  const [photoSource, setPhotoSource] = useState<PhotoSource>("upload");
+  const [selectedCameraTerminalId, setSelectedCameraTerminalId] = useState<string>("");
+  const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
 
   const isEditMode = mode === "edit" && Boolean(guard);
 
@@ -84,6 +131,8 @@ export function GuardRegistrationDialog({
 
   useEffect(() => {
     if (!open) {
+      autoOpenedCameraRef.current = false;
+      setCameraDialogOpen(false);
       return;
     }
 
@@ -97,7 +146,21 @@ export function GuardRegistrationDialog({
     setSelectedFile(null);
     setSelectedFileUrl(null);
     setRemovePhoto(false);
-  }, [open, guard, form]);
+
+    const resolvedCameraTerminalId = resolveTerminalId(terminals, initialCameraTerminalId);
+    if (!isEditMode && resolvedCameraTerminalId) {
+      setPhotoSource("camera");
+      setSelectedCameraTerminalId(resolvedCameraTerminalId);
+
+      if (!autoOpenedCameraRef.current) {
+        setCameraDialogOpen(true);
+        autoOpenedCameraRef.current = true;
+      }
+    } else {
+      setPhotoSource("upload");
+      setSelectedCameraTerminalId("");
+    }
+  }, [open, guard, form, isEditMode, initialCameraTerminalId, terminals]);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -112,6 +175,18 @@ export function GuardRegistrationDialog({
 
   const existingPhotoSrc = useMemo(() => resolveGuardPhotoSrc(guard), [guard]);
   const photoPreviewSrc = selectedFileUrl || existingPhotoSrc;
+  const photoSourceLabel = photoSource === "camera" ? "Terminal camera" : "Upload";
+  const selectedCameraTerminal = useMemo(
+    () => terminals.find((terminal) => terminal.id === selectedCameraTerminalId) || null,
+    [selectedCameraTerminalId, terminals]
+  );
+
+  function handleFileChange(file: File | null) {
+    setPhotoSource("upload");
+    setSelectedCameraTerminalId("");
+    setSelectedFile(file);
+    setRemovePhoto(false);
+  }
 
   async function onSubmit(values: GuardFormValues) {
     if (!isEditMode && !selectedFile) {
@@ -146,11 +221,39 @@ export function GuardRegistrationDialog({
         throw new Error(await getApiErrorMessage(res, "Failed to save guard"));
       }
 
-      toast.success(isEditMode ? "Guard updated successfully" : "Guard registered successfully");
+      const savedGuard = await res.json().catch(() => null);
+      let toastMessage = isEditMode ? "Guard updated successfully" : "Guard registered successfully";
+      let syncWarning: string | null = null;
+
+      if (!isEditMode && photoSource === "camera" && selectedCameraTerminalId) {
+        try {
+          const guardId = typeof savedGuard?.id === "string" ? savedGuard.id : undefined;
+          if (!guardId) {
+            throw new Error("Guard saved, but the created guard id was not returned");
+          }
+
+          const syncResult = await syncGuardFaceToTerminal(guardId, selectedCameraTerminalId);
+          if (syncResult.synced) {
+            toastMessage = "Guard registered and face synced to the selected terminal";
+          } else {
+            syncWarning = "Guard saved, but the terminal reported a partial face sync result";
+          }
+        } catch (error) {
+          syncWarning = `Guard saved, but face sync failed: ${error instanceof Error ? error.message : String(error)}`;
+        }
+      }
+
+      toast.success(toastMessage);
+      if (syncWarning) {
+        toast(syncWarning);
+      }
+
       form.reset();
       setSelectedFile(null);
       setSelectedFileUrl(null);
       setRemovePhoto(false);
+      setPhotoSource("upload");
+      setSelectedCameraTerminalId("");
       onOpenChange(false);
       router.refresh();
     } catch (err) {
@@ -161,182 +264,249 @@ export function GuardRegistrationDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? "Edit Guard" : "Register Guard"}</DialogTitle>
-          <DialogDescription>
-            {isEditMode
-              ? "Update guard details and replace the stored profile photo if needed."
-              : "Add a new guard and upload a local photo. The image will be stored in GridFS."}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? "Edit Guard" : "Register Guard"}</DialogTitle>
+            <DialogDescription>
+              {isEditMode
+                ? "Update guard details, replace the stored profile photo, or capture a fresh frame if needed."
+                : "Add a new guard, then choose between a local upload or a terminal camera snapshot. The image will be stored in GridFS."}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_220px]">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="employee_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Employee Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. WS-0042" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+263 77 xxx xxxx" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email (optional)</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="guard@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_280px]">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="employee_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Employee Number</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
+                        <Input placeholder="e.g. WS-0042" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="on_leave">On Leave</SelectItem>
-                        <SelectItem value="suspended">Suspended</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium">Guard Photo</p>
-                    <p className="text-xs text-muted-foreground">
-                      Upload a local photo. The file will be stored in MongoDB GridFS.
-                    </p>
+                <FormField
+                  control={form.control}
+                  name="full_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+263 77 xxx xxxx" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email (optional)</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="guard@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="on_leave">On Leave</SelectItem>
+                          <SelectItem value="suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Guard Photo</p>
+                      <p className="text-xs text-muted-foreground">
+                        Choose a local upload or capture a snapshot from a Hikvision terminal camera.
+                      </p>
+                    </div>
+                    <Badge variant="outline">{photoSourceLabel}</Badge>
                   </div>
-                  {isEditMode && (
+
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setRemovePhoto((value) => !value)}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      {removePhoto ? "Keep Photo" : "Remove Photo"}
+                      variant={photoSource === "upload" ? "secondary" : "outline"}
+                      onClick={() => {
+                        setCameraDialogOpen(false);
+                        photoInputRef.current?.click();
+                      }}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload from computer
                     </Button>
-                  )}
+                    <Button
+                      type="button"
+                      variant={photoSource === "camera" ? "secondary" : "outline"}
+                      disabled={terminals.length === 0}
+                      onClick={() => {
+                        if (terminals.length === 0) {
+                          toast.error("Register a terminal before using camera capture");
+                          return;
+                        }
+
+                        setPhotoSource("camera");
+                        setSelectedCameraTerminalId((current) => resolveTerminalId(terminals, current));
+                        setCameraDialogOpen(true);
+                      }}>
+                      <Camera className="mr-2 h-4 w-4" />
+                      Use terminal camera
+                    </Button>
+                    {isEditMode && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setRemovePhoto((value) => !value)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        {removePhoto ? "Keep Photo" : "Remove Photo"}
+                      </Button>
+                    )}
+                  </div>
+
+                  <Input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      void handleFileChange(file);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+
+                  {!isEditMode && !selectedFile && photoSource === "upload" ? (
+                    <p className="text-xs text-destructive">A photo upload or camera capture is required for new guards.</p>
+                  ) : null}
                 </div>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-                />
-                {!isEditMode && !selectedFile && (
-                  <p className="text-xs text-destructive">A photo upload is required for new guards.</p>
-                )}
+
+                <DialogFooter className="pt-2">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isEditMode ? "Save Changes" : "Register Guard"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+
+            <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium">Preview</p>
+                  <p className="text-xs text-muted-foreground">
+                    {photoPreviewSrc ? "Current or selected image" : "No photo selected yet"}
+                  </p>
+                </div>
+                <Badge variant="outline">{isEditMode ? "Edit mode" : "Create mode"}</Badge>
               </div>
 
-              <DialogFooter className="pt-2">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isEditMode ? "Save Changes" : "Register Guard"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+              <div className="flex items-center gap-4">
+                <Avatar className="size-20 rounded-2xl">
+                  <AvatarImage src={photoPreviewSrc || undefined} alt={guard?.full_name || "Guard photo"} />
+                  <AvatarFallback className="rounded-2xl text-lg">
+                    {guard?.full_name
+                      ?.split(" ")
+                      .map((part) => part[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase() || "GP"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold">{guard?.full_name || "New guard"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {guard?.employee_number ? `#${guard.employee_number}` : "Employee number will be assigned on save"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedFile ? selectedFile.name : "Choose a file or capture a frame to replace the image"}
+                  </p>
+                  {photoSource === "camera" && selectedCameraTerminal ? (
+                    <p className="text-xs text-muted-foreground">
+                      Captured from {selectedCameraTerminal.name}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
 
-          <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-medium">Preview</p>
-                <p className="text-xs text-muted-foreground">
-                  {photoPreviewSrc ? "Current or selected image" : "No photo selected yet"}
+              {removePhoto && isEditMode && (
+                <p className="text-xs text-amber-600">
+                  The current stored photo will be removed when you save.
                 </p>
-              </div>
-              <Badge variant="outline">{isEditMode ? "Edit mode" : "Create mode"}</Badge>
+              )}
             </div>
-
-            <div className="flex items-center gap-4">
-              <Avatar className="size-20 rounded-2xl">
-                <AvatarImage src={photoPreviewSrc || undefined} alt={guard?.full_name || "Guard photo"} />
-                <AvatarFallback className="rounded-2xl text-lg">
-                  {guard?.full_name
-                    ?.split(" ")
-                    .map((part) => part[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase() || "GP"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
-                <p className="text-sm font-semibold">{guard?.full_name || "New guard"}</p>
-                <p className="text-xs text-muted-foreground">
-                  {guard?.employee_number ? `#${guard.employee_number}` : "Employee number will be assigned on save"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {selectedFile ? selectedFile.name : "Choose a file to replace the image"}
-                </p>
-              </div>
-            </div>
-
-            {removePhoto && isEditMode && (
-              <p className="text-xs text-amber-600">
-                The current stored photo will be removed when you save.
-              </p>
-            )}
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <TerminalCameraCaptureDialog
+        open={cameraDialogOpen}
+        onOpenChange={(nextOpen) => {
+          setCameraDialogOpen(nextOpen);
+          if (!nextOpen) {
+            if (!selectedFile) {
+              setPhotoSource("upload");
+            }
+          }
+        }}
+        terminals={terminals}
+        initialTerminalId={selectedCameraTerminalId || initialCameraTerminalId}
+        onUsePhoto={(file, terminal) => {
+          setSelectedFile(file);
+          setPhotoSource("camera");
+          setSelectedCameraTerminalId(terminal.id);
+          setRemovePhoto(false);
+          setCameraDialogOpen(false);
+        }}
+      />
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Activity, PlugZap, RefreshCw, ShieldCheck, Server, Globe, Database } from "lucide-react";
+import { ArrowLeft, Activity, Camera, Globe, PlugZap, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getApiErrorMessage } from "@/lib/http";
 import type { Site, Terminal } from "@/lib/types";
+
+import { TerminalSnapshotCard } from "./TerminalSnapshotCard";
 
 interface Props {
   terminal: Terminal;
@@ -120,14 +122,14 @@ export function TerminalDetailsClient({ terminal, site }: Props) {
       <div className="flex flex-wrap gap-2">
         <Button
           variant="secondary"
-          onClick={() => runAction("probe", `/api/terminals/${terminal.id}/probe`) }
+          onClick={() => runAction("probe", `/api/terminals/${terminal.id}/probe`)}
           disabled={busyAction !== null}>
           {busyAction === "probe" ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
           Probe Now
         </Button>
         <Button
           variant="outline"
-          onClick={() => runAction("activation", `/api/terminals/${terminal.id}/activate`) }
+          onClick={() => runAction("activation", `/api/terminals/${terminal.id}/activate`)}
           disabled={busyAction !== null}>
           {busyAction === "activation" ? (
             <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -149,7 +151,7 @@ export function TerminalDetailsClient({ terminal, site }: Props) {
         </Button>
         <Button
           variant="outline"
-          onClick={() => runAction("webhook-test", `/api/terminals/${terminal.id}/webhook-test`) }
+          onClick={() => runAction("webhook-test", `/api/terminals/${terminal.id}/webhook-test`)}
           disabled={busyAction !== null}>
           {busyAction === "webhook-test" ? (
             <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -159,6 +161,20 @@ export function TerminalDetailsClient({ terminal, site }: Props) {
           Test Webhook
         </Button>
       </div>
+
+      <TerminalSnapshotCard
+        terminal={terminal}
+        title="Camera Snapshot"
+        description={`Live snapshot feed proxied from the terminal's configured stream${terminal.snapshot_stream_id ? ` (${terminal.snapshot_stream_id})` : ""}.`}
+        actions={
+          <Button asChild variant="secondary">
+            <Link href={`/dashboard/guards?register=1&source_terminal=${terminal.id}`}>
+              <Camera className="mr-2 h-4 w-4" />
+              Register Guard From This Terminal
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>

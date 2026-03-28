@@ -12,6 +12,7 @@ const terminalUpdateSchema = z
     ip_address: z.string().optional(),
     username: z.string().optional(),
     password: z.string().optional(),
+    snapshot_stream_id: z.string().min(1).optional(),
     status: z.enum(["online", "offline", "error"]).optional(),
     activation_status: z.enum(["unknown", "activated", "not_activated", "error"]).optional(),
     last_seen: z.string().optional(),

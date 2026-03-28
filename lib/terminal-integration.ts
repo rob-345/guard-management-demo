@@ -31,6 +31,7 @@ function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4
 export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSnapshot> {
   const client = new HikvisionClient(terminal);
   const now = new Date().toISOString();
+  const snapshotStreamId = terminal.snapshot_stream_id || "1";
 
   const snapshot: TerminalProbeSnapshot = {
     status: "offline",
@@ -48,7 +49,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     snapshot.activation_status = "error";
   }
 
-  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, acsWorkStatus] =
+  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, snapshotCapabilities, acsWorkStatus] =
     await Promise.allSettled([
       client.getDeviceInfo(),
       client.getSystemCapabilities(),
@@ -58,6 +59,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
       client.getFaceRecognizeMode(),
       client.getSubscribeEventCapabilities(),
       client.getHttpHostCapabilities(),
+      client.getSnapshotCapabilities(snapshotStreamId),
       client.getAcsWorkStatus()
     ]);
 
@@ -77,7 +79,8 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     faceRecognizeMode: faceRecognizeMode.status === "fulfilled" ? faceRecognizeMode.value : undefined,
     subscribeEvent:
       subscribeEventCapabilities.status === "fulfilled" ? subscribeEventCapabilities.value : undefined,
-    httpHosts: httpHostCapabilities.status === "fulfilled" ? httpHostCapabilities.value : undefined
+    httpHosts: httpHostCapabilities.status === "fulfilled" ? httpHostCapabilities.value : undefined,
+    picture: snapshotCapabilities.status === "fulfilled" ? snapshotCapabilities.value : undefined
   };
 
   snapshot.capability_snapshot = capabilitySnapshot;

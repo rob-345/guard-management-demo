@@ -345,6 +345,21 @@ export class HikvisionClient {
     return this.parseJsonOrXml<Record<string, unknown>>(res, "HttpHostNotificationCap");
   }
 
+  async getSnapshotCapabilities(streamId = "1") {
+    const res = await this.send(`/ISAPI/Streaming/channels/${streamId}/picture/capabilities?format=json`);
+    return this.parseJsonOrXml<Record<string, unknown>>(res);
+  }
+
+  async getSnapshot(streamId = "1") {
+    const res = await this.send(`/ISAPI/Streaming/channels/${streamId}/picture`);
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return {
+      buffer,
+      contentType: res.headers.get("content-type") || "image/jpeg",
+      filename: `snapshot-${streamId}.jpg`
+    };
+  }
+
   async getAcsWorkStatus(): Promise<HikvisionAcsWorkStatus> {
     const res = await this.send("/ISAPI/AccessControl/AcsWorkStatus?format=json");
     const payload = await res.json();

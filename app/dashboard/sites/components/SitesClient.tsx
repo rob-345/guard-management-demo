@@ -69,6 +69,7 @@ export function SitesClient({ sites }: Props) {
     () => sites.find((site) => site.id === selectedSiteId) || null,
     [selectedSiteId, sites]
   );
+  const dialogOpen = createOpen || Boolean(editSite) || Boolean(deleteSite);
 
   async function handleDelete() {
     if (!deleteSite) return;
@@ -127,11 +128,22 @@ export function SitesClient({ sites }: Props) {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <SitesMap
-              sites={sites}
-              selectedSiteId={selectedSiteId}
-              onSelectSite={(site) => setSelectedSiteId(site.id)}
-            />
+            {dialogOpen ? (
+              <div className="flex h-[420px] items-center justify-center bg-muted/20 px-6 text-center">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Map temporarily hidden</p>
+                  <p className="text-xs text-muted-foreground">
+                    The site editor is open, so the background map is paused to keep the modal clear.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <SitesMap
+                sites={sites}
+                selectedSiteId={selectedSiteId}
+                onSelectSite={(site) => setSelectedSiteId(site.id)}
+              />
+            )}
           </CardContent>
         </Card>
 

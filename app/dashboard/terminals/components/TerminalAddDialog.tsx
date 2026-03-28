@@ -36,7 +36,8 @@ const terminalSchema = z.object({
   ip_address: z.string().min(1, "IP address is required"),
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
-  site_id: z.string().min(1, "Choose a site")
+  site_id: z.string().min(1, "Choose a site"),
+  snapshot_stream_id: z.string().min(1)
 });
 
 type TerminalFormValues = z.infer<typeof terminalSchema>;
@@ -58,7 +59,8 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
       ip_address: "",
       username: "",
       password: "",
-      site_id: sites[0]?.id || ""
+      site_id: sites[0]?.id || "",
+      snapshot_stream_id: "1"
     }
   });
 
@@ -69,7 +71,8 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
       ip_address: "",
       username: "",
       password: "",
-      site_id: sites[0]?.id || ""
+      site_id: sites[0]?.id || "",
+      snapshot_stream_id: "1"
     });
   }, [open, sites, form]);
 
@@ -188,6 +191,23 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
                   <FormControl>
                     <Input type="password" placeholder="Device password" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="snapshot_stream_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Snapshot Stream ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="1" {...field} />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Hikvision Value Series devices typically expose the camera snapshot on stream 1.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

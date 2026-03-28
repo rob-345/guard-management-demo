@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,8 @@ const statusColor: Record<string, string> = {
 interface Props {
   guards: Guard[];
   terminals: Terminal[];
+  initialCreateOpen?: boolean;
+  initialCameraTerminalId?: string | null;
 }
 
 function guardPhotoSrc(guard: Guard) {
@@ -49,13 +51,24 @@ function guardPhotoSrc(guard: Guard) {
   return guard.photo_url || undefined;
 }
 
-export function GuardsClient({ guards, terminals }: Props) {
+export function GuardsClient({
+  guards,
+  terminals,
+  initialCreateOpen = false,
+  initialCameraTerminalId = null
+}: Props) {
   const router = useRouter();
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [editGuard, setEditGuard] = useState<Guard | null>(null);
   const [syncGuard, setSyncGuard] = useState<Guard | null>(null);
   const [deleteGuard, setDeleteGuard] = useState<Guard | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (initialCreateOpen) {
+      setCreateOpen(true);
+    }
+  }, [initialCreateOpen]);
 
   async function handleDelete() {
     if (!deleteGuard) return;
@@ -184,6 +197,8 @@ export function GuardsClient({ guards, terminals }: Props) {
         }}
         guard={editGuard}
         mode={editGuard ? "edit" : "create"}
+        terminals={terminals}
+        initialCameraTerminalId={initialCameraTerminalId}
       />
 
       <GuardFaceSyncDialog
