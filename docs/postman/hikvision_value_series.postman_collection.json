@@ -1,0 +1,459 @@
+{
+  "info": {
+    "_postman_id": "d0c9c1d8-1c1c-4c5e-8a52-0f4b2f9f6b91",
+    "name": "Hikvision Value Series ISAPI",
+    "description": "Read-only and write request pack for Hikvision Value Series terminals. The default host is 192.168.0.179. Digest auth is configured at the collection level. Wi-Fi checks are intentionally excluded. Activation requests are included as manual references because the challenge flow requires a client-generated RSA/AES payload.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "digest",
+    "digest": [
+      {
+        "key": "username",
+        "value": "{{username}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{password}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 Discovery",
+      "item": [
+        {
+          "name": "System deviceInfo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/System/deviceInfo"
+          }
+        },
+        {
+          "name": "System capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/System/capabilities"
+          }
+        },
+        {
+          "name": "AccessControl capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/capabilities"
+          }
+        },
+        {
+          "name": "AcsWorkStatus capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/AcsWorkStatus/capabilities?format=json"
+          }
+        },
+        {
+          "name": "AcsEvent capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/AcsEvent/capabilities?format=json"
+          }
+        },
+        {
+          "name": "UserInfo capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/UserInfo/capabilities?format=json"
+          }
+        },
+        {
+          "name": "CardInfo capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/CardInfo/capabilities?format=json"
+          }
+        },
+        {
+          "name": "FDLib capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Intelligent/FDLib/capabilities?format=json"
+          }
+        },
+        {
+          "name": "FDLib list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Intelligent/FDLib?format=json"
+          }
+        },
+        {
+          "name": "FaceRecognizeMode capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/FaceRecognizeMode/capabilities?format=json"
+          }
+        },
+        {
+          "name": "FaceRecognizeMode current",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/FaceRecognizeMode?format=json"
+          }
+        },
+        {
+          "name": "SubscribeEvent capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/subscribeEventCap"
+          }
+        },
+        {
+          "name": "HttpHosts capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/httpHosts/capabilities"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 Status & Events",
+      "item": [
+        {
+          "name": "AcsWorkStatus",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/AcsWorkStatus?format=json"
+          }
+        },
+        {
+          "name": "AcsEvent POST search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"AcsEventCond\": {\n    \"searchID\": \"{{event_search_id}}\",\n    \"searchResultPosition\": {{event_search_position}},\n    \"maxResults\": {{event_max_results}},\n    \"major\": {{event_major}},\n    \"minor\": {{event_minor}}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/AccessControl/AcsEvent?format=json"
+          }
+        },
+        {
+          "name": "AcsEvent GET fallback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/AcsEvent?searchResultPosition=0&maxResults=20"
+          }
+        },
+        {
+          "name": "Alert stream",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/alertStream"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Anti-Tamper",
+      "item": [
+        {
+          "name": "DoorSecurityModule capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/DoorSecurityModule/moduleStatus/capabilities"
+          }
+        },
+        {
+          "name": "DoorSecurityModule status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/AccessControl/DoorSecurityModule/moduleStatus"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Snapshot",
+      "item": [
+        {
+          "name": "Snapshot capabilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Streaming/channels/{{track_stream_id}}/picture/capabilities?format=json"
+          }
+        },
+        {
+          "name": "Snapshot probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Streaming/channels/{{track_stream_id}}/picture"
+          }
+        }
+      ]
+    },
+    {
+      "name": "90 Enrollment & Push",
+      "item": [
+        {
+          "name": "UserInfo SetUp",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"UserInfo\": {\n    \"employeeNo\": \"{{employee_no}}\",\n    \"userType\": \"normal\",\n    \"name\": \"{{person_name}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/AccessControl/UserInfo/SetUp?format=json"
+          }
+        },
+        {
+          "name": "Face picture upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "FDID",
+                  "value": "{{fdid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "employeeNo",
+                  "value": "{{employee_no}}",
+                  "type": "text"
+                },
+                {
+                  "key": "name",
+                  "value": "{{person_name}}",
+                  "type": "text"
+                },
+                {
+                  "key": "faceURL",
+                  "value": "{{face_url}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": "http://{{device_host}}/ISAPI/Intelligent/FDLib/pictureUpload"
+          }
+        },
+        {
+          "name": "FaceDataRecord fallback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<FaceDataRecord>\n  <employeeNo>{{employee_no}}</employeeNo>\n  <name>{{person_name}}</name>\n  <faceData>\n    <faceURL>{{face_url}}</faceURL>\n  </faceData>\n</FaceDataRecord>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/Intelligent/FDLib/FaceDataRecord"
+          }
+        },
+        {
+          "name": "FaceRecognizeMode set",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"FaceRecognizeMode\": {\n    \"mode\": \"{{face_mode}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/AccessControl/FaceRecognizeMode?format=json"
+          }
+        },
+        {
+          "name": "SubscribeEvent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<SubscribeEvent version=\"2.0\">\n  <eventMode>all</eventMode>\n  <channelMode>all</channelMode>\n</SubscribeEvent>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/Event/notification/subscribeEvent"
+          }
+        },
+        {
+          "name": "UnsubscribeEvent",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/unSubscribeEvent?ID={{subscribe_event_id}}"
+          }
+        },
+        {
+          "name": "HttpHosts inspect",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/httpHosts?security={{security}}&iv={{iv}}"
+          }
+        },
+        {
+          "name": "HttpHosts set",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HttpHostNotification\": {\n    \"id\": \"{{host_id}}\",\n    \"url\": \"{{event_push_url}}\",\n    \"protocolType\": \"HTTP\",\n    \"parameterFormatType\": \"JSON\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/Event/notification/httpHosts?security={{security}}&iv={{iv}}"
+          }
+        },
+        {
+          "name": "HttpHosts host inspect",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/httpHosts/{{host_id}}?security={{security}}&iv={{iv}}"
+          }
+        },
+        {
+          "name": "HttpHosts test",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/httpHosts/{{host_id}}/test"
+          }
+        },
+        {
+          "name": "HttpHosts uploadCtrl",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://{{device_host}}/ISAPI/Event/notification/httpHosts/{{host_id}}/uploadCtrl"
+          }
+        },
+        {
+          "name": "Security challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<PublicKey xmlns=\"http://www.isapi.org/ver20/XMLSchema\" version=\"2.0\">\n  <key>{{challenge_modulus_b64}}</key>\n</PublicKey>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/Security/challenge"
+          }
+        },
+        {
+          "name": "System activate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/xml"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<ActivateInfo xmlns=\"http://www.isapi.org/ver20/XMLSchema\" version=\"2.0\">\n  <password>{{activation_password_payload}}</password>\n</ActivateInfo>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://{{device_host}}/ISAPI/System/activate"
+          }
+        }
+      ]
+    }
+  ]
+}
