@@ -60,7 +60,7 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
       username: "",
       password: "",
       site_id: sites[0]?.id || "",
-      snapshot_stream_id: "1"
+      snapshot_stream_id: "101"
     }
   });
 
@@ -72,7 +72,7 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
       username: "",
       password: "",
       site_id: sites[0]?.id || "",
-      snapshot_stream_id: "1"
+      snapshot_stream_id: "101"
     });
   }, [open, sites, form]);
 
@@ -196,17 +196,17 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="snapshot_stream_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Snapshot Stream ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="1" {...field} />
-                  </FormControl>
+              <FormField
+                control={form.control}
+                name="snapshot_stream_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Snapshot Stream ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="101" {...field} />
+                    </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Hikvision Value Series devices typically expose the camera snapshot on stream 1.
+                    Hikvision Value Series terminals often expose the camera snapshot on stream 101.
                   </p>
                   <FormMessage />
                 </FormItem>

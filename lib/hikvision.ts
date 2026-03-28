@@ -345,12 +345,12 @@ export class HikvisionClient {
     return this.parseJsonOrXml<Record<string, unknown>>(res, "HttpHostNotificationCap");
   }
 
-  async getSnapshotCapabilities(streamId = "1") {
+  async getSnapshotCapabilities(streamId = "101") {
     const res = await this.send(`/ISAPI/Streaming/channels/${streamId}/picture/capabilities?format=json`);
     return this.parseJsonOrXml<Record<string, unknown>>(res);
   }
 
-  async getSnapshot(streamId = "1") {
+  async getSnapshot(streamId = "101") {
     const res = await this.send(`/ISAPI/Streaming/channels/${streamId}/picture`);
     const buffer = Buffer.from(await res.arrayBuffer());
     return {

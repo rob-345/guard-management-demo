@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       ip_address,
       username,
       password,
-      snapshot_stream_id: snapshot_stream_id || "1",
+      snapshot_stream_id: snapshot_stream_id || "101",
       site_id,
       status: "offline",
       activation_status: "unknown",

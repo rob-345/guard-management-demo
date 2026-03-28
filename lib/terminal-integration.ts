@@ -31,7 +31,7 @@ function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4
 export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSnapshot> {
   const client = new HikvisionClient(terminal);
   const now = new Date().toISOString();
-  const snapshotStreamId = terminal.snapshot_stream_id || "1";
+  const snapshotStreamId = terminal.snapshot_stream_id || "101";
 
   const snapshot: TerminalProbeSnapshot = {
     status: "offline",

@@ -19,8 +19,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const client = new HikvisionClient(terminal);
-    const capabilities = await client.getSnapshotCapabilities(terminal.snapshot_stream_id || "1");
-    return NextResponse.json(capabilities);
+    const streamCandidates = Array.from(
+      new Set(
+        [terminal.snapshot_stream_id, "101", "1"].filter(
+          (value): value is string => typeof value === "string" && value.length > 0
+        )
+      )
+    );
+
+    for (const streamId of streamCandidates) {
+      try {
+        const capabilities = await client.getSnapshotCapabilities(streamId);
+        return NextResponse.json(capabilities);
+      } catch {
+        // Try the next likely stream id.
+      }
+    }
+
+    return NextResponse.json({ error: "Failed to load snapshot capabilities" }, { status: 500 });
   } catch (error) {
     return NextResponse.json(
       {

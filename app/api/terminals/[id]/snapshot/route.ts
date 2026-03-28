@@ -19,18 +19,35 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const client = new HikvisionClient(terminal);
-    const snapshot = await client.getSnapshot(terminal.snapshot_stream_id || "1");
+    const streamCandidates = Array.from(
+      new Set(
+        [terminal.snapshot_stream_id, "101", "1"].filter(
+          (value): value is string => typeof value === "string" && value.length > 0
+        )
+      )
+    );
 
-    return new NextResponse(snapshot.buffer, {
-      status: 200,
-      headers: {
-        "Content-Type": snapshot.contentType,
-        "Cache-Control": "no-store, max-age=0",
-        Pragma: "no-cache",
-        Expires: "0",
-        "Content-Disposition": `inline; filename="${snapshot.filename}"`
+    let lastError: unknown = null;
+    for (const streamId of streamCandidates) {
+      try {
+        const snapshot = await client.getSnapshot(streamId);
+
+        return new NextResponse(snapshot.buffer, {
+          status: 200,
+          headers: {
+            "Content-Type": snapshot.contentType,
+            "Cache-Control": "no-store, max-age=0",
+            Pragma: "no-cache",
+            Expires: "0",
+            "Content-Disposition": `inline; filename="${snapshot.filename}"`
+          }
+        });
+      } catch (error) {
+        lastError = error;
       }
-    });
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("Failed to load terminal snapshot");
   } catch (error) {
     return NextResponse.json(
       {
