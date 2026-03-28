@@ -75,7 +75,7 @@ type NavGroup = {
 type NavItem = {
   title: string;
   href: string;
-  icon?: LucideIcon;
+  icon?: any;
   isComing?: boolean;
   isDataBadge?: string;
   isNew?: boolean;

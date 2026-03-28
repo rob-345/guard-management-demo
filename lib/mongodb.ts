@@ -32,7 +32,7 @@ async function bootstrapAdmin(db: Db) {
       is_active: true,
       created_at: now,
       updated_at: now
-    });
+    } as any);
     
     await userProfiles.insertOne({
       _id: userId,
@@ -41,7 +41,7 @@ async function bootstrapAdmin(db: Db) {
       last_name: process.env.ADMIN_LAST_NAME || "Administrator",
       created_at: now,
       updated_at: now
-    });
+    } as any);
   }
   
   isBootstrapped = true;
@@ -65,5 +65,5 @@ export async function connectToDatabase() {
 
 export async function getCollection<T = any>(name: string) {
   const { db } = await connectToDatabase();
-  return db.collection<T>(name);
+  return db.collection<T | any>(name);
 }

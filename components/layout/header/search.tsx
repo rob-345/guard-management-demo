@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { CommandIcon, SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+
 import { useRouter } from "next/navigation";
 
 import {
@@ -55,11 +55,9 @@ export default function Search() {
         </Button>
       </div>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <VisuallyHidden>
-          <DialogHeader>
-            <DialogTitle></DialogTitle>
-          </DialogHeader>
-        </VisuallyHidden>
+        <DialogHeader className="sr-only">
+          <DialogTitle>Search Commands</DialogTitle>
+        </DialogHeader>
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       updated_at: now
     };
 
-    await guards.insertOne({ ...guard, _id: guard.id });
+    await guards.insertOne({ ...guard, _id: guard.id } as any);
 
     return NextResponse.json(guard, { status: 201 });
   } catch (error) {

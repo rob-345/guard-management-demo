@@ -31,14 +31,14 @@ async function seed() {
       { id: uuidv4(), name: "Afternoon Shift", start_time: "14:00", end_time: "22:00", created_at: now },
       { id: uuidv4(), name: "Night Shift", start_time: "22:00", end_time: "06:00", created_at: now }
     ];
-    await db.collection("shifts").insertMany(shiftData.map(s => ({ ...s, _id: s.id })));
+    await db.collection("shifts").insertMany(shiftData.map(s => ({ ...s, _id: s.id } as any)));
 
     // 3. Insert Sites
     const siteData = [
       { id: uuidv4(), name: "Harare Main Office", address: "123 Samora Machel Ave, Harare", region: "Harare Central", created_at: now },
       { id: uuidv4(), name: "Bulawayo Depot", address: "45 Fife St, Bulawayo", region: "Bulawayo Metro", created_at: now }
     ];
-    await db.collection("sites").insertMany(siteData.map(s => ({ ...s, _id: s.id })));
+    await db.collection("sites").insertMany(siteData.map(s => ({ ...s, _id: s.id } as any)));
 
     // 4. Insert Guards
     const guardData = [
@@ -65,7 +65,7 @@ async function seed() {
         updated_at: now
       }
     ];
-    await db.collection("guards").insertMany(guardData.map(g => ({ ...g, _id: g.id })));
+    await db.collection("guards").insertMany(guardData.map(g => ({ ...g, _id: g.id } as any)));
 
     // 5. Insert Terminals
     const terminalData = [
@@ -80,7 +80,7 @@ async function seed() {
         created_at: now
       }
     ];
-    await db.collection("terminals").insertMany(terminalData.map(t => ({ ...t, _id: t.id })));
+    await db.collection("terminals").insertMany(terminalData.map(t => ({ ...t, _id: t.id } as any)));
 
     console.log("Seeding complete!");
   } finally {

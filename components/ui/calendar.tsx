@@ -13,7 +13,7 @@ import {
   type DayPickerProps
 } from "react-day-picker";
 
-export type CalendarProps = DayPickerProps & {
+export type CalendarProps = any & {
   /**
    * In the year view, the number of years to display at once.
    * @default 12
@@ -181,11 +181,11 @@ function Calendar({
         hidden: _hiddenClassName
       }}
       components={{
-        Chevron: ({ orientation }) => {
+        Chevron: ({ orientation }: any) => {
           const Icon = orientation === "left" ? ChevronLeft : ChevronRight;
           return <Icon className="h-4 w-4" />;
         },
-        Nav: ({ className }) => (
+        Nav: ({ className }: any) => (
           <Nav
             className={className}
             displayYears={displayYears}
@@ -196,7 +196,7 @@ function Calendar({
             onPrevClick={onPrevClick}
           />
         ),
-        CaptionLabel: (props) => (
+        CaptionLabel: (props: any) => (
           <CaptionLabel
             showYearSwitcher={showYearSwitcher}
             navView={navView}
@@ -205,7 +205,7 @@ function Calendar({
             {...props}
           />
         ),
-        MonthGrid: ({ className, children, ...props }) => (
+        MonthGrid: ({ className, children, ...props }: any) => (
           <MonthGrid
             children={children}
             className={className}

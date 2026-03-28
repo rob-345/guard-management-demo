@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       created_at: now
     };
 
-    await shifts.insertOne({ ...shift, _id: shift.id });
+    await shifts.insertOne({ ...shift, _id: shift.id } as any);
 
     return NextResponse.json(shift, { status: 201 });
   } catch (error) {

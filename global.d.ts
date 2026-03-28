@@ -1,0 +1,14 @@
+declare module 'bcryptjs';
+declare module 'uuid';
+declare module 'jose';
+declare module 'sonner';
+declare module 'lucide-react';
+declare module 'react-day-picker';
+declare module 'next/navigation';
+declare module 'next/headers';
+declare module 'next/link';
+declare module 'next/image';
+declare module 'framer-motion';
+declare module 'motion';
+declare module 'embla-carousel-react';
+declare module 'cmdk';

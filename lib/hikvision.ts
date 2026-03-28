@@ -13,7 +13,7 @@ export class HikvisionClient {
     this.baseUrl = `http://${terminal.ip_address}`;
     // Simplified: Using Basic Auth for now. Hikvision often requires Digest.
     // In a real demo, we'd implement a proper Digest provider.
-    const credentials = Buffer.from(`${terminal.username}:${terminal.password}`).toString("base64");
+    const credentials = btoa(`${terminal.username}:${terminal.password}`);
     this.authHeader = `Basic ${credentials}`;
   }
 

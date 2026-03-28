@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       created_at: now
     };
 
-    await sites.insertOne({ ...site, _id: site.id });
+    await sites.insertOne({ ...site, _id: site.id } as any);
 
     return NextResponse.json(site, { status: 201 });
   } catch (error) {
