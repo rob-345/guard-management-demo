@@ -58,7 +58,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="admin@westec.co.zw"
                 value={email}
-                onChange={(e) => setEmail(e.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -68,7 +68,7 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
