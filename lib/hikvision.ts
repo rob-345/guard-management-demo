@@ -29,6 +29,44 @@ function escapeXml(value: string) {
     .replaceAll("'", "&apos;");
 }
 
+function uniqueStrings(values: string[]) {
+  return [...new Set(values.filter((value) => value.trim().length > 0))];
+}
+
+function buildEmployeeNoCandidates(employeeNo: string) {
+  const normalized = employeeNo.trim();
+  const compact = normalized.replace(/[^A-Za-z0-9]/g, "");
+  const hash = createHash("sha1").update(normalized || "guard-face").digest("hex");
+  const hexFallback = `g${hash.slice(0, 31)}`;
+  const numericFallback = Number.parseInt(hash.slice(0, 12), 16).toString();
+
+  return uniqueStrings([normalized, compact, hexFallback, numericFallback].filter((value) => value.length <= 32));
+}
+
+function buildHttpHostNotificationXml(notification: HikvisionHttpHostNotification) {
+  const fields: Array<[string, string | number | boolean | undefined]> = [
+    ["id", notification.id],
+    ["url", notification.url],
+    ["protocolType", notification.protocolType],
+    ["parameterFormatType", notification.parameterFormatType],
+    ["addressingFormatType", notification.addressingFormatType],
+    ["hostName", notification.hostName],
+    ["ipAddress", notification.ipAddress],
+    ["portNo", notification.portNo],
+    ["userName", notification.userName],
+    ["password", notification.password],
+    ["httpAuthenticationMethod", notification.httpAuthenticationMethod],
+    ["checkResponseEnabled", notification.checkResponseEnabled]
+  ];
+
+  const body = fields
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([tag, value]) => `  <${tag}>${escapeXml(String(value))}</${tag}>`)
+    .join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<HttpHostNotification xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">\n${body}\n</HttpHostNotification>`;
+}
+
 function parseDigestChallenge(header: string): DigestChallenge | null {
   const value = header.replace(/^Digest\s+/i, "");
   const challenge: Partial<DigestChallenge> = {};
@@ -178,6 +216,10 @@ export type HikvisionFaceRegistration = {
   filename?: string;
   mimeType?: string;
   fdid?: string;
+};
+
+export type HikvisionFaceRegistrationResult = {
+  employeeNo: string;
 };
 
 export type HikvisionFaceDeleteTarget = {
@@ -396,58 +438,108 @@ export class HikvisionClient {
     };
   }
 
-  async configureHttpHost(hostNotification: HikvisionHttpHostNotification, security?: string, iv?: string) {
+  async configureHttpHost(
+    hostId: string,
+    hostNotification: HikvisionHttpHostNotification,
+    security?: string,
+    iv?: string
+  ) {
     const query = new URLSearchParams();
     if (security) query.set("security", security);
     if (iv) query.set("iv", iv);
 
     const suffix = query.toString() ? `?${query.toString()}` : "";
-    const res = await this.send(`/ISAPI/Event/notification/httpHosts${suffix}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        HttpHostNotification: hostNotification
-      })
+    const xml = buildHttpHostNotificationXml({
+      ...hostNotification,
+      id: hostId,
+      checkResponseEnabled: hostNotification.checkResponseEnabled ?? true
     });
 
-    return this.parseJsonOrXml<Record<string, unknown>>(res, "HttpHostNotification");
+    try {
+      const putRes = await this.send(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}${suffix}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/xml; charset=UTF-8"
+        },
+        body: xml
+      });
+
+      return this.parseJsonOrXml<Record<string, unknown>>(putRes, "HttpHostNotification");
+    } catch {
+      const postRes = await this.send(`/ISAPI/Event/notification/httpHosts${suffix}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/xml; charset=UTF-8"
+        },
+        body: xml
+      });
+
+      return this.parseJsonOrXml<Record<string, unknown>>(postRes, "HttpHostNotification");
+    }
   }
 
   async testHttpHost(hostId: string) {
-    const res = await this.send(`/ISAPI/Event/notification/httpHosts/${hostId}/test`, {
-      method: "POST"
-    });
+    const res = await this.send(`/ISAPI/Event/notification/httpHosts/${hostId}/test`);
     return res.text();
   }
 
-  async registerFace(registration: HikvisionFaceRegistration) {
-    const employeeNo = registration.employeeNo.trim();
+  async registerFace(registration: HikvisionFaceRegistration): Promise<HikvisionFaceRegistrationResult> {
+    const employeeNoCandidates = buildEmployeeNoCandidates(registration.employeeNo);
     const name = registration.name.trim();
     const fdid = registration.fdid || "1";
-    const filename = registration.filename || `${employeeNo || "face"}.jpg`;
+    const filename = registration.filename || `${employeeNoCandidates[0] || "face"}.jpg`;
     const mimeType = registration.mimeType || "image/jpeg";
     const imageBuffer =
       registration.image instanceof ArrayBuffer
         ? Buffer.from(registration.image)
         : Buffer.from(registration.image);
 
-    await this.send("/ISAPI/AccessControl/UserInfo/SetUp?format=json", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    const applyEndpoints: Array<{ path: string; method: "PUT" | "POST" }> = [
+      { path: "/ISAPI/AccessControl/UserInfo/SetUp?format=json", method: "PUT" },
+      { path: "/ISAPI/AccessControl/UserInfo/Record?format=json", method: "POST" }
+    ];
+
+    const applyBody = (employeeNo: string) =>
+      JSON.stringify({
         UserInfo: {
           employeeNo,
           userType: "normal",
           name
         }
-      })
-    });
+      });
 
-    const uploadMeta = `<?xml version="1.0" encoding="UTF-8"?><PictureUploadData><FDID>${escapeXml(fdid)}</FDID><employeeNo>${escapeXml(employeeNo)}</employeeNo><name>${escapeXml(name)}</name></PictureUploadData>`;
+    let employeeNoUsed: string | null = null;
+    let lastApplyError: unknown = null;
+
+    for (const candidate of employeeNoCandidates) {
+      for (const endpoint of applyEndpoints) {
+        try {
+          await this.send(endpoint.path, {
+            method: endpoint.method,
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8"
+            },
+            body: applyBody(candidate)
+          });
+          employeeNoUsed = candidate;
+          break;
+        } catch (error) {
+          lastApplyError = error;
+        }
+      }
+
+      if (employeeNoUsed) {
+        break;
+      }
+    }
+
+    if (!employeeNoUsed) {
+      throw lastApplyError instanceof Error
+        ? lastApplyError
+        : new Error("Failed to apply Hikvision user information");
+    }
+
+    const uploadMeta = `<?xml version="1.0" encoding="UTF-8"?><PictureUploadData><FDID>${escapeXml(fdid)}</FDID><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name></PictureUploadData>`;
     const formData = new FormData();
     formData.append(
       "PictureUploadData",
@@ -467,7 +559,7 @@ export class HikvisionClient {
       });
     } catch (uploadError) {
       // Some firmware builds accept the legacy record payload instead of pictureUpload.
-      const legacyBody = `<FaceDataRecord><employeeNo>${escapeXml(employeeNo)}</employeeNo><name>${escapeXml(name)}</name><faceData><faceURL>${escapeXml(registration.filename || "")}</faceURL></faceData></FaceDataRecord>`;
+      const legacyBody = `<FaceDataRecord><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name><faceData><faceURL>${escapeXml(registration.filename || "")}</faceURL></faceData></FaceDataRecord>`;
       await this.send("/ISAPI/Intelligent/FDLib/FaceDataRecord", {
         method: "POST",
         headers: {
@@ -479,7 +571,7 @@ export class HikvisionClient {
       });
     }
 
-    return true;
+    return { employeeNo: employeeNoUsed };
   }
 
   async deleteFace(employeeNo: string) {

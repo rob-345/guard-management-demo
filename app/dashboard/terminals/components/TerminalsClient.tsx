@@ -6,8 +6,33 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Server, Zap, Loader2, ArrowRight, Plus } from "lucide-react";
+import {
+  Server,
+  Zap,
+  Loader2,
+  ArrowRight,
+  Plus,
+  MoreHorizontal,
+  PencilLine,
+  Trash2
+} from "lucide-react";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 import { getApiErrorMessage } from "@/lib/http";
 import type { Site, Terminal } from "@/lib/types";
@@ -35,6 +60,9 @@ function terminalSubtitle(terminal: Terminal, siteName?: string) {
 export function TerminalsClient({ terminals, sites }: Props) {
   const router = useRouter();
   const [registerOpen, setRegisterOpen] = useState(false);
+  const [editTerminal, setEditTerminal] = useState<Terminal | null>(null);
+  const [deleteTerminal, setDeleteTerminal] = useState<Terminal | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [activating, setActivating] = useState<string | null>(null);
   const siteMap = new Map(sites.map((site) => [site.id, site.name]));
 
@@ -53,6 +81,29 @@ export function TerminalsClient({ terminals, sites }: Props) {
       toast.error(`Activation check failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setActivating(null);
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTerminal) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/terminals/${deleteTerminal.id}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) {
+        throw new Error(await getApiErrorMessage(res, "Failed to delete terminal"));
+      }
+
+      toast.success("Terminal deleted successfully");
+      setDeleteTerminal(null);
+      router.refresh();
+    } catch (error) {
+      toast.error(`Failed to delete terminal: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -152,6 +203,30 @@ export function TerminalsClient({ terminals, sites }: Props) {
                         Check Activation
                       </Button>
                     )}
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" aria-label={`${terminal.name} actions`}>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setRegisterOpen(false);
+                            setEditTerminal(terminal);
+                          }}>
+                          <PencilLine className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onSelect={() => setDeleteTerminal(terminal)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>
@@ -160,7 +235,35 @@ export function TerminalsClient({ terminals, sites }: Props) {
         </div>
       </div>
 
-      <TerminalAddDialog open={registerOpen} onOpenChange={setRegisterOpen} sites={sites} />
+      <TerminalAddDialog
+        open={registerOpen || Boolean(editTerminal)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRegisterOpen(false);
+            setEditTerminal(null);
+          }
+        }}
+        sites={sites}
+        terminal={editTerminal}
+        mode={editTerminal ? "edit" : "create"}
+      />
+
+      <AlertDialog open={Boolean(deleteTerminal)} onOpenChange={(open) => !open && setDeleteTerminal(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete terminal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the terminal record and clean up any face enrollment records linked to it. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

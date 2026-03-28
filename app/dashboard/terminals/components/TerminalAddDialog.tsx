@@ -29,73 +29,96 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { getApiErrorMessage } from "@/lib/http";
-import type { Site } from "@/lib/types";
+import type { Site, Terminal } from "@/lib/types";
 
-const terminalSchema = z.object({
+const terminalFormSchema = z.object({
   name: z.string().min(1, "Terminal name is required"),
   ip_address: z.string().min(1, "IP address is required"),
   username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().optional().or(z.literal("")),
   site_id: z.string().min(1, "Choose a site"),
-  snapshot_stream_id: z.string().min(1)
+  snapshot_stream_id: z.string().min(1, "Snapshot stream ID is required")
 });
 
-type TerminalFormValues = z.infer<typeof terminalSchema>;
+type TerminalFormValues = z.infer<typeof terminalFormSchema>;
+type TerminalFormMode = "create" | "edit";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sites: Site[];
+  terminal?: Terminal | null;
+  mode?: TerminalFormMode;
 }
 
-export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
+function buildDefaultValues(sites: Site[], terminal: Terminal | null, mode: TerminalFormMode): TerminalFormValues {
+  return {
+    name: terminal?.name || "",
+    ip_address: terminal?.ip_address || "",
+    username: terminal?.username || "",
+    password: mode === "edit" ? "" : "",
+    site_id: terminal?.site_id || sites[0]?.id || "",
+    snapshot_stream_id: terminal?.snapshot_stream_id || "101"
+  };
+}
+
+export function TerminalAddDialog({
+  open,
+  onOpenChange,
+  sites,
+  terminal = null,
+  mode = "create"
+}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const isEditMode = mode === "edit" && Boolean(terminal);
 
   const form = useForm<TerminalFormValues>({
-    resolver: zodResolver(terminalSchema),
-    defaultValues: {
-      name: "",
-      ip_address: "",
-      username: "",
-      password: "",
-      site_id: sites[0]?.id || "",
-      snapshot_stream_id: "101"
-    }
+    resolver: zodResolver(terminalFormSchema),
+    defaultValues: buildDefaultValues(sites, terminal, mode)
   });
 
   useEffect(() => {
     if (!open) return;
-    form.reset({
-      name: "",
-      ip_address: "",
-      username: "",
-      password: "",
-      site_id: sites[0]?.id || "",
-      snapshot_stream_id: "101"
-    });
-  }, [open, sites, form]);
+    form.reset(buildDefaultValues(sites, terminal, mode));
+  }, [open, sites, terminal, mode, form]);
 
   async function onSubmit(values: TerminalFormValues) {
     setLoading(true);
     try {
-      const res = await fetch("/api/terminals", {
-        method: "POST",
+      const password = values.password?.trim();
+      if (!isEditMode && !password) {
+        throw new Error("Password is required");
+      }
+
+      const payload: Record<string, unknown> = {
+        name: values.name.trim(),
+        ip_address: values.ip_address.trim(),
+        username: values.username.trim(),
+        site_id: values.site_id.trim(),
+        snapshot_stream_id: values.snapshot_stream_id.trim()
+      };
+
+      if (!isEditMode || password) {
+        payload.password = password;
+      }
+
+      const endpoint = isEditMode && terminal ? `/api/terminals/${terminal.id}` : "/api/terminals";
+      const res = await fetch(endpoint, {
+        method: isEditMode ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
+        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
-        throw new Error(await getApiErrorMessage(res, "Failed to register terminal"));
+        throw new Error(await getApiErrorMessage(res, "Failed to save terminal"));
       }
 
-      toast.success("Terminal registered successfully");
+      toast.success(isEditMode ? "Terminal updated successfully" : "Terminal registered successfully");
       onOpenChange(false);
       router.refresh();
     } catch (error) {
-      toast.error(
-        `Failed to register terminal: ${error instanceof Error ? error.message : String(error)}`
-      );
+      toast.error(`Failed to save terminal: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -105,9 +128,11 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Register Terminal</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Terminal" : "Register Terminal"}</DialogTitle>
           <DialogDescription>
-            Add a facial-recognition terminal, then probe its current state immediately.
+            {isEditMode
+              ? "Update the terminal connection settings and refresh the latest probe snapshot."
+              : "Add a facial-recognition terminal, then probe its current state immediately."}
           </DialogDescription>
         </DialogHeader>
 
@@ -189,22 +214,31 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Device password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder={isEditMode ? "Leave blank to keep the current password" : "Device password"}
+                      {...field}
+                    />
                   </FormControl>
+                  {isEditMode ? (
+                    <p className="text-xs text-muted-foreground">
+                      Leave this blank if you do not want to change the stored device password.
+                    </p>
+                  ) : null}
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-              <FormField
-                control={form.control}
-                name="snapshot_stream_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Snapshot Stream ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="101" {...field} />
-                    </FormControl>
+            <FormField
+              control={form.control}
+              name="snapshot_stream_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Snapshot Stream ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="101" {...field} />
+                  </FormControl>
                   <p className="text-xs text-muted-foreground">
                     Hikvision Value Series terminals often expose the camera snapshot on stream 101.
                   </p>
@@ -217,9 +251,9 @@ export function TerminalAddDialog({ open, onOpenChange, sites }: Props) {
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading || sites.length === 0}>
+              <Button type="submit" disabled={loading || (!isEditMode && sites.length === 0)}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Register Terminal
+                {isEditMode ? "Save Changes" : "Register Terminal"}
               </Button>
             </DialogFooter>
           </form>

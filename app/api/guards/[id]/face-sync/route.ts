@@ -4,6 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import type { Collection } from "mongodb";
 
 import { requireSession } from "@/lib/api-route";
+import {
+  resolveGuardFaceEnrollmentEmployeeNo,
+  summarizeGuardFaceEnrollments
+} from "@/lib/guard-face";
 import { loadGuardPhoto } from "@/lib/guard-media";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
@@ -66,10 +70,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }> = [];
 
   for (const terminal of terminalDocs) {
+    const existingEnrollment = await enrollments.findOne({
+      guard_id: guard.id,
+      terminal_id: terminal.id
+    });
+    const enrollmentEmployeeNo = resolveGuardFaceEnrollmentEmployeeNo(guard, existingEnrollment);
+
     const enrollmentBase: GuardFaceEnrollment = {
       id: uuidv4(),
       guard_id: guard.id,
       terminal_id: terminal.id,
+      device_employee_no: enrollmentEmployeeNo,
       status: "syncing",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -79,8 +90,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     try {
       const client = new HikvisionClient(terminal);
-      await client.registerFace({
-        employeeNo: guard.employee_number,
+      const registration = await client.registerFace({
+        employeeNo: enrollmentEmployeeNo,
         name: guard.full_name,
         image: photo.buffer,
         filename: photo.filename,
@@ -89,6 +100,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       const synced: GuardFaceEnrollment = {
         ...enrollmentBase,
+        device_employee_no: registration.employeeNo,
         status: "synced",
         updated_at: new Date().toISOString(),
         synced_at: new Date().toISOString()
@@ -111,12 +123,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
   }
 
-  const allSynced = results.every((result) => result.status === "synced");
+  const summary = await summarizeGuardFaceEnrollments(enrollments, guard.id);
   await guards.updateOne(
     { id },
     {
       $set: {
-        facial_imprint_synced: allSynced,
+        facial_imprint_synced: summary.facial_imprint_synced,
         updated_at: new Date().toISOString()
       }
     }
@@ -125,6 +137,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   return NextResponse.json({
     guard_id: guard.id,
     results,
-    facial_imprint_synced: allSynced
+    summary,
+    facial_imprint_synced: summary.facial_imprint_synced
   });
 }

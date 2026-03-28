@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession, compactDefined } from "@/lib/api-route";
+import {
+  recomputeGuardFaceSyncState,
+  resolveGuardFaceEnrollmentEmployeeNo
+} from "@/lib/guard-face";
+import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
-import type { Terminal } from "@/lib/types";
+import type { Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
 
 const terminalUpdateSchema = z
   .object({
@@ -92,11 +97,141 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   const { id } = await params;
   const terminals = await getTerminalCollection();
-  const result = await terminals.deleteOne({ id });
+  const enrollments = await getCollection<GuardFaceEnrollment>("guard_face_enrollments");
+  const guards = await getCollection<Guard>("guards");
+  const existing = await terminals.findOne({ id });
 
-  if (result.deletedCount === 0) {
+  if (!existing) {
     return NextResponse.json({ error: "Terminal not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true, id });
+  const terminalEnrollments = await enrollments.find({ terminal_id: id }).toArray();
+  const affectedGuardIds = [...new Set(terminalEnrollments.map((enrollment) => enrollment.guard_id))];
+
+  const cleanupResults: Array<{
+    terminal_id: string;
+    guard_id: string;
+    status: GuardFaceEnrollment["status"];
+    error?: string;
+  }> = [];
+
+  for (const enrollment of terminalEnrollments) {
+    const guard = await guards.findOne({ id: enrollment.guard_id });
+    const employeeNo =
+      enrollment.device_employee_no ||
+      (guard ? resolveGuardFaceEnrollmentEmployeeNo(guard, enrollment) : null);
+
+    if (!employeeNo) {
+      await enrollments.updateOne(
+        { guard_id: enrollment.guard_id, terminal_id: id },
+        {
+          $set: {
+            status: "failed",
+            error: "Missing employee number for terminal cleanup",
+            updated_at: new Date().toISOString()
+          }
+        }
+      );
+      cleanupResults.push({
+        terminal_id: id,
+        guard_id: enrollment.guard_id,
+        status: "failed",
+        error: "Missing employee number for terminal cleanup"
+      });
+      continue;
+    }
+
+    try {
+      const terminalClient = new HikvisionClient(existing);
+      await terminalClient.deleteFace(employeeNo);
+      await enrollments.updateOne(
+        { guard_id: enrollment.guard_id, terminal_id: id },
+        {
+          $set: {
+            status: "removed",
+            removed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        }
+      );
+      cleanupResults.push({
+        terminal_id: id,
+        guard_id: enrollment.guard_id,
+        status: "removed"
+      });
+    } catch (error) {
+      await enrollments.updateOne(
+        { guard_id: enrollment.guard_id, terminal_id: id },
+        {
+          $set: {
+            status: "failed",
+            error: error instanceof Error ? error.message : "Face cleanup failed",
+            updated_at: new Date().toISOString()
+          }
+        }
+      );
+      cleanupResults.push({
+        terminal_id: id,
+        guard_id: enrollment.guard_id,
+        status: "failed",
+        error: error instanceof Error ? error.message : "Face cleanup failed"
+      });
+    }
+  }
+
+  const hasFailures = cleanupResults.some((result) => result.status === "failed");
+
+  if (hasFailures) {
+    for (const guardId of affectedGuardIds) {
+      const facial_imprint_synced = await recomputeGuardFaceSyncState(enrollments, guardId);
+      await guards.updateOne(
+        { id: guardId },
+        {
+          $set: {
+            facial_imprint_synced,
+            updated_at: new Date().toISOString()
+          }
+        }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: "Failed to clean up one or more face enrollments. Terminal was not deleted.",
+        cleanup: cleanupResults
+      },
+      { status: 500 }
+    );
+  }
+
+  if (terminalEnrollments.length > 0) {
+    await enrollments.deleteMany({ terminal_id: id });
+  }
+
+  for (const guardId of affectedGuardIds) {
+    const facial_imprint_synced = await recomputeGuardFaceSyncState(enrollments, guardId);
+    await guards.updateOne(
+      { id: guardId },
+      {
+        $set: {
+          facial_imprint_synced,
+          updated_at: new Date().toISOString()
+        }
+      }
+    );
+  }
+
+  const result = await terminals.deleteOne({ id });
+  if (result.deletedCount === 0) {
+    return NextResponse.json({ error: "Failed to delete terminal" }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    success: true,
+    id,
+    cleanup: {
+      enrollments_removed: terminalEnrollments.length,
+      guards_recomputed: affectedGuardIds.length
+    }
+  });
 }

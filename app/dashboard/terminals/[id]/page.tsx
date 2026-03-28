@@ -15,13 +15,18 @@ async function getSite(siteId: string) {
   return collection.findOne({ id: siteId });
 }
 
+async function getSites() {
+  const collection = await getCollection<Site>("sites");
+  return collection.find({}).sort({ name: 1 }).toArray();
+}
+
 export default async function TerminalDetailsPage({
   params
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const terminal = await getTerminal(id);
+  const [terminal, sites] = await Promise.all([getTerminal(id), getSites()]);
 
   if (!terminal) {
     notFound();
@@ -33,6 +38,7 @@ export default async function TerminalDetailsPage({
     <TerminalDetailsClient
       terminal={JSON.parse(JSON.stringify(terminal))}
       site={site ? JSON.parse(JSON.stringify(site)) : null}
+      sites={JSON.parse(JSON.stringify(sites))}
     />
   );
 }

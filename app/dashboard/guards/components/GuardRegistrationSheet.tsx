@@ -87,12 +87,16 @@ async function syncGuardFaceToTerminal(guardId: string, terminalId: string) {
   }
 
   const data = await res.json().catch(() => null);
-  const synced = Boolean(data?.facial_imprint_synced) || (
-    Array.isArray(data?.results) && data.results.every((result: { status?: string }) => result.status === "synced")
-  );
+  const results = Array.isArray(data?.results) ? data.results : [];
+  const summary = data?.summary || {};
+  const syncedCount = results.filter((result: { status?: string }) => result.status === "synced").length;
+  const failedCount = results.filter((result: { status?: string }) => result.status === "failed").length;
 
   return {
-    synced,
+    synced: Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced),
+    syncedCount,
+    failedCount,
+    overallSynced: Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced),
     data
   };
 }
@@ -223,7 +227,7 @@ export function GuardRegistrationDialog({
 
       const savedGuard = await res.json().catch(() => null);
       let toastMessage = isEditMode ? "Guard updated successfully" : "Guard registered successfully";
-      let syncWarning: string | null = null;
+      let syncWarning: { type: "info" | "error"; message: string } | null = null;
 
       if (!isEditMode && photoSource === "camera" && selectedCameraTerminalId) {
         try {
@@ -233,19 +237,36 @@ export function GuardRegistrationDialog({
           }
 
           const syncResult = await syncGuardFaceToTerminal(guardId, selectedCameraTerminalId);
-          if (syncResult.synced) {
+          if (syncResult.synced && syncResult.syncedCount > 0 && syncResult.failedCount === 0) {
             toastMessage = "Guard registered and face synced to the selected terminal";
+          } else if (syncResult.syncedCount > 0) {
+            syncWarning = {
+              type: "info",
+              message: syncResult.overallSynced
+                ? `Guard saved, but face sync only completed on ${syncResult.syncedCount} terminal${syncResult.syncedCount === 1 ? "" : "s"}; ${syncResult.failedCount} failed.`
+                : `Guard saved, and the selected terminal accepted the face, but the overall guard sync state is still pending.`
+            };
           } else {
-            syncWarning = "Guard saved, but the terminal reported a partial face sync result";
+            syncWarning = {
+              type: "error",
+              message: "Guard saved, but face sync failed on the selected terminal"
+            };
           }
         } catch (error) {
-          syncWarning = `Guard saved, but face sync failed: ${error instanceof Error ? error.message : String(error)}`;
+          syncWarning = {
+            type: "error",
+            message: `Guard saved, but face sync failed: ${error instanceof Error ? error.message : String(error)}`
+          };
         }
       }
 
       toast.success(toastMessage);
       if (syncWarning) {
-        toast(syncWarning);
+        if (syncWarning.type === "error") {
+          toast.error(syncWarning.message);
+        } else {
+          toast(syncWarning.message);
+        }
       }
 
       form.reset();

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
+import { resolveGuardByEmployeeNo } from "@/lib/guard-face";
 import { getCollection } from "@/lib/mongodb";
-import type { ClockingEvent, Guard, Terminal } from "@/lib/types";
+import type { ClockingEvent, Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
 
 function pickFirstString(formData: FormData, keys: string[]) {
   for (const key of keys) {
@@ -133,12 +134,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     new Date().toISOString();
 
   const guards = await getCollection<Guard>("guards");
+  const enrollments = await getCollection<GuardFaceEnrollment>("guard_face_enrollments");
   const events = await getCollection<ClockingEvent>("clocking_events");
 
-  let guardProfile = null;
-  if (employeeNo) {
-    guardProfile = await guards.findOne({ employee_number: employeeNo });
-  }
+  const guardProfile = employeeNo
+    ? await resolveGuardByEmployeeNo(guards, enrollments, employeeNo, terminal.id)
+    : null;
 
   const eventId = uuidv4();
   const event: ClockingEvent = {

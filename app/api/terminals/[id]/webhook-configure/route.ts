@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/api-route";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
+import { deriveWebhookHostId } from "@/lib/terminal-integration";
 import type { Terminal } from "@/lib/types";
 
 const webhookSchema = z
@@ -38,23 +40,43 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
   }
 
-  const hostId = terminal.webhook_token || terminal.id;
-  const callbackUrl = new URL(`/api/events/hikvision/${hostId}`, request.url).toString();
+  const callbackToken = terminal.webhook_token || uuidv4().replace(/-/g, "");
+  const hostId = deriveWebhookHostId(callbackToken);
+  const callbackUrl = new URL(`/api/events/hikvision/${callbackToken}`, request.url).toString();
+  const callbackTarget = new URL(callbackUrl);
+  const hostAddressType =
+    parsed.data.addressingFormatType ||
+    (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(callbackTarget.hostname) ? "ipaddress" : "hostname");
+  const portNo = parsed.data.portNo ? Number(parsed.data.portNo) : callbackTarget.port ? Number(callbackTarget.port) : undefined;
   const now = new Date().toISOString();
+
+  if (terminal.webhook_token !== callbackToken) {
+    await terminals.updateOne(
+      { id },
+      {
+        $set: {
+          webhook_token: callbackToken,
+          updated_at: now
+        }
+      }
+    );
+  }
 
   let deviceConfigResult: Record<string, unknown> | undefined;
   try {
     const client = new HikvisionClient(terminal);
     deviceConfigResult = await client.configureHttpHost(
+      hostId,
       {
         id: hostId,
         url: callbackUrl,
         protocolType: parsed.data.protocolType || "HTTP",
         parameterFormatType: parsed.data.parameterFormatType || "JSON",
-        addressingFormatType: parsed.data.addressingFormatType || "ipaddress",
+        addressingFormatType: hostAddressType,
         httpAuthenticationMethod: parsed.data.httpAuthenticationMethod || "none",
-        ipAddress: parsed.data.ipAddress,
-        portNo: parsed.data.portNo ? Number(parsed.data.portNo) : undefined
+        hostName: hostAddressType === "hostname" ? callbackTarget.hostname : undefined,
+        ipAddress: hostAddressType === "ipaddress" ? parsed.data.ipAddress || callbackTarget.hostname : undefined,
+        portNo
       },
       parsed.data.security,
       parsed.data.iv

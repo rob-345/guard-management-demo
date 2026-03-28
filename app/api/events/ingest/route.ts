@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
 import { v4 as uuidv4 } from "uuid";
-import { ClockingEvent, Guard, Terminal } from "@/lib/types";
+import { ClockingEvent, Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
+import { resolveGuardByEmployeeNo } from "@/lib/guard-face";
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,13 +48,14 @@ export async function POST(request: NextRequest) {
       "unknown";
 
     const guards = await getCollection<Guard>("guards");
+    const enrollments = await getCollection<GuardFaceEnrollment>("guard_face_enrollments");
     const terminals = await getCollection<Terminal>("terminals");
     const events = await getCollection<ClockingEvent>("clocking_events");
 
     // 1. Find the guard
     let guardProfile = null;
     if (employeeNo) {
-      guardProfile = await guards.findOne({ employee_number: employeeNo });
+      guardProfile = await resolveGuardByEmployeeNo(guards, enrollments, employeeNo, terminalId);
     }
 
     // 2. Find the terminal

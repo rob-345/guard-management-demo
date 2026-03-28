@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck, Server } from "lucide-react";
 
@@ -26,13 +27,29 @@ interface Props {
 }
 
 export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Props) {
+  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const selectableTerminals = useMemo(
+    () => terminals.filter((terminal) => terminal.status === "online" && terminal.activation_status === "activated"),
+    [terminals]
+  );
+
+  function terminalSyncReason(terminal: Terminal) {
+    if (terminal.status !== "online") {
+      return "Offline";
+    }
+    if (terminal.activation_status !== "activated") {
+      return "Not activated";
+    }
+    return null;
+  }
+
   useEffect(() => {
     if (!open) return;
-    setSelectedIds(terminals.map((terminal) => terminal.id));
-  }, [open, terminals]);
+    setSelectedIds(selectableTerminals.map((terminal) => terminal.id));
+  }, [open, selectableTerminals]);
 
   const selectedTerminals = useMemo(
     () => terminals.filter((terminal) => selectedIds.includes(terminal.id)),
@@ -45,7 +62,7 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
     }
 
     if (selectedIds.length === 0) {
-      toast.error("Select at least one terminal");
+      toast.error("Select at least one available terminal");
       return;
     }
 
@@ -62,10 +79,24 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
       }
 
       const data = await res.json();
-      const syncedCount = Array.isArray(data?.results)
-        ? data.results.filter((result: { status: string }) => result.status === "synced").length
-        : 0;
-      toast.success(`Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}`);
+      const results = Array.isArray(data?.results) ? data.results : [];
+      const summary = data?.summary || {};
+      const syncedCount = results.filter((result: { status: string }) => result.status === "synced").length;
+      const failedCount = results.filter((result: { status: string }) => result.status === "failed").length;
+      const overallSynced = Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced);
+
+      if (overallSynced && syncedCount === selectedIds.length && failedCount === 0) {
+        toast.success(`Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}`);
+      } else if (syncedCount > 0) {
+        const message = overallSynced
+          ? `Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}, ${failedCount} failed`
+          : `Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}${failedCount > 0 ? `, ${failedCount} failed` : ""}, but the guard still has pending face enrollment state`;
+        toast(message);
+      } else {
+        toast.error("Face sync failed on all selected terminals");
+      }
+
+      router.refresh();
       onOpenChange(false);
     } catch (error) {
       toast.error(`Face sync failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -104,7 +135,8 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedIds(terminals.map((terminal) => terminal.id))}>
+                onClick={() => setSelectedIds(selectableTerminals.map((terminal) => terminal.id))}
+                disabled={selectableTerminals.length === 0}>
                 Select all
               </Button>
             </div>
@@ -117,13 +149,19 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
               ) : (
                 terminals.map((terminal) => {
                   const checked = selectedIds.includes(terminal.id);
+                  const reason = terminalSyncReason(terminal);
+                  const selectable = !reason;
                   return (
                     <label
                       key={terminal.id}
-                      className="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors hover:bg-muted/30">
+                      className={`flex items-start gap-3 rounded-md border p-3 transition-colors ${
+                        selectable ? "cursor-pointer hover:bg-muted/30" : "cursor-not-allowed opacity-60"
+                      }`}>
                       <Checkbox
                         checked={checked}
+                        disabled={!selectable}
                         onCheckedChange={(value) => {
+                          if (!selectable) return;
                           setSelectedIds((current) =>
                             value
                               ? Array.from(new Set([...current, terminal.id]))
@@ -141,12 +179,19 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
                         <p className="truncate text-xs text-muted-foreground">
                           {terminal.ip_address || "No IP"} · {terminal.activation_status || "unknown"}
                         </p>
+                        {reason ? (
+                          <p className="mt-1 text-[11px] text-amber-700">{reason}</p>
+                        ) : null}
                       </div>
                     </label>
                   );
                 })
               )}
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              Offline or not-activated terminals are disabled until the device is reachable and activated.
+            </p>
           </div>
 
           {selectedTerminals.length > 0 && (

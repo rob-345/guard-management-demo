@@ -3,6 +3,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
 import { requireSession, compactDefined } from "@/lib/api-route";
+import { resolveGuardFaceEnrollmentEmployeeNo } from "@/lib/guard-face";
 import { parseGuardSubmission, removeGuardPhoto, storeGuardPhoto } from "@/lib/guard-media";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
@@ -187,7 +188,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     try {
       const client = new HikvisionClient(terminal);
-      await client.deleteFace(existing.employee_number);
+      await client.deleteFace(resolveGuardFaceEnrollmentEmployeeNo(existing, enrollment));
       cleanupResults.push({ terminal_id: terminal.id, status: "removed" });
     } catch (error) {
       cleanupResults.push({

@@ -28,6 +28,10 @@ function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4
   );
 }
 
+export function deriveWebhookHostId(seed: string) {
+  return "1";
+}
+
 export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSnapshot> {
   const client = new HikvisionClient(terminal);
   const now = new Date().toISOString();

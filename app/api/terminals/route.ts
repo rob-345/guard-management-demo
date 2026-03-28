@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { getSessionFromRequest } from "@/lib/auth";
-import { probeTerminal } from "@/lib/terminal-integration";
+import { deriveWebhookHostId, probeTerminal } from "@/lib/terminal-integration";
 import { getCollection } from "@/lib/mongodb";
 import type { Terminal } from "@/lib/types";
 
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       activation_status: "unknown",
       webhook_status: "unset",
       webhook_token: callbackToken,
+      webhook_host_id: deriveWebhookHostId(callbackToken),
       created_at: now,
       updated_at: now
     };

@@ -3,21 +3,50 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Activity, Camera, Globe, PlugZap, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Activity,
+  Camera,
+  Globe,
+  MoreHorizontal,
+  PencilLine,
+  PlugZap,
+  RefreshCw,
+  ShieldCheck,
+  Trash2
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { getApiErrorMessage } from "@/lib/http";
 import type { Site, Terminal } from "@/lib/types";
 
+import { TerminalAddDialog } from "./TerminalAddDialog";
 import { TerminalSnapshotCard } from "./TerminalSnapshotCard";
 
 interface Props {
   terminal: Terminal;
   site: Site | null;
+  sites: Site[];
 }
 
 function detailValue(value: unknown) {
@@ -35,9 +64,12 @@ function JsonBlock({ value }: { value: unknown }) {
   );
 }
 
-export function TerminalDetailsClient({ terminal, site }: Props) {
+export function TerminalDetailsClient({ terminal, site, sites }: Props) {
   const router = useRouter();
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const deviceInfo = terminal.device_info || {};
   const workStatus = terminal.acs_work_status || {};
@@ -64,6 +96,28 @@ export function TerminalDetailsClient({ terminal, site }: Props) {
     }
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/terminals/${terminal.id}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) {
+        throw new Error(await getApiErrorMessage(res, "Failed to delete terminal"));
+      }
+
+      toast.success("Terminal deleted successfully");
+      setDeleteOpen(false);
+      router.push("/dashboard/terminals");
+      router.refresh();
+    } catch (error) {
+      toast.error(`Failed to delete terminal: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
@@ -85,6 +139,23 @@ export function TerminalDetailsClient({ terminal, site }: Props) {
           <Badge variant="outline">{terminal.status}</Badge>
           <Badge variant="outline">{terminal.activation_status || "unknown"}</Badge>
           <Badge variant="outline">{terminal.webhook_status || "unset"}</Badge>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" aria-label="Terminal actions">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                <PencilLine className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -175,6 +246,35 @@ export function TerminalDetailsClient({ terminal, site }: Props) {
           </Button>
         }
       />
+
+      <TerminalAddDialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditOpen(false);
+          }
+        }}
+        sites={sites}
+        terminal={terminal}
+        mode="edit"
+      />
+
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => !open && setDeleteOpen(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete terminal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the terminal record and clean up any face enrollment records linked to it. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>

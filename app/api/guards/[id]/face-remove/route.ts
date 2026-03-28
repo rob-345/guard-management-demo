@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/api-route";
+import {
+  recomputeGuardFaceSyncState,
+  resolveGuardFaceEnrollmentEmployeeNo,
+  summarizeGuardFaceEnrollments
+} from "@/lib/guard-face";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
 import type { Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
@@ -59,6 +64,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const removingAt = new Date().toISOString();
+    const employeeNo = resolveGuardFaceEnrollmentEmployeeNo(guard, existing);
     await enrollments.updateOne(
       { guard_id: guard.id, terminal_id: terminal.id },
       {
@@ -71,7 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     try {
       const client = new HikvisionClient(terminal);
-      await client.deleteFace(guard.employee_number);
+      await client.deleteFace(employeeNo);
 
       await enrollments.updateOne(
         { guard_id: guard.id, terminal_id: terminal.id },
@@ -106,25 +112,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
   }
 
-  const remaining = await enrollments.countDocuments({
-    guard_id: guard.id,
-    status: { $in: ["synced", "syncing", "failed", "pending"] }
-  });
-
-  if (remaining === 0) {
-    await guards.updateOne(
-      { id },
-      {
-        $set: {
-          facial_imprint_synced: false,
-          updated_at: new Date().toISOString()
-        }
+  const summary = await summarizeGuardFaceEnrollments(enrollments, guard.id);
+  await guards.updateOne(
+    { id },
+    {
+      $set: {
+        facial_imprint_synced: summary.facial_imprint_synced,
+        updated_at: new Date().toISOString()
       }
-    );
-  }
+    }
+  );
 
   return NextResponse.json({
     guard_id: guard.id,
-    results
+    results,
+    summary,
+    facial_imprint_synced: summary.facial_imprint_synced
   });
 }

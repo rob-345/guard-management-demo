@@ -40,9 +40,13 @@ export interface HikvisionHttpHostNotification {
   protocolType?: string;
   parameterFormatType?: string;
   addressingFormatType?: string;
+  hostName?: string;
   ipAddress?: string;
   portNo?: number;
+  userName?: string;
+  password?: string;
   httpAuthenticationMethod?: string;
+  checkResponseEnabled?: boolean;
   [key: string]: unknown;
 }
 
@@ -203,6 +207,7 @@ export interface GuardFaceEnrollment {
   id: string;
   guard_id: string;
   terminal_id: string;
+  device_employee_no?: string;
   status: GuardFaceEnrollmentStatus;
   error?: string;
   created_at: string;

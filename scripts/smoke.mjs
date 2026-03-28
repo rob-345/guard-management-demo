@@ -155,13 +155,26 @@ async function startFakeHikvisionServer() {
       });
     }
 
-    if (method === "PUT" && url.pathname === "/ISAPI/Event/notification/httpHosts") {
+    if (
+      method === "PUT" &&
+      (url.pathname === "/ISAPI/Event/notification/httpHosts" ||
+        /^\/ISAPI\/Event\/notification\/httpHosts\/[^/]+$/.test(url.pathname))
+    ) {
       return sendJson(200, {
         HttpHostNotification: jsonBody.HttpHostNotification || jsonBody
       });
     }
 
-    if (method === "POST" && /^\/ISAPI\/Event\/notification\/httpHosts\/[^/]+\/test$/.test(url.pathname)) {
+    if (method === "POST" && url.pathname === "/ISAPI/Event/notification/httpHosts") {
+      return sendJson(200, {
+        HttpHostNotification: jsonBody.HttpHostNotification || jsonBody
+      });
+    }
+
+    if (
+      (method === "GET" || method === "POST") &&
+      /^\/ISAPI\/Event\/notification\/httpHosts\/[^/]+\/test$/.test(url.pathname)
+    ) {
       return sendText(200, "OK");
     }
 
@@ -610,26 +623,69 @@ async function main() {
     }
     pass("guard faces can be removed from a terminal");
 
+    log("syncing guard face again");
+    const faceSyncAgain = await requestJson(
+      `/api/guards/${guard.id}/face-sync`,
+      {
+        method: "POST",
+        body: {
+          terminal_ids: [terminal.id]
+        }
+      },
+      "face sync again"
+    );
+    if (!faceSyncAgain.facial_imprint_synced || faceSyncAgain.results?.[0]?.status !== "synced") {
+      fail("face sync again", "guard face did not sync successfully after removal");
+    }
+    pass("guard faces can be re-synced after removal");
+
+    log("editing terminal");
+    const terminalEdit = await requestJson(
+      `/api/terminals/${terminal.id}`,
+      {
+        method: "PATCH",
+        body: {
+          name: `${terminal.name} Updated`,
+          site_id: site.id,
+          ip_address: terminal.ip_address,
+          username: terminal.username,
+          snapshot_stream_id: terminal.snapshot_stream_id || "101"
+        }
+      },
+      "edit terminal"
+    );
+    if (terminalEdit.name !== `${terminal.name} Updated`) {
+      fail("edit terminal", "terminal edit did not persist");
+    }
+    pass("terminal edit updates the stored record");
+
     log("confirming site deletion is blocked while terminal exists");
     const blockedSiteDelete = await request(`/api/sites/${site.id}`, { method: "DELETE" });
     await expectStatus("blocked site delete", blockedSiteDelete, 409);
     pass("site deletion is blocked while terminals are still assigned");
 
-    log("deleting guard, terminal, shift, and site");
-    await requestJson(`/api/guards/${guard.id}`, { method: "DELETE" }, "delete guard");
+    log("deleting terminal");
     await requestJson(`/api/terminals/${terminal.id}`, { method: "DELETE" }, "delete terminal");
+    const guardAfterTerminalDelete = await requestJson(`/api/guards/${guard.id}`, {}, "guard after terminal delete");
+    if (guardAfterTerminalDelete.facial_imprint_synced) {
+      fail("terminal delete cleanup", "guard sync state was not cleared after deleting the terminal");
+    }
+    const deletedTerminal = await request(`/api/terminals/${terminal.id}`);
+    await expectStatus("deleted terminal lookup", deletedTerminal, 404);
+    pass("terminal deletion cleans related guard face enrollment state");
+
+    log("deleting guard, shift, and site");
+    await requestJson(`/api/guards/${guard.id}`, { method: "DELETE" }, "delete guard");
     await requestJson(`/api/shifts/${shift.id}`, { method: "DELETE" }, "delete shift");
     await requestJson(`/api/sites/${site.id}`, { method: "DELETE" }, "delete site");
 
-    const deletedTerminal = await request(`/api/terminals/${terminal.id}`);
-    await expectStatus("deleted terminal lookup", deletedTerminal, 404);
     const deletedSite = await request(`/api/sites/${site.id}`);
     await expectStatus("deleted site lookup", deletedSite, 404);
     pass("delete endpoints remove records");
   } finally {
     const cleanupPriority = {
-      guard: 0,
-      terminal: 1,
+      terminal: 0,
+      guard: 1,
       shift: 2,
       site: 3
     };
