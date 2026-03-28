@@ -9,6 +9,10 @@ const ingestSecret =
   process.env.SMOKE_INGEST_SECRET ||
   process.env.EVENT_INGEST_SECRET ||
   "demo-ingest-secret";
+const tinyJpeg = Buffer.from(
+  "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxAQEBAQEBAPEA8QDxAQEA8PDw8QFREWFhURFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMsNygtLisBCgoKDg0OGxAQGy8lICUtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIAAEAAgMBIgACEQEDEQH/xAAXAAADAQAAAAAAAAAAAAAAAAAAAQMC/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEAMQAAAB6A//xAAXEAEBAQEAAAAAAAAAAAAAAAABEQAh/9oACAEBAAEFAm2r/8QAFBEBAAAAAAAAAAAAAAAAAAAAEP/aAAgBAwEBPwEf/8QAFBEBAAAAAAAAAAAAAAAAAAAAEP/aAAgBAgEBPwEf/8QAGhAAAgMBAQAAAAAAAAAAAAAAAQIAESExQf/aAAgBAQAGPwKc6jI5/8QAGxABAQADAAMAAAAAAAAAAAAAAREAITFBUWH/2gAIAQEAAT8hYk5S3H1YI5x2o9iH/9oADAMBAAIAAwAAABB//8QAFBEBAAAAAAAAAAAAAAAAAAAAEP/aAAgBAwEBPxAf/8QAFBEBAAAAAAAAAAAAAAAAAAAAEP/aAAgBAgEBPxAf/8QAGxABAAICAwAAAAAAAAAAAAAAAQARITFBUWH/2gAIAQEAAT8QjQ6EuKXXSb9VjA36TObgGJE0E7E=",
+  "base64"
+);
 
 let cookieHeader = "";
 const cleanupTargets = [];
@@ -108,6 +112,20 @@ async function startFakeHikvisionServer() {
       });
     }
 
+    if (method === "GET" && url.pathname === "/ISAPI/Intelligent/FDLib") {
+      return sendJson(200, {
+        FDLibList: {
+          FDLib: [
+            {
+              FDID: "1",
+              faceLibType: "staticFD",
+              name: "Smoke Face Library"
+            }
+          ]
+        }
+      });
+    }
+
     if (method === "GET" && url.pathname === "/ISAPI/AccessControl/FaceRecognizeMode") {
       return sendJson(200, {
         FaceRecognizeMode: {
@@ -179,26 +197,121 @@ async function startFakeHikvisionServer() {
     }
 
     if (method === "PUT" && url.pathname === "/ISAPI/AccessControl/UserInfo/SetUp") {
+      if (!jsonBody?.UserInfo?.Valid) {
+        return sendJson(400, {
+          statusCode: 6,
+          statusString: "Invalid Content",
+          subStatusCode: "MessageParametersLack",
+          errorCode: 1610612761,
+          errorMsg: "The message parameter is missing, the required node does not exist.Valid"
+        });
+      }
+
       return sendJson(200, {
         UserInfo: jsonBody.UserInfo || {}
       });
     }
 
-    if (method === "POST" && url.pathname === "/ISAPI/Intelligent/FDLib/pictureUpload") {
+    if (method === "POST" && url.pathname === "/ISAPI/AccessControl/UserInfo/Search") {
+      if (jsonBody?.UserInfoSearchCond?.hasFace === true) {
+        return sendJson(200, {
+          UserInfoSearch: {
+            searchID: jsonBody?.UserInfoSearchCond?.searchID || "face-count",
+            responseStatusStrg: "OK",
+            numOfMatches: 1,
+            totalMatches: 1,
+            UserInfo: [
+              {
+                employeeNo: "SMOKE-001",
+                name: "Smoke Guard",
+                numOfFace: 1
+              }
+            ]
+          }
+        });
+      }
+
       return sendJson(200, {
-        success: true,
-        picture: true
+        UserInfoSearch: {
+          searchID: jsonBody?.UserInfoSearchCond?.searchID || "search",
+          responseStatusStrg: "OK",
+          numOfMatches: 0,
+          totalMatches: 0,
+          UserInfo: []
+        }
+      });
+    }
+
+    if (method === "POST" && url.pathname === "/ISAPI/Intelligent/FDLib/pictureUpload") {
+      return sendJson(400, {
+        statusCode: 4,
+        statusString: "Invalid Operation",
+        subStatusCode: "notSupport",
+        errorCode: 1073741825,
+        errorMsg: "notSupport"
       });
     }
 
     if (method === "POST" && url.pathname === "/ISAPI/Intelligent/FDLib/FaceDataRecord") {
+      if (
+        !jsonBody ||
+        typeof jsonBody !== "object" ||
+        typeof jsonBody.faceURL !== "string" ||
+        typeof jsonBody.faceLibType !== "string" ||
+        typeof jsonBody.FDID !== "string" ||
+        typeof jsonBody.FPID !== "string"
+      ) {
+        return sendJson(400, {
+          statusCode: 6,
+          statusString: "Invalid Content",
+          subStatusCode: "MessageParametersLack",
+          errorCode: 1610612761,
+          errorMsg: "The message parameter is missing, the required node does not exist.FPID"
+        });
+      }
+
       return sendJson(200, {
-        success: true,
-        legacy: true
+        statusCode: 1,
+        statusString: "OK",
+        subStatusCode: "ok",
+        FPID: jsonBody.FPID
       });
     }
 
+    if (method === "POST" && url.pathname === "/ISAPI/AccessControl/CaptureFaceData") {
+      if (rawBody.includes("<cancelFlag>true</cancelFlag>")) {
+        return sendText(
+          200,
+          '<?xml version="1.0" encoding="UTF-8"?><ResponseStatus><statusString>OK</statusString></ResponseStatus>',
+          "application/xml"
+        );
+      }
+
+      if (rawBody.includes("<dataType>binary</dataType>")) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "image/jpeg");
+        res.end(tinyJpeg);
+        return;
+      }
+
+      return sendText(
+        400,
+        '<?xml version="1.0" encoding="UTF-8"?><ResponseStatus><statusString>deviceBusy</statusString><subStatusCode>deviceBusy</subStatusCode><errorMsg>deviceBusy</errorMsg></ResponseStatus>',
+        "application/xml"
+      );
+    }
+
     if (method === "PUT" && url.pathname === "/ISAPI/AccessControl/UserInfoDetail/Delete") {
+      if (!jsonBody?.UserInfoDetail?.mode) {
+        return sendJson(400, {
+          statusCode: 6,
+          statusString: "Invalid Content",
+          subStatusCode: "MessageParametersLack",
+          errorCode: 1610612761,
+          errorMsg: "The message parameter is missing, the required node does not exist.mode"
+        });
+      }
+
       return sendJson(200, {
         success: true
       });
@@ -430,6 +543,27 @@ async function main() {
     }
     pass("create endpoints persist records");
 
+    log("capturing a face from the terminal");
+    const captureFaceResponse = await request(`/api/terminals/${terminal.id}/capture-face`, {
+      method: "POST"
+    });
+    await expectStatus("capture face", captureFaceResponse, 200);
+    if (!((captureFaceResponse.headers.get("content-type") || "").startsWith("image/"))) {
+      fail("capture face", "expected terminal capture to return an image");
+    }
+    pass("terminal face capture proxy returns an image");
+
+    log("cancelling an idle terminal capture session");
+    const cancelCaptureResponse = await requestJson(
+      `/api/terminals/${terminal.id}/capture-face/cancel`,
+      { method: "POST" },
+      "cancel terminal capture"
+    );
+    if (!cancelCaptureResponse?.success) {
+      fail("cancel terminal capture", "terminal capture session did not cancel cleanly");
+    }
+    pass("terminal capture sessions can be cancelled");
+
     log("verifying guard photo streaming");
     const guardPhotoResponse = await request(`/api/guards/${guard.id}/photo`);
     await expectStatus("guard photo", guardPhotoResponse, 200);
@@ -560,6 +694,10 @@ async function main() {
     if (!webhookConfig.callback_url || webhookConfig.terminal?.webhook_status !== "configured") {
       fail("configure webhook", "webhook was not configured");
     }
+    const callbackHost = new URL(webhookConfig.callback_url).hostname;
+    if (["localhost", "127.0.0.1", "::1"].includes(callbackHost)) {
+      fail("configure webhook", `callback URL is still local-only (${webhookConfig.callback_url})`);
+    }
     pass("webhook configuration persists the callback URL");
 
     log("testing webhook");
@@ -590,6 +728,19 @@ async function main() {
       fail("hikvision callback", "callback ingest did not report success");
     }
     pass("tokenized Hikvision callbacks are ingested");
+
+    log("checking terminal details for webhook activity");
+    const terminalDetailsResponse = await request(`/dashboard/terminals/${terminal.id}`);
+    await expectStatus("terminal details", terminalDetailsResponse, 200);
+    const terminalDetailsHtml = await terminalDetailsResponse.text();
+    if (
+      !terminalDetailsHtml.includes("Webhook test") ||
+      !terminalDetailsHtml.includes("clock_in") ||
+      !terminalDetailsHtml.includes(guard.employee_number)
+    ) {
+      fail("terminal details webhook activity", "webhook deliveries are not visible on the terminal details page");
+    }
+    pass("terminal details surface webhook delivery activity");
 
     log("syncing guard face to terminal");
     const faceSync = await requestJson(

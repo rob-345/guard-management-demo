@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireSession } from "@/lib/api-route";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
+import { resolvePublicAppBaseUrl } from "@/lib/public-origin";
 import { deriveWebhookHostId } from "@/lib/terminal-integration";
 import type { Terminal } from "@/lib/types";
 
@@ -40,9 +41,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
   }
 
+  let publicBaseUrl = "";
+  try {
+    publicBaseUrl = resolvePublicAppBaseUrl(request.url, request.headers);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to resolve a LAN-reachable callback URL for Hikvision webhook configuration"
+      },
+      { status: 400 }
+    );
+  }
+
   const callbackToken = terminal.webhook_token || uuidv4().replace(/-/g, "");
   const hostId = deriveWebhookHostId(callbackToken);
-  const callbackUrl = new URL(`/api/events/hikvision/${callbackToken}`, request.url).toString();
+  const callbackUrl = new URL(`/api/events/hikvision/${callbackToken}`, publicBaseUrl).toString();
   const callbackTarget = new URL(callbackUrl);
   const hostAddressType =
     parsed.data.addressingFormatType ||

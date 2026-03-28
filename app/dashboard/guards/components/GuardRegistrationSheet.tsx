@@ -50,6 +50,12 @@ const guardSchema = z.object({
 type GuardFormValues = z.infer<typeof guardSchema>;
 type GuardFormMode = "create" | "edit";
 type PhotoSource = "upload" | "camera";
+type RegistrationState =
+  | "idle"
+  | "saving_guard"
+  | "syncing_terminal"
+  | "synced"
+  | "sync_failed";
 
 interface Props {
   open: boolean;
@@ -90,13 +96,18 @@ async function syncGuardFaceToTerminal(guardId: string, terminalId: string) {
   const results = Array.isArray(data?.results) ? data.results : [];
   const summary = data?.summary || {};
   const syncedCount = results.filter((result: { status?: string }) => result.status === "synced").length;
-  const failedCount = results.filter((result: { status?: string }) => result.status === "failed").length;
+  const alreadyPresentCount = results.filter((result: { already_present?: boolean }) => result.already_present).length;
+  const failedResults = results.filter((result: { status?: string }) => result.status === "failed");
+  const failedCount = failedResults.length;
 
   return {
     synced: Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced),
     syncedCount,
+    alreadyPresentCount,
     failedCount,
     overallSynced: Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced),
+    firstError:
+      failedResults.find((result: { error?: string }) => typeof result.error === "string" && result.error.trim())?.error || null,
     data
   };
 }
@@ -119,6 +130,8 @@ export function GuardRegistrationDialog({
   const [photoSource, setPhotoSource] = useState<PhotoSource>("upload");
   const [selectedCameraTerminalId, setSelectedCameraTerminalId] = useState<string>("");
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
+  const [registrationState, setRegistrationState] = useState<RegistrationState>("idle");
+  const [registrationStateMessage, setRegistrationStateMessage] = useState<string | null>(null);
 
   const isEditMode = mode === "edit" && Boolean(guard);
 
@@ -137,6 +150,8 @@ export function GuardRegistrationDialog({
     if (!open) {
       autoOpenedCameraRef.current = false;
       setCameraDialogOpen(false);
+      setRegistrationState("idle");
+      setRegistrationStateMessage(null);
       return;
     }
 
@@ -150,6 +165,8 @@ export function GuardRegistrationDialog({
     setSelectedFile(null);
     setSelectedFileUrl(null);
     setRemovePhoto(false);
+    setRegistrationState("idle");
+    setRegistrationStateMessage(null);
 
     const resolvedCameraTerminalId = resolveTerminalId(terminals, initialCameraTerminalId);
     if (!isEditMode && resolvedCameraTerminalId) {
@@ -200,6 +217,8 @@ export function GuardRegistrationDialog({
 
     setLoading(true);
     try {
+      setRegistrationState("saving_guard");
+      setRegistrationStateMessage("Saving the guard profile and photo to the app.");
       const formData = new FormData();
       formData.append("employee_number", values.employee_number);
       formData.append("full_name", values.full_name);
@@ -236,10 +255,27 @@ export function GuardRegistrationDialog({
             throw new Error("Guard saved, but the created guard id was not returned");
           }
 
+          setRegistrationState("syncing_terminal");
+          setRegistrationStateMessage("Saving succeeded. Syncing the captured face back to the selected terminal.");
           const syncResult = await syncGuardFaceToTerminal(guardId, selectedCameraTerminalId);
           if (syncResult.synced && syncResult.syncedCount > 0 && syncResult.failedCount === 0) {
-            toastMessage = "Guard registered and face synced to the selected terminal";
+            toastMessage =
+              syncResult.alreadyPresentCount > 0
+                ? "Guard registered and the terminal already had the face data"
+                : "Guard registered and face synced to the selected terminal";
+            setRegistrationState("synced");
+            setRegistrationStateMessage(
+              syncResult.alreadyPresentCount > 0
+                ? "The guard was saved and the selected terminal already recognised this face record."
+                : "The guard was saved and the selected terminal now has the face data."
+            );
           } else if (syncResult.syncedCount > 0) {
+            setRegistrationState(syncResult.overallSynced ? "synced" : "sync_failed");
+            setRegistrationStateMessage(
+              syncResult.overallSynced
+                ? "The guard was saved and at least one selected terminal completed face sync."
+                : "The guard was saved, but the terminal face state is still only partially synced."
+            );
             syncWarning = {
               type: "info",
               message: syncResult.overallSynced
@@ -247,17 +283,30 @@ export function GuardRegistrationDialog({
                 : `Guard saved, and the selected terminal accepted the face, but the overall guard sync state is still pending.`
             };
           } else {
+            setRegistrationState("sync_failed");
+            setRegistrationStateMessage("The guard was saved, but the selected terminal did not accept the face data.");
             syncWarning = {
               type: "error",
-              message: "Guard saved, but face sync failed on the selected terminal"
+              message: syncResult.firstError
+                ? `Guard saved, but face sync failed: ${syncResult.firstError}`
+                : "Guard saved, but face sync failed on the selected terminal"
             };
           }
         } catch (error) {
+          setRegistrationState("sync_failed");
+          setRegistrationStateMessage("The guard was saved, but face sync failed on the selected terminal.");
           syncWarning = {
             type: "error",
             message: `Guard saved, but face sync failed: ${error instanceof Error ? error.message : String(error)}`
           };
         }
+      } else {
+        setRegistrationState("synced");
+        setRegistrationStateMessage(
+          isEditMode
+            ? "The guard profile changes were saved."
+            : "The guard profile and stored face photo were saved."
+        );
       }
 
       toast.success(toastMessage);
@@ -278,6 +327,8 @@ export function GuardRegistrationDialog({
       onOpenChange(false);
       router.refresh();
     } catch (err) {
+      setRegistrationState("sync_failed");
+      setRegistrationStateMessage("The guard could not be saved. Check the form and try again.");
       toast.error(`Failed to save guard: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
@@ -293,7 +344,7 @@ export function GuardRegistrationDialog({
             <DialogDescription>
               {isEditMode
                 ? "Update guard details, replace the stored profile photo, or capture a fresh frame if needed."
-                : "Add a new guard, then choose between a local upload or a terminal camera snapshot. The image will be stored in GridFS."}
+                : "Add a new guard, then choose between a local upload or a terminal camera capture. The image will be stored in GridFS."}
             </DialogDescription>
           </DialogHeader>
 
@@ -384,7 +435,7 @@ export function GuardRegistrationDialog({
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Guard Photo</p>
                       <p className="text-xs text-muted-foreground">
-                        Choose a local upload or capture a snapshot from a Hikvision terminal camera.
+                        Choose a local upload or capture a face directly from a Hikvision terminal camera.
                       </p>
                     </div>
                     <Badge variant="outline">{photoSourceLabel}</Badge>
@@ -498,6 +549,24 @@ export function GuardRegistrationDialog({
                 </div>
               </div>
 
+              {registrationState !== "idle" ? (
+                <div className="rounded-lg border bg-background p-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        registrationState === "sync_failed"
+                          ? "destructive"
+                          : registrationState === "synced"
+                            ? "secondary"
+                            : "outline"
+                      }>
+                      {registrationState.replaceAll("_", " ")}
+                    </Badge>
+                    <span className="text-muted-foreground">{registrationStateMessage}</span>
+                  </div>
+                </div>
+              ) : null}
+
               {removePhoto && isEditMode && (
                 <p className="text-xs text-amber-600">
                   The current stored photo will be removed when you save.
@@ -510,14 +579,7 @@ export function GuardRegistrationDialog({
 
       <TerminalCameraCaptureDialog
         open={cameraDialogOpen}
-        onOpenChange={(nextOpen) => {
-          setCameraDialogOpen(nextOpen);
-          if (!nextOpen) {
-            if (!selectedFile) {
-              setPhotoSource("upload");
-            }
-          }
-        }}
+        onOpenChange={setCameraDialogOpen}
         terminals={terminals}
         initialTerminalId={selectedCameraTerminalId || initialCameraTerminalId}
         onUsePhoto={(file, terminal) => {

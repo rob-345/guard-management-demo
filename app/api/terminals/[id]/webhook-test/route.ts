@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSession } from "@/lib/api-route";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
+import { buildWebhookPayloadPreview, recordTerminalWebhookDelivery } from "@/lib/terminal-webhook-deliveries";
 import type { Terminal } from "@/lib/types";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
       }
     );
+    await recordTerminalWebhookDelivery({
+      terminal_id: terminal.id,
+      source: "device_test",
+      success: true,
+      payload_preview: buildWebhookPayloadPreview(result)
+    });
 
     return NextResponse.json({ success: true, result });
   } catch (error) {
@@ -45,6 +52,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
       }
     );
+    await recordTerminalWebhookDelivery({
+      terminal_id: terminal.id,
+      source: "device_test",
+      success: false,
+      error: error instanceof Error ? error.message : "Webhook test failed"
+    });
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Webhook test failed" },

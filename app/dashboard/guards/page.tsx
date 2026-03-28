@@ -15,12 +15,16 @@ async function getTerminals() {
 export default async function GuardsPage({
   searchParams
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const [guards, terminals] = await Promise.all([getGuards(), getTerminals()]);
-  const initialCreateOpen = searchParams?.register === "1" || searchParams?.register === "true";
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const initialCreateOpen =
+    resolvedSearchParams.register === "1" || resolvedSearchParams.register === "true";
   const initialCameraTerminalId =
-    typeof searchParams?.source_terminal === "string" ? searchParams.source_terminal : null;
+    typeof resolvedSearchParams.source_terminal === "string"
+      ? resolvedSearchParams.source_terminal
+      : null;
 
   return (
     <GuardsClient

@@ -18,6 +18,7 @@ export type GuardFaceEnrollmentStatus =
   | "failed"
   | "removing"
   | "removed";
+export type TerminalWebhookDeliverySource = "device_push" | "device_test";
 
 export interface HikvisionDeviceInfo {
   deviceName?: string;
@@ -156,6 +157,7 @@ export interface Terminal {
   status: TerminalStatus;
   last_seen?: string;
   activation_status?: "unknown" | "activated" | "not_activated" | "error";
+  registered_face_count?: number;
   device_info?: HikvisionDeviceInfo;
   capability_snapshot?: HikvisionCapabilitiesSnapshot;
   acs_work_status?: HikvisionAcsWorkStatus;
@@ -214,4 +216,17 @@ export interface GuardFaceEnrollment {
   updated_at: string;
   synced_at?: string;
   removed_at?: string;
+}
+
+export interface TerminalWebhookDelivery {
+  id: string;
+  terminal_id: string;
+  source: TerminalWebhookDeliverySource;
+  success: boolean;
+  event_type?: string;
+  employee_no?: string;
+  clocking_event_id?: string;
+  error?: string;
+  payload_preview?: string;
+  created_at: string;
 }

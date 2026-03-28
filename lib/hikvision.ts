@@ -166,6 +166,10 @@ function normalizeJsonPayload<T extends Record<string, unknown>>(payload: unknow
   return {} as T;
 }
 
+function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 function buildDigestAuthorization(
   challengeHeader: string,
   method: string,
@@ -212,6 +216,7 @@ function buildDigestAuthorization(
 export type HikvisionFaceRegistration = {
   employeeNo: string;
   name: string;
+  faceUrl?: string;
   image: Buffer | Uint8Array | ArrayBuffer;
   filename?: string;
   mimeType?: string;
@@ -220,12 +225,122 @@ export type HikvisionFaceRegistration = {
 
 export type HikvisionFaceRegistrationResult = {
   employeeNo: string;
+  alreadyPresent?: boolean;
 };
 
 export type HikvisionFaceDeleteTarget = {
   employeeNo: string;
   name?: string;
 };
+
+type HikvisionFaceLibrary = {
+  fdid: string;
+  faceLibType: string;
+};
+
+type HikvisionCapturedFaceData = {
+  buffer: Buffer;
+  contentType: string;
+  filename: string;
+  captureProgress?: string;
+};
+
+export type HikvisionCaptureFaceDataResult =
+  | {
+      status: "ready";
+      image: HikvisionCapturedFaceData;
+    }
+  | {
+      status: "busy";
+      message: string;
+      captureProgress?: string;
+    };
+
+function buildCaptureFaceDataXml({
+  dataType = "binary",
+  captureInfrared = false,
+  cancelFlag = false
+}: {
+  dataType?: "binary" | "url";
+  captureInfrared?: boolean;
+  cancelFlag?: boolean;
+}) {
+  const fields = [
+    `  <dataType>${escapeXml(dataType)}</dataType>`,
+    `  <captureInfrared>${captureInfrared ? "true" : "false"}</captureInfrared>`,
+    `  <cancelFlag>${cancelFlag ? "true" : "false"}</cancelFlag>`
+  ];
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<CaptureFaceDataCond xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">\n${fields.join("\n")}\n</CaptureFaceDataCond>`;
+}
+
+function parseMultipartBoundary(contentType: string) {
+  const match = contentType.match(/boundary="?([^=";]+)"?/i);
+  return match?.[1] || null;
+}
+
+function extractMultipartImage(buffer: Buffer, contentType: string) {
+  const boundary = parseMultipartBoundary(contentType);
+  if (!boundary) {
+    return null;
+  }
+
+  const marker = `--${boundary}`;
+  const segments = buffer.toString("binary").split(marker);
+
+  for (const segment of segments) {
+    const trimmed = segment.trim();
+    if (!trimmed || trimmed === "--") {
+      continue;
+    }
+
+    const headerSeparator = trimmed.indexOf("\r\n\r\n");
+    if (headerSeparator === -1) {
+      continue;
+    }
+
+    const headerText = trimmed.slice(0, headerSeparator);
+    const bodyText = trimmed.slice(headerSeparator + 4).replace(/\r\n--$/, "");
+    const headers = headerText.toLowerCase();
+    const contentTypeMatch = headerText.match(/content-type:\s*([^\r\n]+)/i);
+    const dispositionMatch = headerText.match(/filename="([^"]+)"/i);
+
+    if (!headers.includes("image/")) {
+      continue;
+    }
+
+    return {
+      buffer: Buffer.from(bodyText, "binary"),
+      contentType: contentTypeMatch?.[1]?.trim() || "image/jpeg",
+      filename: dispositionMatch?.[1] || `capture-face-${Date.now()}.jpg`
+    };
+  }
+
+  return null;
+}
+
+function parseCaptureFaceStatus(text: string) {
+  const message =
+    extractXmlValue(text, "statusString") ||
+    extractXmlValue(text, "subStatusCode") ||
+    extractXmlValue(text, "errorMsg") ||
+    extractXmlValue(text, "errorCode");
+  const captureProgress = extractXmlValue(text, "captureProgress") || undefined;
+  const faceDataUrl =
+    extractXmlValue(text, "faceDataUrl") || extractXmlValue(text, "infraredFaceDataUrl") || undefined;
+  const isBusy =
+    /devicebusy/i.test(text) ||
+    /cancelflag/i.test(text) ||
+    /captureinprogress/i.test(text) ||
+    /busy/i.test(message || "");
+
+  return {
+    message,
+    captureProgress,
+    faceDataUrl,
+    isBusy
+  };
+}
 
 export class HikvisionClient {
   private baseUrl: string;
@@ -337,6 +452,87 @@ export class HikvisionClient {
     return extractXmlObject(text, []) as T;
   }
 
+  private async fetchBinaryResource(resourceUrl: string, fallbackFilename: string) {
+    const target = new URL(resourceUrl, this.baseUrl);
+    const response = await this.send(`${target.pathname}${target.search}`);
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      buffer,
+      contentType: response.headers.get("content-type") || "image/jpeg",
+      filename: fallbackFilename
+    };
+  }
+
+  private captureBusyResult(error: unknown): HikvisionCaptureFaceDataResult | null {
+    const message = error instanceof Error ? error.message : String(error);
+    const parsed = parseCaptureFaceStatus(message);
+    if (!parsed.isBusy) {
+      return null;
+    }
+
+    return {
+      status: "busy",
+      message: parsed.message || "The terminal camera is busy capturing another face",
+      captureProgress: parsed.captureProgress
+    };
+  }
+
+  private async readCaptureFaceDataResponse(response: Response): Promise<HikvisionCaptureFaceDataResult> {
+    const contentType = response.headers.get("content-type") || "";
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    if (contentType.startsWith("image/")) {
+      return {
+        status: "ready",
+        image: {
+          buffer,
+          contentType,
+          filename: `capture-face-${Date.now()}.${contentType.includes("png") ? "png" : "jpg"}`
+        }
+      };
+    }
+
+    if (contentType.includes("multipart/")) {
+      const image = extractMultipartImage(buffer, contentType);
+      if (image) {
+        return {
+          status: "ready",
+          image: {
+            ...image
+          }
+        };
+      }
+    }
+
+    const text = buffer.toString("utf8").trim();
+    const parsed = parseCaptureFaceStatus(text);
+
+    if (parsed.isBusy) {
+      return {
+        status: "busy",
+        message: parsed.message || "The terminal camera is busy capturing another face",
+        captureProgress: parsed.captureProgress
+      };
+    }
+
+    if (parsed.faceDataUrl) {
+      const image = await this.fetchBinaryResource(parsed.faceDataUrl, `capture-face-${Date.now()}.jpg`);
+      return {
+        status: "ready",
+        image: {
+          ...image,
+          captureProgress: parsed.captureProgress
+        }
+      };
+    }
+
+    throw new Error(
+      parsed.message
+        ? `Hikvision CaptureFaceData did not return an image: ${parsed.message}`
+        : "Hikvision CaptureFaceData did not return an image"
+    );
+  }
+
   async getActivationStatus() {
     const res = await this.send("/SDK/activateStatus");
     const text = await res.text();
@@ -372,6 +568,11 @@ export class HikvisionClient {
     return this.parseJsonOrXml<Record<string, unknown>>(res, "FDLibCap");
   }
 
+  async getFdLibList() {
+    const res = await this.send("/ISAPI/Intelligent/FDLib?format=json");
+    return this.parseJsonOrXml<Record<string, unknown>>(res, "FDLibList");
+  }
+
   async getFaceRecognizeMode() {
     const res = await this.send("/ISAPI/AccessControl/FaceRecognizeMode?format=json");
     return this.parseJsonOrXml<Record<string, unknown>>(res, "FaceRecognizeMode");
@@ -402,10 +603,107 @@ export class HikvisionClient {
     };
   }
 
+  async captureFaceData(): Promise<HikvisionCaptureFaceDataResult> {
+    try {
+      const response = await this.send("/ISAPI/AccessControl/CaptureFaceData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/xml; charset=UTF-8"
+        },
+        body: buildCaptureFaceDataXml({
+          dataType: "binary",
+          captureInfrared: false,
+          cancelFlag: false
+        })
+      });
+
+      return this.readCaptureFaceDataResponse(response);
+    } catch (error) {
+      const busy = this.captureBusyResult(error);
+      if (busy) {
+        return busy;
+      }
+      throw error;
+    }
+  }
+
+  async cancelCaptureFaceData() {
+    const response = await this.send("/ISAPI/AccessControl/CaptureFaceData", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/xml; charset=UTF-8"
+      },
+      body: buildCaptureFaceDataXml({
+        cancelFlag: true
+      })
+    });
+
+    return response.text();
+  }
+
   async getAcsWorkStatus(): Promise<HikvisionAcsWorkStatus> {
     const res = await this.send("/ISAPI/AccessControl/AcsWorkStatus?format=json");
     const payload = await res.json();
     return normalizeAcsWorkStatus(payload) || {};
+  }
+
+  async findUserByEmployeeNo(employeeNo: string) {
+    const res = await this.send("/ISAPI/AccessControl/UserInfo/Search?format=json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8"
+      },
+      body: JSON.stringify({
+        UserInfoSearchCond: {
+          searchID: "1",
+          searchResultPosition: 0,
+          maxResults: 30,
+          EmployeeNoList: [{ employeeNo: employeeNo.trim() }]
+        }
+      })
+    });
+
+    const payload = await this.parseJsonOrXml<Record<string, unknown>>(res, "UserInfoSearch");
+    const userInfo = payload.UserInfo;
+
+    if (Array.isArray(userInfo)) {
+      return isNonEmptyRecord(userInfo[0]) ? userInfo[0] : null;
+    }
+
+    return isNonEmptyRecord(userInfo) ? userInfo : null;
+  }
+
+  async userHasFace(employeeNo: string) {
+    const user = await this.findUserByEmployeeNo(employeeNo);
+    if (!user) {
+      return false;
+    }
+
+    const numOfFace = typeof user.numOfFace === "number" ? user.numOfFace : Number(user.numOfFace);
+    return Number.isFinite(numOfFace) && numOfFace > 0;
+  }
+
+  async getRegisteredFaceCount() {
+    const res = await this.send("/ISAPI/AccessControl/UserInfo/Search?format=json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8"
+      },
+      body: JSON.stringify({
+        UserInfoSearchCond: {
+          searchID: "face-count",
+          searchResultPosition: 0,
+          maxResults: 1,
+          hasFace: true
+        }
+      })
+    });
+
+    const payload = await this.parseJsonOrXml<Record<string, unknown>>(res, "UserInfoSearch");
+    const totalMatches =
+      typeof payload.totalMatches === "number" ? payload.totalMatches : Number(payload.totalMatches);
+
+    return Number.isFinite(totalMatches) ? totalMatches : 0;
   }
 
   async getTerminalSnapshot() {
@@ -486,7 +784,9 @@ export class HikvisionClient {
   async registerFace(registration: HikvisionFaceRegistration): Promise<HikvisionFaceRegistrationResult> {
     const employeeNoCandidates = buildEmployeeNoCandidates(registration.employeeNo);
     const name = registration.name.trim();
-    const fdid = registration.fdid || "1";
+    const faceLibraries = await this.getFaceLibraryCandidates(registration.fdid).catch(() => [
+      { fdid: registration.fdid || "1", faceLibType: "blackFD" }
+    ]);
     const filename = registration.filename || `${employeeNoCandidates[0] || "face"}.jpg`;
     const mimeType = registration.mimeType || "image/jpeg";
     const imageBuffer =
@@ -504,7 +804,13 @@ export class HikvisionClient {
         UserInfo: {
           employeeNo,
           userType: "normal",
-          name
+          name,
+          Valid: {
+            enable: true,
+            beginTime: "2024-01-01T00:00:00",
+            endTime: "2037-12-31T23:59:59",
+            timeType: "local"
+          }
         }
       });
 
@@ -539,44 +845,163 @@ export class HikvisionClient {
         : new Error("Failed to apply Hikvision user information");
     }
 
-    const uploadMeta = `<?xml version="1.0" encoding="UTF-8"?><PictureUploadData><FDID>${escapeXml(fdid)}</FDID><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name></PictureUploadData>`;
-    const formData = new FormData();
-    formData.append(
-      "PictureUploadData",
-      new Blob([uploadMeta], { type: "application/xml" }),
-      "PictureUploadData.xml"
-    );
-    formData.append(
-      "face_picture",
-      new Blob([imageBuffer], { type: mimeType }),
-      filename
-    );
+    const faceUrl = registration.faceUrl?.trim();
 
-    try {
+    const tryFaceUrlUpload = async (fdid: string) => {
+      const formData = new FormData();
+      formData.append("FDID", fdid);
+      formData.append("employeeNo", employeeNoUsed);
+      formData.append("name", name);
+      formData.append("faceURL", faceUrl || "");
       await this.send("/ISAPI/Intelligent/FDLib/pictureUpload", {
         method: "POST",
         body: formData
       });
-    } catch (uploadError) {
-      // Some firmware builds accept the legacy record payload instead of pictureUpload.
-      const legacyBody = `<FaceDataRecord><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name><faceData><faceURL>${escapeXml(registration.filename || "")}</faceURL></faceData></FaceDataRecord>`;
-      await this.send("/ISAPI/Intelligent/FDLib/FaceDataRecord", {
+    };
+
+    const tryBinaryUpload = async (fdid: string) => {
+      const uploadMeta = `<?xml version="1.0" encoding="UTF-8"?><PictureUploadData><FDID>${escapeXml(fdid)}</FDID><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name></PictureUploadData>`;
+      const formData = new FormData();
+      formData.append(
+        "PictureUploadData",
+        new Blob([uploadMeta], { type: "application/xml" }),
+        "PictureUploadData.xml"
+      );
+      formData.append(
+        "face_picture",
+        new Blob([imageBuffer], { type: mimeType }),
+        filename
+      );
+
+      await this.send("/ISAPI/Intelligent/FDLib/pictureUpload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/xml"
-        },
-        body: legacyBody
-      }).catch(() => {
-        throw uploadError;
+        body: formData
       });
+    };
+
+    let uploadError: unknown = null;
+    for (const library of faceLibraries) {
+      try {
+        if (faceUrl) {
+          try {
+            await tryFaceUrlUpload(library.fdid);
+          } catch (error) {
+            uploadError = error;
+            if (imageBuffer) {
+              await tryBinaryUpload(library.fdid);
+            } else {
+              throw error;
+            }
+          }
+        } else {
+          await tryBinaryUpload(library.fdid);
+        }
+        uploadError = null;
+        break;
+      } catch (error) {
+        uploadError = error;
+      }
+    }
+
+    if (uploadError) {
+      try {
+        await this.tryFaceDataRecordFallback(faceLibraries, employeeNoUsed, name, faceUrl || "");
+      } catch (faceDataRecordError) {
+        if (await this.userHasFace(employeeNoUsed).catch(() => false)) {
+          return { employeeNo: employeeNoUsed, alreadyPresent: true };
+        }
+
+        throw faceDataRecordError instanceof Error ? faceDataRecordError : uploadError;
+      }
     }
 
     return { employeeNo: employeeNoUsed };
   }
 
+  private async getFaceLibraryCandidates(preferredFdid?: string) {
+    const res = await this.send("/ISAPI/Intelligent/FDLib?format=json");
+    const payload = await this.parseJsonOrXml<Record<string, unknown>>(res, "FDLibList");
+    const list = payload.FDLib;
+    const libraries: HikvisionFaceLibrary[] = [];
+
+    if (Array.isArray(list)) {
+      for (const item of list) {
+        if (typeof item?.FDID === "string" && item.FDID.trim()) {
+          libraries.push({
+            fdid: item.FDID.trim(),
+            faceLibType: typeof item?.faceLibType === "string" && item.faceLibType.trim()
+              ? item.faceLibType.trim()
+              : "blackFD"
+          });
+        }
+      }
+    } else if (typeof list === "object" && list !== null) {
+      const candidate = list as Record<string, unknown>;
+      if (typeof candidate.FDID === "string" && candidate.FDID.trim()) {
+        libraries.push({
+          fdid: candidate.FDID.trim(),
+          faceLibType:
+            typeof candidate.faceLibType === "string" && candidate.faceLibType.trim()
+              ? candidate.faceLibType.trim()
+              : "blackFD"
+        });
+      }
+    }
+
+    const uniqueLibraries = libraries.filter(
+      (library, index, array) =>
+        array.findIndex((candidate) => candidate.fdid === library.fdid && candidate.faceLibType === library.faceLibType) === index
+    );
+    const ordered = preferredFdid
+      ? [
+          ...uniqueLibraries.filter((library) => library.fdid === preferredFdid),
+          ...uniqueLibraries.filter((library) => library.fdid !== preferredFdid)
+        ]
+      : uniqueLibraries;
+
+    return ordered.length > 0 ? ordered : [{ fdid: preferredFdid || "1", faceLibType: "blackFD" }];
+  }
+
+  private async tryFaceDataRecordFallback(
+    libraries: HikvisionFaceLibrary[],
+    employeeNo: string,
+    name: string,
+    faceUrl: string
+  ) {
+    let lastError: unknown = null;
+
+    for (const library of libraries) {
+      try {
+        await this.send("/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8"
+          },
+          body: JSON.stringify({
+            faceURL: faceUrl,
+            faceLibType: library.faceLibType,
+            FDID: library.fdid,
+            FPID: employeeNo,
+            name
+          })
+        });
+        return true;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastError instanceof Error) {
+      throw lastError;
+    }
+
+    throw new Error("Failed to register face with Hikvision FaceDataRecord");
+  }
+
   async deleteFace(employeeNo: string) {
     const payload = {
       UserInfoDetail: {
+        mode: "byEmployeeNo",
         operateType: "byEmployeeNo",
         EmployeeNoList: [{ employeeNo: employeeNo.trim() }]
       }

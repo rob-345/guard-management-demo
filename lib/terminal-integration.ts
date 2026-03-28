@@ -7,6 +7,7 @@ export type TerminalProbeSnapshot = {
   activation_status?: Terminal["activation_status"];
   status?: Terminal["status"];
   last_seen?: string;
+  registered_face_count?: number;
   device_uid?: string;
   device_info?: Terminal["device_info"];
   capability_snapshot?: Terminal["capability_snapshot"];
@@ -53,7 +54,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     snapshot.activation_status = "error";
   }
 
-  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, snapshotCapabilities, acsWorkStatus] =
+  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, snapshotCapabilities, acsWorkStatus, registeredFaceCount] =
     await Promise.allSettled([
       client.getDeviceInfo(),
       client.getSystemCapabilities(),
@@ -64,7 +65,8 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
       client.getSubscribeEventCapabilities(),
       client.getHttpHostCapabilities(),
       client.getSnapshotCapabilities(snapshotStreamId),
-      client.getAcsWorkStatus()
+      client.getAcsWorkStatus(),
+      client.getRegisteredFaceCount()
     ]);
 
   if (deviceInfo.status === "fulfilled") {
@@ -91,6 +93,10 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
 
   if (acsWorkStatus.status === "fulfilled") {
     snapshot.acs_work_status = acsWorkStatus.value;
+  }
+
+  if (registeredFaceCount.status === "fulfilled") {
+    snapshot.registered_face_count = registeredFaceCount.value;
   }
 
   if (faceRecognizeMode.status === "fulfilled") {

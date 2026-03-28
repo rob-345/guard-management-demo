@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { Collection } from "mongodb";
 
 import { requireSession } from "@/lib/api-route";
+import { buildGuardPhotoUrl } from "@/lib/guard-photo-access";
 import {
   resolveGuardFaceEnrollmentEmployeeNo,
   summarizeGuardFaceEnrollments
@@ -11,6 +12,7 @@ import {
 import { loadGuardPhoto } from "@/lib/guard-media";
 import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
+import { resolvePublicAppBaseUrl } from "@/lib/public-origin";
 import type { Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
 
 const syncSchema = z
@@ -24,10 +26,47 @@ async function upsertEnrollment(
   enrollmentCollection: Collection<GuardFaceEnrollment>,
   enrollment: GuardFaceEnrollment
 ) {
+  const setPayload: Record<string, unknown> = {
+    id: enrollment.id,
+    guard_id: enrollment.guard_id,
+    terminal_id: enrollment.terminal_id,
+    status: enrollment.status,
+    created_at: enrollment.created_at,
+    updated_at: enrollment.updated_at
+  };
+
+  if (enrollment.device_employee_no) {
+    setPayload.device_employee_no = enrollment.device_employee_no;
+  }
+
+  if (enrollment.error) {
+    setPayload.error = enrollment.error;
+  }
+
+  if (enrollment.synced_at) {
+    setPayload.synced_at = enrollment.synced_at;
+  }
+
+  if (enrollment.removed_at) {
+    setPayload.removed_at = enrollment.removed_at;
+  }
+
+  const unsetPayload: Record<string, "" | 1> = {};
+  if (!enrollment.error) {
+    unsetPayload.error = "";
+  }
+  if (!enrollment.synced_at) {
+    unsetPayload.synced_at = "";
+  }
+  if (!enrollment.removed_at) {
+    unsetPayload.removed_at = "";
+  }
+
   await enrollmentCollection.updateOne(
     { guard_id: enrollment.guard_id, terminal_id: enrollment.terminal_id },
     {
-      $set: enrollment
+      $set: setPayload,
+      ...(Object.keys(unsetPayload).length > 0 ? { $unset: unsetPayload } : {})
     },
     { upsert: true }
   );
@@ -63,9 +102,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   const photo = await loadGuardPhoto(guard);
+  let publicBaseUrl = "";
+  try {
+    publicBaseUrl = resolvePublicAppBaseUrl(request.url, request.headers);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to resolve a public app URL for Hikvision face sync"
+      },
+      { status: 400 }
+    );
+  }
   const results: Array<{
     terminal_id: string;
     status: GuardFaceEnrollment["status"];
+    already_present?: boolean;
     error?: string;
   }> = [];
 
@@ -74,6 +128,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       guard_id: guard.id,
       terminal_id: terminal.id
     });
+
+    if (existingEnrollment?.status === "synced" && !parsed.data.force) {
+      results.push({ terminal_id: terminal.id, status: "synced" });
+      continue;
+    }
+
     const enrollmentEmployeeNo = resolveGuardFaceEnrollmentEmployeeNo(guard, existingEnrollment);
 
     const enrollmentBase: GuardFaceEnrollment = {
@@ -90,9 +150,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     try {
       const client = new HikvisionClient(terminal);
+      const faceUrl = buildGuardPhotoUrl(publicBaseUrl, guard, terminal);
       const registration = await client.registerFace({
         employeeNo: enrollmentEmployeeNo,
         name: guard.full_name,
+        faceUrl,
         image: photo.buffer,
         filename: photo.filename,
         mimeType: photo.mimeType
@@ -106,7 +168,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         synced_at: new Date().toISOString()
       };
       await upsertEnrollment(enrollments, synced);
-      results.push({ terminal_id: terminal.id, status: "synced" });
+      results.push({
+        terminal_id: terminal.id,
+        status: "synced",
+        already_present: Boolean(registration.alreadyPresent)
+      });
     } catch (error) {
       const failed: GuardFaceEnrollment = {
         ...enrollmentBase,

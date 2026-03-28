@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { getApiErrorMessage } from "@/lib/http";
-import type { Site, Terminal } from "@/lib/types";
+import type { Site, Terminal, TerminalWebhookDelivery } from "@/lib/types";
 
 import { TerminalAddDialog } from "./TerminalAddDialog";
 import { TerminalSnapshotCard } from "./TerminalSnapshotCard";
@@ -47,6 +47,7 @@ interface Props {
   terminal: Terminal;
   site: Site | null;
   sites: Site[];
+  deliveries: TerminalWebhookDelivery[];
 }
 
 function detailValue(value: unknown) {
@@ -64,7 +65,7 @@ function JsonBlock({ value }: { value: unknown }) {
   );
 }
 
-export function TerminalDetailsClient({ terminal, site, sites }: Props) {
+export function TerminalDetailsClient({ terminal, site, sites, deliveries }: Props) {
   const router = useRouter();
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -187,6 +188,14 @@ export function TerminalDetailsClient({ terminal, site, sites }: Props) {
             <CardTitle className="text-sm font-medium">Site</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">{site?.name || "Unassigned"}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Registered Faces</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-bold">
+            {terminal.registered_face_count ?? "—"}
+          </CardContent>
         </Card>
       </div>
 
@@ -413,6 +422,53 @@ export function TerminalDetailsClient({ terminal, site, sites }: Props) {
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">HTTP Host Snapshot</p>
               <JsonBlock value={terminal.capability_snapshot?.httpHosts} />
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Recent Deliveries</p>
+                <p className="text-sm text-muted-foreground">
+                  This shows whether the terminal is actually pushing callback traffic back to the app.
+                </p>
+              </div>
+
+              {deliveries.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                  No webhook deliveries recorded yet. Configure the webhook, run a test, or trigger a real event on the device.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {deliveries.map((delivery) => (
+                    <div key={delivery.id} className="rounded-lg border bg-muted/20 p-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={delivery.success ? "secondary" : "destructive"}>
+                          {delivery.success ? "Success" : "Failed"}
+                        </Badge>
+                        <Badge variant="outline">{delivery.source === "device_test" ? "Webhook test" : "Device push"}</Badge>
+                        {delivery.event_type ? <Badge variant="outline">{delivery.event_type}</Badge> : null}
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(delivery.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      {delivery.employee_no ? (
+                        <p className="mt-2 text-sm">
+                          Employee No: <span className="font-mono">{delivery.employee_no}</span>
+                        </p>
+                      ) : null}
+                      {delivery.error ? (
+                        <p className="mt-2 text-sm text-destructive">{delivery.error}</p>
+                      ) : null}
+                      {delivery.payload_preview ? (
+                        <pre className="mt-2 overflow-x-auto rounded-md bg-background p-2 text-[11px] leading-5 text-muted-foreground">
+                          {delivery.payload_preview}
+                        </pre>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

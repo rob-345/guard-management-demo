@@ -82,22 +82,34 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
       const results = Array.isArray(data?.results) ? data.results : [];
       const summary = data?.summary || {};
       const syncedCount = results.filter((result: { status: string }) => result.status === "synced").length;
-      const failedCount = results.filter((result: { status: string }) => result.status === "failed").length;
+      const alreadyPresentCount = results.filter(
+        (result: { already_present?: boolean }) => result.already_present
+      ).length;
+      const failedResults = results.filter((result: { status: string }) => result.status === "failed");
+      const failedCount = failedResults.length;
+      const firstError =
+        failedResults.find((result: { error?: string }) => typeof result.error === "string" && result.error.trim())?.error || null;
       const overallSynced = Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced);
 
       if (overallSynced && syncedCount === selectedIds.length && failedCount === 0) {
-        toast.success(`Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}`);
+        toast.success(
+          alreadyPresentCount > 0
+            ? `Terminal already had face data on ${alreadyPresentCount} selected terminal${alreadyPresentCount === 1 ? "" : "s"}`
+            : `Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}`
+        );
       } else if (syncedCount > 0) {
         const message = overallSynced
           ? `Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}, ${failedCount} failed`
           : `Synced to ${syncedCount} terminal${syncedCount === 1 ? "" : "s"}${failedCount > 0 ? `, ${failedCount} failed` : ""}, but the guard still has pending face enrollment state`;
         toast(message);
       } else {
-        toast.error("Face sync failed on all selected terminals");
+        toast.error(firstError ? `Face sync failed: ${firstError}` : "Face sync failed on all selected terminals");
       }
 
       router.refresh();
-      onOpenChange(false);
+      if (syncedCount > 0 || failedCount === 0) {
+        onOpenChange(false);
+      }
     } catch (error) {
       toast.error(`Face sync failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { resolveGuardByEmployeeNo } from "@/lib/guard-face";
 import { getCollection } from "@/lib/mongodb";
+import { buildWebhookPayloadPreview, recordTerminalWebhookDelivery } from "@/lib/terminal-webhook-deliveries";
 import type { ClockingEvent, Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
 
 function pickFirstString(formData: FormData, keys: string[]) {
@@ -88,6 +89,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const contentType = request.headers.get("content-type") || "";
   let payload: Record<string, unknown> = {};
+  let payloadPreview = "";
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
@@ -102,13 +104,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     ]);
 
     payload = parseEventPayload(eventText || "");
+    const stringPairs: string[] = [];
     for (const [key, value] of formData.entries()) {
       if (typeof value === "string" && !payload[key]) {
         payload[key] = value;
       }
+      if (typeof value === "string") {
+        stringPairs.push(`${key}=${value}`);
+      }
     }
+    payloadPreview = buildWebhookPayloadPreview(stringPairs.join("&"));
   } else {
     const raw = await request.text();
+    payloadPreview = buildWebhookPayloadPreview(raw);
     payload = parseEventPayload(raw);
     if (!Object.keys(payload).length && raw.trim().startsWith("{")) {
       try {
@@ -133,38 +141,64 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     (typeof payload.eventTime === "string" && payload.eventTime) ||
     new Date().toISOString();
 
-  const guards = await getCollection<Guard>("guards");
-  const enrollments = await getCollection<GuardFaceEnrollment>("guard_face_enrollments");
-  const events = await getCollection<ClockingEvent>("clocking_events");
+  try {
+    const guards = await getCollection<Guard>("guards");
+    const enrollments = await getCollection<GuardFaceEnrollment>("guard_face_enrollments");
+    const events = await getCollection<ClockingEvent>("clocking_events");
 
-  const guardProfile = employeeNo
-    ? await resolveGuardByEmployeeNo(guards, enrollments, employeeNo, terminal.id)
-    : null;
+    const guardProfile = employeeNo
+      ? await resolveGuardByEmployeeNo(guards, enrollments, employeeNo, terminal.id)
+      : null;
 
-  const eventId = uuidv4();
-  const event: ClockingEvent = {
-    id: eventId,
-    guard_id: guardProfile?.id,
-    employee_no: employeeNo,
-    terminal_id: terminal.id,
-    site_id: terminal.site_id,
-    event_type: eventType,
-    event_time: eventTime,
-    created_at: new Date().toISOString()
-  };
+    const eventId = uuidv4();
+    const event: ClockingEvent = {
+      id: eventId,
+      guard_id: guardProfile?.id,
+      employee_no: employeeNo,
+      terminal_id: terminal.id,
+      site_id: terminal.site_id,
+      event_type: eventType,
+      event_time: eventTime,
+      created_at: new Date().toISOString()
+    };
 
-  await events.insertOne({ ...event, _id: eventId } as any);
+    await events.insertOne({ ...event, _id: eventId } as any);
 
-  await terminals.updateOne(
-    { id: terminal.id },
-    {
-      $set: {
-        last_seen: eventTime,
-        status: "online",
-        updated_at: new Date().toISOString()
+    await terminals.updateOne(
+      { id: terminal.id },
+      {
+        $set: {
+          last_seen: eventTime,
+          status: "online",
+          updated_at: new Date().toISOString()
+        }
       }
-    }
-  );
+    );
+    await recordTerminalWebhookDelivery({
+      terminal_id: terminal.id,
+      source: "device_push",
+      success: true,
+      event_type: eventType,
+      employee_no: employeeNo,
+      clocking_event_id: eventId,
+      payload_preview: payloadPreview || buildWebhookPayloadPreview(payload)
+    });
 
-  return NextResponse.json({ success: true, eventId, terminal_id: terminal.id, eventType });
+    return NextResponse.json({ success: true, eventId, terminal_id: terminal.id, eventType });
+  } catch (error) {
+    await recordTerminalWebhookDelivery({
+      terminal_id: terminal.id,
+      source: "device_push",
+      success: false,
+      event_type: eventType,
+      employee_no: employeeNo,
+      error: error instanceof Error ? error.message : "Failed to process Hikvision callback",
+      payload_preview: payloadPreview || buildWebhookPayloadPreview(payload)
+    });
+
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to process Hikvision callback" },
+      { status: 500 }
+    );
+  }
 }
