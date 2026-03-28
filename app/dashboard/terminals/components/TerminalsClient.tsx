@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Server, Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Terminal } from "@/lib/types";
+import { getApiErrorMessage } from "@/lib/http";
 
 const statusColor: Record<string, string> = {
   online: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
@@ -29,7 +30,9 @@ export function TerminalsClient({ terminals }: Props) {
       const res = await fetch(`/api/terminals/${terminalId}/activate`, {
         method: "POST"
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        throw new Error(await getApiErrorMessage(res, "Activation failed"));
+      }
       toast.success("Activation command sent");
       router.refresh();
     } catch (err) {

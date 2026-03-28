@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionFromRequest } from "@/lib/auth";
 import { getCollection } from "@/lib/mongodb";
 import { HikvisionClient } from "@/lib/hikvision";
 import { Terminal } from "@/lib/types";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const session = await getSessionFromRequest(req);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
     const collection = await getCollection<Terminal>("terminals");
     const terminal = await collection.findOne({ id });
 
@@ -26,7 +32,7 @@ export async function POST(
     const status = await client.getActivationStatus();
     
     if (status === "activated") {
-      await collection.updateOne({ id }, { $set: { activation_status: "activated" } });
+      await collection.updateOne({ id }, { $set: { activation_status: "activated", updated_at: new Date().toISOString() } });
       return NextResponse.json({ message: "Terminal updated as already activated" });
     }
 
@@ -36,7 +42,8 @@ export async function POST(
       { 
         $set: { 
           activation_status: "activated",
-          last_seen: new Date().toISOString() 
+          last_seen: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         } 
       }
     );

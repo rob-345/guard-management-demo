@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, MapPin, Building2 } from "lucide-react";
-import { SiteAddSheet } from "./SiteAddSheet";
+import { SiteAddDialog } from "./SiteAddSheet";
 import type { Site } from "@/lib/types";
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function SitesClient({ sites }: Props) {
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <>
@@ -22,7 +22,7 @@ export function SitesClient({ sites }: Props) {
             <h2 className="text-2xl font-bold tracking-tight">Sites</h2>
             <p className="text-muted-foreground">{sites.length} managed location{sites.length !== 1 ? "s" : ""}</p>
           </div>
-          <Button onClick={() => setSheetOpen(true)}>
+          <Button onClick={() => setDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Site
           </Button>
@@ -47,6 +47,22 @@ export function SitesClient({ sites }: Props) {
                     <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>{site.address || "No address provided"}</span>
                   </div>
+                  {(site.contact_person || site.contact_phone) && (
+                    <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                      {site.contact_person && (
+                        <p>
+                          <span className="font-medium text-foreground">Contact:</span>{" "}
+                          {site.contact_person}
+                        </p>
+                      )}
+                      {site.contact_phone && (
+                        <p>
+                          <span className="font-medium text-foreground">Phone:</span>{" "}
+                          {site.contact_phone}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {site.region && (
                     <p className="mt-3 text-xs font-bold uppercase tracking-wider text-primary/70">
                       {site.region}
@@ -59,7 +75,7 @@ export function SitesClient({ sites }: Props) {
         </div>
       </div>
 
-      <SiteAddSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <SiteAddDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

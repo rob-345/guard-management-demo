@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter
-} from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -32,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { getApiErrorMessage } from "@/lib/http";
 
 const guardSchema = z.object({
   employee_number: z.string().min(1, "Employee number is required"),
@@ -49,7 +43,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-export function GuardRegistrationSheet({ open, onOpenChange }: Props) {
+export function GuardRegistrationDialog({ open, onOpenChange }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +67,9 @@ export function GuardRegistrationSheet({ open, onOpenChange }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values)
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        throw new Error(await getApiErrorMessage(res, "Failed to register guard"));
+      }
       toast.success("Guard registered successfully");
       form.reset();
       onOpenChange(false);
@@ -86,14 +82,14 @@ export function GuardRegistrationSheet({ open, onOpenChange }: Props) {
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>Register Guard</SheetTitle>
-          <SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Register Guard</DialogTitle>
+          <DialogDescription>
             Add a new guard to the system. Facial imprint sync will be triggered separately.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6">
@@ -190,7 +186,7 @@ export function GuardRegistrationSheet({ open, onOpenChange }: Props) {
               )}
             />
 
-            <SheetFooter className="pt-4">
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
@@ -198,10 +194,10 @@ export function GuardRegistrationSheet({ open, onOpenChange }: Props) {
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Register Guard
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

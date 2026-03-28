@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, Plus, Calendar } from "lucide-react";
-import { ShiftAddSheet } from "./ShiftAddSheet";
+import { ShiftAddDialog } from "./ShiftAddSheet";
 import type { Shift } from "@/lib/types";
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function ShiftsClient({ shifts }: Props) {
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <>
@@ -22,7 +22,7 @@ export function ShiftsClient({ shifts }: Props) {
             <h2 className="text-2xl font-bold tracking-tight">Shifts</h2>
             <p className="text-muted-foreground">{shifts.length} shift pattern{shifts.length !== 1 ? "s" : ""} available</p>
           </div>
-          <Button onClick={() => setSheetOpen(true)}>
+          <Button onClick={() => setDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Shift
           </Button>
@@ -61,7 +61,7 @@ export function ShiftsClient({ shifts }: Props) {
         </div>
       </div>
 
-      <ShiftAddSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <ShiftAddDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

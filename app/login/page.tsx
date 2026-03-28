@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/http";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -30,8 +31,8 @@ export default function LoginPage() {
         router.push("/dashboard");
         router.refresh();
       } else {
-        const data = await res.json();
-        toast.error(data.error || "Login failed");
+        const message = await getApiErrorMessage(res, "Login failed");
+        toast.error(message);
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");

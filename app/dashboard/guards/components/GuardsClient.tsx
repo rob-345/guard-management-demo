@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus } from "lucide-react";
-import { GuardRegistrationSheet } from "./GuardRegistrationSheet";
+import { GuardRegistrationDialog } from "./GuardRegistrationSheet";
 import type { Guard } from "@/lib/types";
 
 const statusColor: Record<string, string> = {
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function GuardsClient({ guards }: Props) {
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <>
@@ -29,7 +29,7 @@ export function GuardsClient({ guards }: Props) {
             <h2 className="text-2xl font-bold tracking-tight">Guards</h2>
             <p className="text-muted-foreground">{guards.length} registered guard{guards.length !== 1 ? "s" : ""}</p>
           </div>
-          <Button onClick={() => setSheetOpen(true)}>
+          <Button onClick={() => setDialogOpen(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
             Register Guard
           </Button>
@@ -70,7 +70,7 @@ export function GuardsClient({ guards }: Props) {
         </Card>
       </div>
 
-      <GuardRegistrationSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <GuardRegistrationDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

@@ -1,11 +1,43 @@
-export const DEFAULT_THEME = {
+export const THEME_PRESETS = [
+  "default",
+  "underground",
+  "rose-garden",
+  "lake-view",
+  "sunset-glow",
+  "forest-whisper",
+  "ocean-breeze",
+  "lavender-dream"
+] as const;
+
+export const THEME_RADII = ["default", "none", "sm", "md", "lg", "xl"] as const;
+
+export const THEME_SCALES = ["none", "sm", "lg"] as const;
+
+export const THEME_CONTENT_LAYOUTS = ["full", "centered"] as const;
+
+export type ThemePreset = (typeof THEME_PRESETS)[number];
+
+export type ThemeRadius = (typeof THEME_RADII)[number];
+
+export type ThemeScale = (typeof THEME_SCALES)[number];
+
+export type ThemeContentLayout = (typeof THEME_CONTENT_LAYOUTS)[number];
+
+export type ThemeConfig = {
+  preset: ThemePreset;
+  radius: ThemeRadius;
+  scale: ThemeScale;
+  contentLayout: ThemeContentLayout;
+};
+
+export type ThemeType = ThemeConfig;
+
+export const DEFAULT_THEME: ThemeConfig = {
   preset: "default",
   radius: "default",
   scale: "none",
   contentLayout: "full"
-} as const;
-
-export type ThemeType = typeof DEFAULT_THEME;
+};
 
 export const THEMES = [
   {

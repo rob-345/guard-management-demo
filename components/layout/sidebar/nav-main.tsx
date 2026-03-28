@@ -15,46 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 import {
   ActivityIcon,
-  ArchiveRestoreIcon,
-  BadgeDollarSignIcon,
-  BrainCircuitIcon,
-  BrainIcon,
   Building2Icon,
   CalendarIcon,
-  ChartBarDecreasingIcon,
   ChartPieIcon,
   ChevronRight,
-  ClipboardCheckIcon,
-  ClipboardMinusIcon,
-  ComponentIcon,
-  CookieIcon,
   FingerprintIcon,
-  FolderDotIcon,
-  FolderIcon,
-  GaugeIcon,
-  GraduationCapIcon,
-  ImagesIcon,
-  KeyIcon,
-  MailIcon,
-  MessageSquareIcon,
-  ProportionsIcon,
-  SettingsIcon,
-  ShoppingBagIcon,
-  SquareCheckIcon,
-  SquareKanbanIcon,
-  StickyNoteIcon,
-  UserIcon,
   UsersIcon,
-  WalletMinimalIcon,
-  type LucideIcon,
-  GithubIcon,
-  RedoDotIcon,
-  BrushCleaningIcon,
-  CreditCardIcon,
-  SpeechIcon,
-  MessageSquareHeartIcon,
-  BookAIcon,
-  PuzzleIcon
 } from "lucide-react";
 import Link from "next/link";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -66,6 +32,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import type { ElementType } from "react";
 
 type NavGroup = {
   title: string;
@@ -75,7 +42,7 @@ type NavGroup = {
 type NavItem = {
   title: string;
   href: string;
-  icon?: any;
+  icon?: ElementType;
   isComing?: boolean;
   isDataBadge?: string;
   isNew?: boolean;
@@ -121,16 +88,6 @@ export const navItems: NavGroup[] = [
         title: "Clocking Events",
         href: "/dashboard/events",
         icon: ActivityIcon
-      }
-    ]
-  },
-  {
-    title: "System",
-    items: [
-      {
-        title: "Settings",
-        href: "/dashboard/settings",
-        icon: SettingsIcon
       }
     ]
   }
@@ -179,10 +136,10 @@ export function NavMain() {
                       <Collapsible
                         className="group/collapsible block group-data-[collapsible=icon]:hidden"
                         defaultOpen={!!item.items.find((s) => s.href === pathname)}>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            className="hover:text-foreground active:text-foreground hover:bg-[var(--primary)]/10 active:bg-[var(--primary)]/10"
-                            tooltip={item.title}>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              className="hover:text-foreground active:text-foreground hover:bg-[var(--primary)]/10 active:bg-[var(--primary)]/10"
+                              tooltip={item.title}>
                             {item.icon && <item.icon />}
                             <span>{item.title}</span>
                             <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -196,7 +153,7 @@ export function NavMain() {
                                   className="hover:text-foreground active:text-foreground hover:bg-[var(--primary)]/10 active:bg-[var(--primary)]/10"
                                   isActive={pathname === subItem.href}
                                   asChild>
-                                  <Link href={subItem.href} target={subItem.newTab ? "_blank" : ""}>
+                                  <Link href={subItem.href} target={subItem.newTab ? "_blank" : undefined}>
                                     <span>{subItem.title}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
@@ -212,7 +169,7 @@ export function NavMain() {
                       isActive={pathname === item.href}
                       tooltip={item.title}
                       asChild>
-                      <Link href={item.href} target={item.newTab ? "_blank" : ""}>
+                      <Link href={item.href} target={item.newTab ? "_blank" : undefined}>
                         {item.icon && <item.icon />}
                         <span>{item.title}</span>
                       </Link>

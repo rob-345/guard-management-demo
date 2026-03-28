@@ -5,6 +5,23 @@ import { ClockingEvent, Guard, Terminal } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   try {
+    const configuredSecret =
+      process.env.EVENT_INGEST_SECRET ||
+      (process.env.NODE_ENV === "development" ? "demo-ingest-secret" : undefined);
+
+    if (!configuredSecret) {
+      console.error("EVENT_INGEST_SECRET is not configured");
+      return NextResponse.json(
+        { error: "Event ingest secret is not configured" },
+        { status: 500 }
+      );
+    }
+
+    const providedSecret = request.headers.get("x-ingest-key")?.trim();
+    if (providedSecret !== configuredSecret) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const rawPayload = await request.json();
     console.log("Ingesting event:", JSON.stringify(rawPayload, null, 2));
 

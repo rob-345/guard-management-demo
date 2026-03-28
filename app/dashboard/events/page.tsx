@@ -1,12 +1,38 @@
 import { getCollection } from "@/lib/mongodb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Clock } from "lucide-react";
-import { ClockingEvent } from "@/lib/types";
+import type { ClockingEvent, Guard, Site, Terminal } from "@/lib/types";
 
-async function getEvents() {
+type HydratedClockingEvent = ClockingEvent & {
+  guard?: Guard;
+  terminal?: Terminal;
+  site?: Site;
+};
+
+async function getEvents(): Promise<HydratedClockingEvent[]> {
   const collection = await getCollection<ClockingEvent>("clocking_events");
-  // Sort by event_time descending
-  return collection.find({}).sort({ event_time: -1 }).limit(100).toArray();
+  const events = await collection.find({}).sort({ event_time: -1 }).limit(100).toArray();
+
+  const guardIds = [...new Set(events.flatMap((event) => (event.guard_id ? [event.guard_id] : [])))];
+  const terminalIds = [...new Set(events.map((event) => event.terminal_id))];
+  const siteIds = [...new Set(events.map((event) => event.site_id))];
+
+  const [guards, terminals, sites] = await Promise.all([
+    guardIds.length > 0 ? getCollection<Guard>("guards").then((c) => c.find({ id: { $in: guardIds } }).toArray()) : Promise.resolve([]),
+    terminalIds.length > 0 ? getCollection<Terminal>("terminals").then((c) => c.find({ id: { $in: terminalIds } }).toArray()) : Promise.resolve([]),
+    siteIds.length > 0 ? getCollection<Site>("sites").then((c) => c.find({ id: { $in: siteIds } }).toArray()) : Promise.resolve([])
+  ]);
+
+  const guardMap = new Map(guards.map((guard) => [guard.id, guard]));
+  const terminalMap = new Map(terminals.map((terminal) => [terminal.id, terminal]));
+  const siteMap = new Map(sites.map((site) => [site.id, site]));
+
+  return events.map((event) => ({
+    ...event,
+    guard: event.guard_id ? guardMap.get(event.guard_id) : undefined,
+    terminal: terminalMap.get(event.terminal_id),
+    site: siteMap.get(event.site_id)
+  }));
 }
 
 const eventTypeColors: Record<string, string> = {
@@ -40,13 +66,15 @@ export default async function EventsPage() {
               {events.map((event) => (
                 <div key={event.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                   <div className="flex items-center gap-4">
-                    <div className={`h-2 w-2 rounded-full ${eventTypeColors[event.event_type] || "bg-muted"}`} />
+                    <div className={`h-2 w-2 rounded-full ${eventTypeColors[event.event_type] || eventTypeColors.unknown}`} />
                     <div>
                       <p className="font-medium">
-                        {event.guard ? event.guard.full_name : "Unknown Face Detected"}
+                        {event.guard?.full_name || (event.employee_no ? `Employee #${event.employee_no}` : "Unknown Face Detected")}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        <span className="capitalize">{event.event_type.replace("_", " ")}</span> • {event.terminal ? event.terminal.name : "Terminal ID: " + event.terminal_id}
+                        <span className="capitalize">{event.event_type.replace("_", " ")}</span> •{" "}
+                        {event.terminal?.name || `Terminal ID: ${event.terminal_id}`} •{" "}
+                        {event.site?.name || `Site ID: ${event.site_id}`}
                       </p>
                     </div>
                   </div>

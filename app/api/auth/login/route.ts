@@ -3,6 +3,13 @@ import bcrypt from "bcryptjs";
 import { getCollection } from "@/lib/mongodb";
 import { login } from "@/lib/auth";
 
+type AuthUser = {
+  id: string;
+  email: string;
+  password_hash: string;
+  is_active: boolean;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
@@ -14,13 +21,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const authUsers = await getCollection("auth_users");
-    const user = await authUsers.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
+    const authUsers = await getCollection<AuthUser>("auth_users");
+    const user = await authUsers.findOne({ email: normalizedEmail });
 
     if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
+      );
+    }
+
+    if (!user.is_active) {
+      return NextResponse.json(
+        { error: "Account is inactive" },
+        { status: 403 }
       );
     }
 

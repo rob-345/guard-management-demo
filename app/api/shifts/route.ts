@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionFromRequest } from "@/lib/auth";
 import { getCollection } from "@/lib/mongodb";
 import { v4 as uuidv4 } from "uuid";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const shifts = await getCollection("shifts");
     const data = await shifts.find({}).sort({ name: 1 }).toArray();
     return NextResponse.json(data);
@@ -14,6 +20,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSessionFromRequest(request);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { name, start_time, end_time } = body;
 
@@ -23,13 +34,14 @@ export async function POST(request: NextRequest) {
 
     const shifts = await getCollection("shifts");
     const now = new Date().toISOString();
-    
+
     const shift = {
       id: uuidv4(),
       name,
       start_time,
       end_time,
-      created_at: now
+      created_at: now,
+      updated_at: now
     };
 
     await shifts.insertOne({ ...shift, _id: shift.id } as any);

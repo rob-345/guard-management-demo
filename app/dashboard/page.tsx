@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Building2, Fingerprint, Activity } from "lucide-react";
 import { getCollection } from "@/lib/mongodb";
+import { RecentActivityChart } from "./components/recent-activity-chart";
+import { TerminalStatusWidget } from "./components/terminal-status-widget";
+import type {
+  DashboardActivityPoint,
+  DashboardTerminalStatus
+} from "./components/dashboard-types";
+import type { ClockingEvent, Site, Terminal } from "@/lib/types";
 
 async function getStats() {
   const [guards, sites, terminals, events] = await Promise.all([
@@ -20,8 +27,89 @@ async function getStats() {
   };
 }
 
+async function getRecentActivity(): Promise<DashboardActivityPoint[]> {
+  const clockingEvents = await getCollection<ClockingEvent>("clocking_events");
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const currentBucketStart = new Date();
+  currentBucketStart.setUTCMinutes(0, 0, 0);
+  currentBucketStart.setUTCHours(Math.floor(currentBucketStart.getUTCHours() / 2) * 2);
+
+  const events = await clockingEvents
+    .find({
+      event_time: {
+        $gte: since.toISOString()
+      }
+    })
+    .sort({ event_time: 1 })
+    .toArray();
+
+  const bucketWidthMs = 2 * 60 * 60 * 1000;
+  const buckets = Array.from({ length: 12 }, (_, index) => {
+    const start = new Date(currentBucketStart.getTime() - (11 - index) * bucketWidthMs);
+    return {
+      start,
+      hour: start.toISOString().slice(11, 16),
+      events: 0
+    };
+  });
+
+  for (const event of events) {
+    const eventTime = new Date(event.event_time).getTime();
+    if (Number.isNaN(eventTime)) continue;
+
+    const age = currentBucketStart.getTime() - eventTime;
+    if (age < 0 || age >= bucketWidthMs * 12) continue;
+
+    const bucketIndex = 11 - Math.floor(age / bucketWidthMs);
+    const bucket = buckets[bucketIndex];
+    if (bucket) {
+      bucket.events += 1;
+    }
+  }
+
+  return buckets.map(({ hour, events: count }) => ({
+    hour,
+    events: count
+  }));
+}
+
+async function getTerminalStatus(): Promise<{
+  terminals: DashboardTerminalStatus[];
+  totalTerminals: number;
+}> {
+  const [terminalCollection, siteCollection] = await Promise.all([
+    getCollection<Terminal>("terminals"),
+    getCollection<Site>("sites")
+  ]);
+
+  const [terminals, sites, totalTerminals] = await Promise.all([
+    terminalCollection.find({}).sort({ last_seen: -1, name: 1 }).limit(6).toArray(),
+    siteCollection.find({}).toArray(),
+    terminalCollection.countDocuments()
+  ]);
+
+  const siteMap = new Map(sites.map((site) => [site.id, site.name]));
+
+  return {
+    totalTerminals,
+    terminals: terminals.map((terminal) => ({
+      id: terminal.id,
+      name: terminal.name,
+      status: terminal.status,
+      activation_status: terminal.activation_status,
+      last_seen: terminal.last_seen,
+      ip_address: terminal.ip_address,
+      site_name: siteMap.get(terminal.site_id)
+    }))
+  };
+}
+
 export default async function DashboardPage() {
-  const stats = await getStats();
+  const [stats, activitySeries, terminalStatus] = await Promise.all([
+    getStats(),
+    getRecentActivity(),
+    getTerminalStatus()
+  ]);
 
   const cards = [
     { title: "Active Guards", value: stats.activeGuards, icon: Users, description: "Guards currently on duty" },
@@ -55,23 +143,21 @@ export default async function DashboardPage() {
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
+            <p className="text-muted-foreground text-sm">
+              Clocking events across the last 24 hours, grouped into 2-hour windows.
+            </p>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-              Activity chart will be placed here
-            </div>
+          <CardContent className="space-y-4">
+            <RecentActivityChart data={activitySeries} />
+            <p className="text-xs text-muted-foreground">
+              Bars rise as more guards clock in or out during each time window.
+            </p>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Terminal Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-              Terminal status list will be placed here
-            </div>
-          </CardContent>
-        </Card>
+        <TerminalStatusWidget
+          terminals={terminalStatus.terminals}
+          totalTerminals={terminalStatus.totalTerminals}
+        />
       </div>
     </div>
   );

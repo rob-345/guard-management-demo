@@ -5,14 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter
-} from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -25,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { getApiErrorMessage } from "@/lib/http";
 
 const siteSchema = z.object({
   name: z.string().min(1, "Site name is required"),
@@ -41,7 +35,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-export function SiteAddSheet({ open, onOpenChange }: Props) {
+export function SiteAddDialog({ open, onOpenChange }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -64,7 +58,9 @@ export function SiteAddSheet({ open, onOpenChange }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values)
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        throw new Error(await getApiErrorMessage(res, "Failed to add site"));
+      }
       toast.success("Site added successfully");
       form.reset();
       onOpenChange(false);
@@ -77,12 +73,12 @@ export function SiteAddSheet({ open, onOpenChange }: Props) {
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>Add Site</SheetTitle>
-          <SheetDescription>Register a new site for guard deployment.</SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Site</DialogTitle>
+          <DialogDescription>Register a new site for guard deployment.</DialogDescription>
+        </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-6">
@@ -156,7 +152,7 @@ export function SiteAddSheet({ open, onOpenChange }: Props) {
               )}
             />
 
-            <SheetFooter className="pt-4">
+            <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
@@ -164,10 +160,10 @@ export function SiteAddSheet({ open, onOpenChange }: Props) {
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Site
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

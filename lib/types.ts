@@ -36,6 +36,7 @@ export interface Site {
   latitude?: number;
   longitude?: number;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Shift {
@@ -44,6 +45,7 @@ export interface Shift {
   start_time: string; // HH:mm:ss
   end_time: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface GuardAssignment {
@@ -73,6 +75,7 @@ export interface Terminal {
   last_seen?: string;
   activation_status?: "unknown" | "activated" | "not_activated" | "error";
   created_at: string;
+  updated_at?: string;
   // joined
   site?: Site;
 }
@@ -101,4 +104,11 @@ export interface User {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  name: string;
+  initials: string;
 }

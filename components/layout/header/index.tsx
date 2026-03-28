@@ -10,8 +10,13 @@ import UserMenu from "@/components/layout/header/user-menu";
 import { ThemeCustomizerPanel } from "@/components/theme-customizer";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import type { CurrentUser } from "@/lib/types";
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  currentUser: CurrentUser | null;
+}
+
+export function SiteHeader({ currentUser }: SiteHeaderProps) {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -28,7 +33,7 @@ export function SiteHeader() {
           <ThemeSwitch />
           <ThemeCustomizerPanel />
           <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
-          <UserMenu />
+          <UserMenu currentUser={currentUser} />
         </div>
       </div>
     </header>

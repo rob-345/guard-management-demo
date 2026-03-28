@@ -35,8 +35,8 @@ async function seed() {
 
     // 3. Insert Sites
     const siteData = [
-      { id: uuidv4(), name: "Harare Main Office", address: "123 Samora Machel Ave, Harare", region: "Harare Central", created_at: now },
-      { id: uuidv4(), name: "Bulawayo Depot", address: "45 Fife St, Bulawayo", region: "Bulawayo Metro", created_at: now }
+      { id: uuidv4(), name: "Harare Main Office", address: "123 Samora Machel Ave, Harare", region: "Harare Central", contact_person: "Tendai Moyo", contact_phone: "+263 77 300 1000", created_at: now },
+      { id: uuidv4(), name: "Bulawayo Depot", address: "45 Fife St, Bulawayo", region: "Bulawayo Metro", contact_person: "Nandi Dube", contact_phone: "+263 77 300 2000", created_at: now }
     ];
     await db.collection("sites").insertMany(siteData.map(s => ({ ...s, _id: s.id } as any)));
 

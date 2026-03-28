@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/layout/header";
+import { getCurrentUser } from "@/lib/current-user";
 
 export default async function DashboardLayout({
   children
@@ -11,12 +12,13 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
+  const currentUser = await getCurrentUser();
   const defaultOpen =
     cookieStore.get("sidebar_state")?.value === "true" ||
     cookieStore.get("sidebar_state") === undefined;
 
   return (
-    <SidebarProvider
+      <SidebarProvider
       defaultOpen={defaultOpen}
       style={
         {
@@ -28,9 +30,9 @@ export default async function DashboardLayout({
             "calc(100vh - var(--header-height) - (var(--content-padding) * 2) - (var(--content-margin) * 2))"
         } as React.CSSProperties
       }>
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" currentUser={currentUser} />
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader currentUser={currentUser} />
         <div className="bg-muted/40 flex flex-1 flex-col">
           <div className="@container/main p-(--content-padding) xl:group-data-[theme-content-layout=centered]/layout:container xl:group-data-[theme-content-layout=centered]/layout:mx-auto">
             {children}
