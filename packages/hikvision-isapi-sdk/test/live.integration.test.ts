@@ -142,6 +142,31 @@ test("live webhook configure capability probe", { skip: !live }, async () => {
   assert.ok(capabilities);
 });
 
+test("live webhook upload control", { skip: !live }, async () => {
+  const client = createClient();
+  const uploadCtrl = await client.getHttpHostUploadCtrl("1");
+
+  assert.equal(uploadCtrl.success, true);
+  assert.ok(uploadCtrl.body);
+});
+
+test(
+  "live webhook subscribe and unsubscribe",
+  { skip: !live || process.env.HIKVISION_TEST_WEBHOOK_SUBSCRIBE_REQUIRED !== "1" },
+  async () => {
+    const client = createClient();
+    const subscribe = await client.subscribeEvent({ eventMode: "all", channelMode: "all" });
+
+    assert.equal(subscribe.success, true);
+    assert.ok(subscribe.subscriptionId);
+
+    if (subscribe.subscriptionId) {
+      const unsubscribe = await client.unsubscribeEvent(subscribe.subscriptionId);
+      assert.ok(unsubscribe);
+    }
+  }
+);
+
 test("live face add, apply, search, verify, and cleanup", { skip: !live }, async () => {
   const client = createClient();
   const fdid = process.env.HIKVISION_TEST_FDID!;

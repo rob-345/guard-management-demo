@@ -94,6 +94,47 @@ export type HikvisionHttpHostNotification = {
   [key: string]: unknown;
 };
 
+export type HikvisionHttpHostSubscribeEvent = {
+  heartbeat?: string;
+  eventMode?: string;
+  channelMode?: string;
+  eventTypes: string[];
+  pictureURLType?: string;
+  rawXml?: string;
+};
+
+export type HikvisionHttpHostDetails = {
+  id?: string;
+  url?: string;
+  protocolType?: string;
+  parameterFormatType?: string;
+  addressingFormatType?: string;
+  hostName?: string;
+  ipAddress?: string;
+  portNo?: number;
+  httpAuthenticationMethod?: string;
+  subscribeEvent?: HikvisionHttpHostSubscribeEvent;
+  rawXml?: string;
+};
+
+export type HikvisionSubscribeEventInput = {
+  eventMode?: string;
+  channelMode?: string;
+};
+
+export type HikvisionSubscribeEventResult = {
+  success: boolean;
+  subscriptionId?: string;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionHttpHostUploadCtrlResult = {
+  success: boolean;
+  hostId: string;
+  body: Record<string, unknown>;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
 export type HikvisionCaptureFaceImage = {
   buffer: Buffer;
   contentType: string;

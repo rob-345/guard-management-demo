@@ -19,17 +19,25 @@ import type {
   HikvisionFaceRecordResult,
   HikvisionFaceSearchRecord,
   HikvisionFaceSearchResult,
+  HikvisionHttpHostDetails,
+  HikvisionHttpHostUploadCtrlResult,
   HikvisionHttpHostNotification,
   HikvisionResponseEnvelope,
+  HikvisionSubscribeEventInput,
+  HikvisionSubscribeEventResult,
   HikvisionVerifyFaceResult,
   HikvisionWebhookTestResult,
 } from "./models";
 import {
   buildCaptureFaceDataXml,
+  buildSubscribeEventXml,
   buildEmployeeNoCandidates,
   buildHttpHostNotificationXml,
   escapeXml,
+  extractSubscriptionId,
   extractMultipartImage,
+  parseHttpHostNotification,
+  parseHttpHostNotificationList,
   inferIsapiStatus,
   isSuccessStatus,
   log,
@@ -415,16 +423,23 @@ export class HikvisionIsapiClient {
     return (await this.requestObject("/ISAPI/Event/notification/subscribeEventCap", {}, "SubscribeEventCap")).body;
   }
 
-  async subscribeEvent(payload: Record<string, unknown>) {
-    return (
-      await this.requestObject("/ISAPI/Event/notification/subscribeEvent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=UTF-8",
-        },
-        body: JSON.stringify(payload),
-      })
-    ).body;
+  async subscribeEvent(payload: HikvisionSubscribeEventInput = {}): Promise<HikvisionSubscribeEventResult> {
+    const envelope = await this.requestObject("/ISAPI/Event/notification/subscribeEvent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/xml; charset=UTF-8",
+      },
+      body: buildSubscribeEventXml({
+        eventMode: payload.eventMode || "all",
+        channelMode: payload.channelMode || "all",
+      }),
+    }, "SubscribeEvent");
+
+    return {
+      success: true,
+      subscriptionId: extractSubscriptionId(envelope.body, envelope.rawText),
+      rawResponse: envelope,
+    };
   }
 
   async unsubscribeEvent(id: string) {
@@ -444,8 +459,32 @@ export class HikvisionIsapiClient {
     return (await this.requestObject("/ISAPI/Event/notification/httpHosts/capabilities", {}, "HttpHostNotificationCap")).body;
   }
 
-  async getHttpHost(hostId: string) {
-    return (await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}`)).body;
+  async getHttpHosts(): Promise<HikvisionHttpHostDetails[]> {
+    const envelope = await this.requestBinary("/ISAPI/Event/notification/httpHosts");
+    return parseHttpHostNotificationList(envelope.body.toString("utf8"));
+  }
+
+  async getHttpHost(hostId: string): Promise<HikvisionHttpHostDetails> {
+    const envelope = await this.requestBinary(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}`);
+    return parseHttpHostNotification(envelope.body.toString("utf8"));
+  }
+
+  async deleteHttpHost(hostId: string) {
+    return (
+      await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}`, {
+        method: "DELETE",
+      })
+    ).body;
+  }
+
+  async getHttpHostUploadCtrl(hostId: string): Promise<HikvisionHttpHostUploadCtrlResult> {
+    const envelope = await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}/uploadCtrl`);
+    return {
+      success: true,
+      hostId,
+      body: envelope.body,
+      rawResponse: envelope,
+    };
   }
 
   async configureHttpHost(

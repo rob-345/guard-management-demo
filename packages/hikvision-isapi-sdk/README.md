@@ -8,7 +8,7 @@ Internal TypeScript SDK for Hikvision Face Recognition Terminals (Value Series) 
 - capability inspection
 - face capture with `CaptureFaceData`
 - FDLib count, add, apply, search, and verification flows
-- webhook/httpHosts inspection, configuration, and testing
+- webhook/httpHosts inspection, configuration, testing, upload control, and event subscription toggles
 - Node CLI for live-device troubleshooting
 
 ## Configuration
@@ -38,6 +38,7 @@ const client = new HikvisionIsapiClient({
 - `HIKVISION_TEST_FACE_LIB_TYPE`
 - `HIKVISION_TEST_TERMINAL_NO` optional
 - `HIKVISION_TEST_CAPTURE_REQUIRED` set to `1` only when you want the live terminal camera capture test to run
+- `HIKVISION_TEST_WEBHOOK_SUBSCRIBE_REQUIRED` set to `1` only when you want the live webhook subscribe/unsubscribe test to run
 
 ## CLI Examples
 
@@ -46,6 +47,9 @@ pnpm hikvision:cli probe --host 192.168.0.179 --username admin --password secret
 pnpm hikvision:cli count-faces --fdid 1 --face-lib-type blackFD
 pnpm hikvision:cli search-faces --fdid 1 --face-lib-type blackFD --fpid EMP001
 pnpm hikvision:cli webhook-test --host-id 1
+pnpm hikvision:cli webhook-upload-ctrl --host-id 1
+pnpm hikvision:cli webhook-subscribe --event-mode all --channel-mode all
+pnpm hikvision:cli webhook-unsubscribe --subscription-id 123456
 HIKVISION_TEST_CAPTURE_REQUIRED=1 pnpm test:hikvision:live
 ```
 

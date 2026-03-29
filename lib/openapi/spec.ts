@@ -23,6 +23,8 @@ import {
   terminalUpdateSchema,
   terminalWebhookDeliverySchema,
   webhookConfigureSchema,
+  webhookSubscribeSchema,
+  webhookUnsubscribeSchema,
 } from "./schemas";
 
 const registry = new OpenAPIRegistry();
@@ -520,6 +522,114 @@ registry.registerPath({
   request: { params: IdParam },
   responses: {
     200: { description: "Webhook test result", content: jsonContent(z.object({ success: z.boolean(), result: z.any() })) },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/terminals/{id}/webhook-subscribe",
+  tags: ["Terminals"],
+  summary: "Subscribe a terminal to Hikvision event notifications",
+  security: [{ sessionCookie: [] }],
+  request: {
+    params: IdParam,
+    body: { content: jsonContent(webhookSubscribeSchema) },
+  },
+  responses: {
+    200: {
+      description: "Webhook subscription enabled",
+      content: jsonContent(z.object({
+        success: z.boolean(),
+        subscription_id: z.string().optional(),
+        result: z.any(),
+        terminal: Terminal.optional(),
+      }).passthrough()),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/terminals/{id}/webhook-unsubscribe",
+  tags: ["Terminals"],
+  summary: "Unsubscribe a terminal from Hikvision event notifications",
+  security: [{ sessionCookie: [] }],
+  request: {
+    params: IdParam,
+    body: { content: jsonContent(webhookUnsubscribeSchema) },
+  },
+  responses: {
+    200: {
+      description: "Webhook subscription disabled",
+      content: jsonContent(z.object({
+        success: z.boolean(),
+        subscription_id: z.string().optional(),
+        result: z.any(),
+        terminal: Terminal.optional(),
+      }).passthrough()),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/terminals/{id}/webhook-upload-control",
+  tags: ["Terminals"],
+  summary: "Inspect Hikvision webhook upload control for a terminal",
+  security: [{ sessionCookie: [] }],
+  request: { params: IdParam },
+  responses: {
+    200: {
+      description: "Webhook upload control state",
+      content: jsonContent(z.object({
+        success: z.boolean(),
+        upload_ctrl: z.record(z.any()),
+        terminal: Terminal.optional(),
+      }).passthrough()),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/terminals/{id}/webhook-hosts",
+  tags: ["Terminals"],
+  summary: "Inspect live Hikvision HTTP webhook hosts for a terminal",
+  security: [{ sessionCookie: [] }],
+  request: { params: IdParam },
+  responses: {
+    200: {
+      description: "Configured webhook hosts on the device",
+      content: jsonContent(z.object({
+        success: z.boolean(),
+        webhook_hosts: z.array(z.any()),
+        terminal: Terminal.optional(),
+      }).passthrough()),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/terminals/{id}/webhook-hosts/{hostId}",
+  tags: ["Terminals"],
+  summary: "Delete a Hikvision HTTP webhook host from the device",
+  security: [{ sessionCookie: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+      hostId: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Webhook host deleted",
+      content: jsonContent(z.object({
+        success: z.boolean(),
+        webhook_hosts: z.array(z.any()).optional(),
+        terminal: Terminal.optional(),
+      }).passthrough()),
+    },
   },
 });
 

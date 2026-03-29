@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
       webhook_status: "unset",
       webhook_token: callbackToken,
       webhook_host_id: deriveWebhookHostId(callbackToken),
+      webhook_subscription_status: "unset",
+      webhook_subscription_error: undefined,
       created_at: now,
       updated_at: now
     };

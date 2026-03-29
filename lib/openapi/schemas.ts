@@ -112,6 +112,10 @@ export const terminalSchema = z.object({
   webhook_host_id: z.string().optional(),
   webhook_url: z.string().optional(),
   webhook_status: z.enum(["unset", "configured", "testing", "active", "error"]).optional(),
+  webhook_subscription_id: z.string().optional(),
+  webhook_subscription_status: z.enum(["unset", "subscribed", "unsubscribed", "error"]).optional(),
+  webhook_subscription_error: z.string().optional(),
+  webhook_upload_ctrl: z.record(z.any()).optional(),
   created_at: z.string(),
   updated_at: z.string().optional(),
 });
@@ -140,6 +144,10 @@ export const terminalUpdateSchema = terminalCreateSchema
     webhook_host_id: z.string().optional(),
     webhook_url: z.string().optional(),
     webhook_status: z.enum(["unset", "configured", "testing", "active", "error"]).optional(),
+    webhook_subscription_id: z.string().optional(),
+    webhook_subscription_status: z.enum(["unset", "subscribed", "unsubscribed", "error"]).optional(),
+    webhook_subscription_error: z.string().optional(),
+    webhook_upload_ctrl: z.record(z.any()).optional(),
   });
 
 export const webhookConfigureSchema = z.object({
@@ -151,6 +159,15 @@ export const webhookConfigureSchema = z.object({
   httpAuthenticationMethod: z.string().optional(),
   ipAddress: z.string().optional(),
   portNo: z.union([z.number(), z.string()]).optional(),
+});
+
+export const webhookSubscribeSchema = z.object({
+  eventMode: z.string().optional(),
+  channelMode: z.string().optional(),
+});
+
+export const webhookUnsubscribeSchema = z.object({
+  subscription_id: z.string().optional(),
 });
 
 export const faceSyncSchema = z.object({

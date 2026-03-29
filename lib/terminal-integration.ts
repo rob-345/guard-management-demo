@@ -17,6 +17,9 @@ export type TerminalProbeSnapshot = {
   webhook_token?: string;
   webhook_host_id?: string;
   webhook_url?: string;
+  webhook_subscription_id?: string;
+  webhook_subscription_status?: Terminal["webhook_subscription_status"];
+  webhook_subscription_error?: string;
 };
 
 function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4().split("-")[0]) {
@@ -45,7 +48,10 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     webhook_status: terminal.webhook_status || "unset",
     webhook_token: terminal.webhook_token,
     webhook_host_id: terminal.webhook_host_id,
-    webhook_url: terminal.webhook_url
+    webhook_url: terminal.webhook_url,
+    webhook_subscription_id: terminal.webhook_subscription_id,
+    webhook_subscription_status: terminal.webhook_subscription_status || "unset",
+    webhook_subscription_error: terminal.webhook_subscription_error
   };
 
   try {
@@ -54,7 +60,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     snapshot.activation_status = "error";
   }
 
-  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, snapshotCapabilities, acsWorkStatus, registeredFaceCount] =
+  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, currentHttpHost, snapshotCapabilities, acsWorkStatus, registeredFaceCount] =
     await Promise.allSettled([
       client.getDeviceInfo(),
       client.getSystemCapabilities(),
@@ -64,6 +70,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
       client.getFaceRecognizeMode(),
       client.getSubscribeEventCapabilities(),
       client.getHttpHostCapabilities(),
+      terminal.webhook_host_id ? client.getHttpHost(terminal.webhook_host_id) : Promise.resolve(undefined),
       client.getSnapshotCapabilities(snapshotStreamId),
       client.getAcsWorkStatus(),
       client.getRegisteredFaceCount()
@@ -106,6 +113,18 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
         ? (payload.FaceRecognizeMode as Record<string, unknown>)
         : payload;
     snapshot.face_recognize_mode = typeof nested.mode === "string" ? nested.mode : undefined;
+  }
+
+  if (currentHttpHost.status === "fulfilled" && currentHttpHost.value) {
+    snapshot.webhook_status = currentHttpHost.value.url ? "configured" : snapshot.webhook_status;
+    if (currentHttpHost.value.subscribeEvent) {
+      snapshot.webhook_status = "active";
+      snapshot.webhook_subscription_status = "subscribed";
+      snapshot.webhook_subscription_error = undefined;
+    } else if (snapshot.webhook_subscription_status !== "error") {
+      snapshot.webhook_subscription_status = currentHttpHost.value.url ? "unsubscribed" : snapshot.webhook_subscription_status;
+      snapshot.webhook_subscription_error = undefined;
+    }
   }
 
   if (snapshot.activation_status === "activated") {

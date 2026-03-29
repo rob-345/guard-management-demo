@@ -11,8 +11,13 @@ type Command =
   | "apply-face-record"
   | "full-workflow"
   | "webhook-inspect"
+  | "webhook-list"
   | "webhook-configure"
-  | "webhook-test";
+  | "webhook-delete-host"
+  | "webhook-test"
+  | "webhook-subscribe"
+  | "webhook-unsubscribe"
+  | "webhook-upload-ctrl";
 
 function readFlag(name: string) {
   const index = process.argv.findIndex((arg) => arg === `--${name}`);
@@ -40,8 +45,13 @@ Commands:
   apply-face-record
   full-workflow
   webhook-inspect
+  webhook-list
   webhook-configure
+  webhook-delete-host
   webhook-test
+  webhook-subscribe
+  webhook-unsubscribe
+  webhook-upload-ctrl
 
 Common flags:
   --host
@@ -65,6 +75,9 @@ Webhook flags:
   --http-auth-method
   --protocol-type
   --parameter-format-type
+  --subscription-id
+  --event-mode
+  --channel-mode
 `);
 }
 
@@ -159,6 +172,9 @@ async function main() {
     case "webhook-inspect":
       result = await client.getHttpHost(readRequired("host-id"));
       break;
+    case "webhook-list":
+      result = await client.getHttpHosts();
+      break;
     case "webhook-configure":
       result = await client.configureHttpHost(readRequired("host-id"), {
         id: readRequired("host-id"),
@@ -168,8 +184,23 @@ async function main() {
         httpAuthenticationMethod: readFlag("http-auth-method") || "none",
       });
       break;
+    case "webhook-delete-host":
+      result = await client.deleteHttpHost(readRequired("host-id"));
+      break;
     case "webhook-test":
       result = await client.testHttpHost(readRequired("host-id"));
+      break;
+    case "webhook-subscribe":
+      result = await client.subscribeEvent({
+        eventMode: readFlag("event-mode") || "all",
+        channelMode: readFlag("channel-mode") || "all",
+      });
+      break;
+    case "webhook-unsubscribe":
+      result = await client.unsubscribeEvent(readRequired("subscription-id"));
+      break;
+    case "webhook-upload-ctrl":
+      result = await client.getHttpHostUploadCtrl(readRequired("host-id"));
       break;
     default:
       printUsage();

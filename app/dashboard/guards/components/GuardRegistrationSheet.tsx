@@ -122,13 +122,12 @@ export function GuardRegistrationDialog({
 }: Props) {
   const router = useRouter();
   const photoInputRef = useRef<HTMLInputElement | null>(null);
-  const autoOpenedCameraRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
   const [photoSource, setPhotoSource] = useState<PhotoSource>("upload");
-  const [selectedCameraTerminalId, setSelectedCameraTerminalId] = useState<string>("");
+  const [selectedTerminalId, setSelectedTerminalId] = useState<string>("");
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
   const [registrationState, setRegistrationState] = useState<RegistrationState>("idle");
   const [registrationStateMessage, setRegistrationStateMessage] = useState<string | null>(null);
@@ -148,7 +147,6 @@ export function GuardRegistrationDialog({
 
   useEffect(() => {
     if (!open) {
-      autoOpenedCameraRef.current = false;
       setCameraDialogOpen(false);
       setRegistrationState("idle");
       setRegistrationStateMessage(null);
@@ -168,19 +166,9 @@ export function GuardRegistrationDialog({
     setRegistrationState("idle");
     setRegistrationStateMessage(null);
 
-    const resolvedCameraTerminalId = resolveTerminalId(terminals, initialCameraTerminalId);
-    if (!isEditMode && resolvedCameraTerminalId) {
-      setPhotoSource("camera");
-      setSelectedCameraTerminalId(resolvedCameraTerminalId);
-
-      if (!autoOpenedCameraRef.current) {
-        setCameraDialogOpen(true);
-        autoOpenedCameraRef.current = true;
-      }
-    } else {
-      setPhotoSource("upload");
-      setSelectedCameraTerminalId("");
-    }
+    setPhotoSource("upload");
+    setSelectedTerminalId(resolveTerminalId(terminals, initialCameraTerminalId));
+    setCameraDialogOpen(false);
   }, [open, guard, form, isEditMode, initialCameraTerminalId, terminals]);
 
   useEffect(() => {
@@ -197,14 +185,13 @@ export function GuardRegistrationDialog({
   const existingPhotoSrc = useMemo(() => resolveGuardPhotoSrc(guard), [guard]);
   const photoPreviewSrc = selectedFileUrl || existingPhotoSrc;
   const photoSourceLabel = photoSource === "camera" ? "Terminal camera" : "Upload";
-  const selectedCameraTerminal = useMemo(
-    () => terminals.find((terminal) => terminal.id === selectedCameraTerminalId) || null,
-    [selectedCameraTerminalId, terminals]
+  const selectedTerminal = useMemo(
+    () => terminals.find((terminal) => terminal.id === selectedTerminalId) || null,
+    [selectedTerminalId, terminals]
   );
 
   function handleFileChange(file: File | null) {
     setPhotoSource("upload");
-    setSelectedCameraTerminalId("");
     setSelectedFile(file);
     setRemovePhoto(false);
   }
@@ -248,7 +235,7 @@ export function GuardRegistrationDialog({
       let toastMessage = isEditMode ? "Guard updated successfully" : "Guard registered successfully";
       let syncWarning: { type: "info" | "error"; message: string } | null = null;
 
-      if (!isEditMode && photoSource === "camera" && selectedCameraTerminalId) {
+      if (!isEditMode && selectedTerminalId) {
         try {
           const guardId = typeof savedGuard?.id === "string" ? savedGuard.id : undefined;
           if (!guardId) {
@@ -257,7 +244,7 @@ export function GuardRegistrationDialog({
 
           setRegistrationState("syncing_terminal");
           setRegistrationStateMessage("Saving succeeded. Syncing the captured face back to the selected terminal.");
-          const syncResult = await syncGuardFaceToTerminal(guardId, selectedCameraTerminalId);
+          const syncResult = await syncGuardFaceToTerminal(guardId, selectedTerminalId);
           if (syncResult.synced && syncResult.syncedCount > 0 && syncResult.failedCount === 0) {
             toastMessage =
               syncResult.alreadyPresentCount > 0
@@ -323,7 +310,7 @@ export function GuardRegistrationDialog({
       setSelectedFileUrl(null);
       setRemovePhoto(false);
       setPhotoSource("upload");
-      setSelectedCameraTerminalId("");
+      setSelectedTerminalId(resolveTerminalId(terminals, initialCameraTerminalId));
       onOpenChange(false);
       router.refresh();
     } catch (err) {
@@ -344,7 +331,7 @@ export function GuardRegistrationDialog({
             <DialogDescription>
               {isEditMode
                 ? "Update guard details, replace the stored profile photo, or capture a fresh frame if needed."
-                : "Add a new guard, then choose between a local upload or a terminal camera capture. The image will be stored in GridFS."}
+                : "Add a new guard, choose a photo source, and the saved image will be enrolled to the selected terminal with the SDK face-add workflow."}
             </DialogDescription>
           </DialogHeader>
 
@@ -436,9 +423,34 @@ export function GuardRegistrationDialog({
                       <p className="text-sm font-medium">Guard Photo</p>
                       <p className="text-xs text-muted-foreground">
                         Choose a local upload or capture a face directly from a Hikvision terminal camera.
+                        The saved photo will be enrolled to the selected terminal after you click Register Guard.
                       </p>
                     </div>
                     <Badge variant="outline">{photoSourceLabel}</Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Enrollment Terminal</p>
+                    <Select
+                      value={selectedTerminalId}
+                      onValueChange={setSelectedTerminalId}
+                      disabled={terminals.length === 0}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a terminal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {terminals.map((terminal) => (
+                          <SelectItem key={terminal.id} value={terminal.id}>
+                            {terminal.name}{terminal.ip_address ? ` · ${terminal.ip_address}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {terminals.length === 0 ? (
+                      <p className="text-xs text-amber-600">
+                        No terminals are registered yet. The guard can still be saved, but the face will not be enrolled until a terminal exists.
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -463,7 +475,7 @@ export function GuardRegistrationDialog({
                         }
 
                         setPhotoSource("camera");
-                        setSelectedCameraTerminalId((current) => resolveTerminalId(terminals, current));
+                        setSelectedTerminalId((current) => resolveTerminalId(terminals, current));
                         setCameraDialogOpen(true);
                       }}>
                       <Camera className="mr-2 h-4 w-4" />
@@ -541,9 +553,9 @@ export function GuardRegistrationDialog({
                   <p className="text-xs text-muted-foreground">
                     {selectedFile ? selectedFile.name : "Choose a file or capture a frame to replace the image"}
                   </p>
-                  {photoSource === "camera" && selectedCameraTerminal ? (
+                  {selectedTerminal ? (
                     <p className="text-xs text-muted-foreground">
-                      Captured from {selectedCameraTerminal.name}
+                      {isEditMode ? `Selected terminal: ${selectedTerminal.name}` : `Will enroll to ${selectedTerminal.name}`}
                     </p>
                   ) : null}
                 </div>
@@ -581,11 +593,11 @@ export function GuardRegistrationDialog({
         open={cameraDialogOpen}
         onOpenChange={setCameraDialogOpen}
         terminals={terminals}
-        initialTerminalId={selectedCameraTerminalId || initialCameraTerminalId}
+        initialTerminalId={selectedTerminalId || initialCameraTerminalId}
         onUsePhoto={(file, terminal) => {
           setSelectedFile(file);
           setPhotoSource("camera");
-          setSelectedCameraTerminalId(terminal.id);
+          setSelectedTerminalId(terminal.id);
           setRemovePhoto(false);
           setCameraDialogOpen(false);
         }}

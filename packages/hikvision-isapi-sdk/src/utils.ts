@@ -37,6 +37,12 @@ export function extractXmlValue(text: string, tag: string) {
   return match?.[1]?.trim();
 }
 
+export function extractXmlBlocks(text: string, tag: string) {
+  return [...text.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "gi"))].map(
+    (match) => match[1]?.trim() || ""
+  );
+}
+
 export function parseSimpleXml(text: string, tags?: string[]) {
   if (!tags || tags.length === 0) {
     return {};
@@ -224,7 +230,13 @@ export function normalizeParsedBody(contentType: string, buffer: Buffer): Hikvis
         "hardwareVersion",
         "firmwareVersion",
         "firmwareReleasedDate",
-        "deviceType"
+        "deviceType",
+        "ID",
+        "id",
+        "subscribeEventID",
+        "SubscribeEventID",
+        "subscriptionID",
+        "eventID"
       ]),
       text
     };
@@ -256,6 +268,94 @@ export function buildCaptureFaceDataXml({
   cancelFlag?: boolean;
 }) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<CaptureFaceDataCond xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">\n  <dataType>${escapeXml(dataType)}</dataType>\n  <captureInfrared>${captureInfrared ? "true" : "false"}</captureInfrared>\n  <cancelFlag>${cancelFlag ? "true" : "false"}</cancelFlag>\n</CaptureFaceDataCond>`;
+}
+
+export function buildSubscribeEventXml({
+  eventMode = "all",
+  channelMode = "all"
+}: {
+  eventMode?: string;
+  channelMode?: string;
+}) {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<SubscribeEvent version="2.0">\n  <eventMode>${escapeXml(eventMode)}</eventMode>\n  <channelMode>${escapeXml(channelMode)}</channelMode>\n</SubscribeEvent>`;
+}
+
+export function parseHttpHostSubscribeEvent(text: string) {
+  const subscribeEventXml = extractXmlValue(text, "SubscribeEvent");
+  if (!subscribeEventXml) {
+    return undefined;
+  }
+
+  const eventTypes = uniqueStrings(
+    extractXmlBlocks(subscribeEventXml, "Event")
+      .map((eventXml) => extractXmlValue(eventXml, "type"))
+      .filter((value): value is string => Boolean(value))
+  );
+
+  return {
+    heartbeat: extractXmlValue(subscribeEventXml, "heartbeat") || undefined,
+    eventMode: extractXmlValue(subscribeEventXml, "eventMode") || undefined,
+    channelMode: extractXmlValue(subscribeEventXml, "channelMode") || undefined,
+    eventTypes,
+    pictureURLType: extractXmlValue(subscribeEventXml, "pictureURLType") || undefined,
+    rawXml: subscribeEventXml
+  };
+}
+
+export function parseHttpHostNotification(text: string) {
+  const portNoText = extractXmlValue(text, "portNo");
+
+  return {
+    id: extractXmlValue(text, "id") || undefined,
+    url: extractXmlValue(text, "url") || undefined,
+    protocolType: extractXmlValue(text, "protocolType") || undefined,
+    parameterFormatType: extractXmlValue(text, "parameterFormatType") || undefined,
+    addressingFormatType: extractXmlValue(text, "addressingFormatType") || undefined,
+    hostName: extractXmlValue(text, "hostName") || undefined,
+    ipAddress: extractXmlValue(text, "ipAddress") || undefined,
+    portNo: portNoText ? Number(portNoText) : undefined,
+    httpAuthenticationMethod: extractXmlValue(text, "httpAuthenticationMethod") || undefined,
+    subscribeEvent: parseHttpHostSubscribeEvent(text),
+    rawXml: text
+  };
+}
+
+export function parseHttpHostNotificationList(text: string) {
+  return extractXmlBlocks(text, "HttpHostNotification").map((block) => parseHttpHostNotification(block));
+}
+
+export function extractSubscriptionId(body: Record<string, unknown>, rawText?: string) {
+  const candidates = [
+    body.subscribeEventID,
+    body.SubscribeEventID,
+    body.subscriptionID,
+    body.eventID,
+    body.ID,
+    body.id,
+    typeof body.ResponseStatus === "object" && body.ResponseStatus !== null
+      ? (body.ResponseStatus as Record<string, unknown>).ID
+      : undefined,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  if (rawText) {
+    return (
+      extractXmlValue(rawText, "subscribeEventID") ||
+      extractXmlValue(rawText, "SubscribeEventID") ||
+      extractXmlValue(rawText, "subscriptionID") ||
+      extractXmlValue(rawText, "eventID") ||
+      extractXmlValue(rawText, "ID") ||
+      extractXmlValue(rawText, "id") ||
+      undefined
+    );
+  }
+
+  return undefined;
 }
 
 export function parseCaptureFaceStatus(text: string) {

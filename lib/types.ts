@@ -166,6 +166,10 @@ export interface Terminal {
   webhook_host_id?: string;
   webhook_url?: string;
   webhook_status?: "unset" | "configured" | "testing" | "active" | "error";
+  webhook_subscription_id?: string;
+  webhook_subscription_status?: "unset" | "subscribed" | "unsubscribed" | "error";
+  webhook_subscription_error?: string;
+  webhook_upload_ctrl?: Record<string, unknown>;
   created_at: string;
   updated_at?: string;
   // joined

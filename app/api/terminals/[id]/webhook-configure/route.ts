@@ -105,7 +105,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           webhook_host_id: hostId,
           webhook_url: callbackUrl,
           webhook_status: "error",
+          webhook_subscription_status: "unset",
           updated_at: now
+        },
+        $unset: {
+          webhook_subscription_id: "",
+          webhook_subscription_error: "",
+          webhook_upload_ctrl: ""
         }
       }
     );
@@ -126,7 +132,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         webhook_host_id: hostId,
         webhook_url: callbackUrl,
         webhook_status: "configured",
+        webhook_subscription_status: "unset",
         updated_at: now
+      },
+      $unset: {
+        webhook_subscription_id: "",
+        webhook_subscription_error: "",
+        webhook_upload_ctrl: ""
       }
     }
   );

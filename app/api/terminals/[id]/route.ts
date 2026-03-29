@@ -29,7 +29,11 @@ const terminalUpdateSchema = z
     webhook_token: z.string().optional(),
     webhook_host_id: z.string().optional(),
     webhook_url: z.string().optional(),
-    webhook_status: z.enum(["unset", "configured", "testing", "active", "error"]).optional()
+    webhook_status: z.enum(["unset", "configured", "testing", "active", "error"]).optional(),
+    webhook_subscription_id: z.string().optional(),
+    webhook_subscription_status: z.enum(["unset", "subscribed", "unsubscribed", "error"]).optional(),
+    webhook_subscription_error: z.string().optional(),
+    webhook_upload_ctrl: z.record(z.any()).optional()
   })
   .strict();
 
