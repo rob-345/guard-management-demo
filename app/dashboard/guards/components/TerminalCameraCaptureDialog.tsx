@@ -37,7 +37,7 @@ const TARGET_ASPECT_RATIO = 4 / 5;
 const MAX_OUTPUT_WIDTH = 720;
 const EDITOR_VIEWPORT_WIDTH = 320;
 
-type CaptureState = "idle" | "capturing" | "capture_busy" | "capture_ready" | "failed";
+type CaptureState = "idle" | "capturing" | "capture_busy" | "capture_timeout" | "capture_ready" | "failed";
 type ProcessedCapture = {
   file: File;
   originalSize: number;
@@ -411,6 +411,17 @@ export function TerminalCameraCaptureDialog({
       const res = await fetch(`/api/terminals/${selectedTerminal.id}/capture-face`, {
         method: "POST"
       });
+
+      if (res.status === 408) {
+        const data = await res.json().catch(() => null);
+        setCaptureState("capture_timeout");
+        setCaptureMessage(
+          typeof data?.error === "string" && data.error.trim()
+            ? data.error
+            : "The terminal timed out before it could capture a face. Ask the guard to face the terminal, then retry."
+        );
+        return;
+      }
 
       if (res.status === 409) {
         const data = await res.json().catch(() => null);

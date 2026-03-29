@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@guard-management/hikvision-isapi-sdk": [
+        "./packages/hikvision-isapi-sdk/src/index.ts"
+      ],
+      "@guard-management/hikvision-isapi-sdk/*": [
+        "./packages/hikvision-isapi-sdk/src/*"
       ]
     }
   },

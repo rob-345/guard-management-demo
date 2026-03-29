@@ -35,6 +35,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const client = new HikvisionClient(terminal);
     const result = await client.captureFaceData();
 
+    if (result.status === "timeout") {
+      await client.cancelCaptureFaceData().catch(() => undefined);
+      return NextResponse.json(
+        {
+          status: "timeout",
+          error: result.message,
+          captureProgress: result.captureProgress
+        },
+        { status: 408 }
+      );
+    }
+
     if (result.status === "busy") {
       return NextResponse.json(
         {
@@ -43,6 +55,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           captureProgress: result.captureProgress
         },
         { status: 409 }
+      );
+    }
+
+    if (result.status !== "ready") {
+      return NextResponse.json(
+        {
+          status: "failed",
+          error: result.message,
+          captureProgress: result.captureProgress
+        },
+        { status: 500 }
       );
     }
 

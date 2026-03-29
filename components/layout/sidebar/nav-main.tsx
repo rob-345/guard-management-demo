@@ -19,6 +19,7 @@ import {
   CalendarIcon,
   ChartPieIcon,
   ChevronRight,
+  FileCode2Icon,
   FingerprintIcon,
   UsersIcon,
 } from "lucide-react";
@@ -88,6 +89,11 @@ export const navItems: NavGroup[] = [
         title: "Clocking Events",
         href: "/dashboard/events",
         icon: ActivityIcon
+      },
+      {
+        title: "Docs",
+        href: "/dashboard/docs",
+        icon: FileCode2Icon
       }
     ]
   }
