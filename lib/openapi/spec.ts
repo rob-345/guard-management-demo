@@ -572,6 +572,25 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: "post",
+  path: "/api/terminals/{id}/webhook-reset",
+  tags: ["Terminals"],
+  summary: "Clear all Hikvision HTTP webhook hosts on the device",
+  security: [{ sessionCookie: [] }],
+  request: { params: IdParam },
+  responses: {
+    200: {
+      description: "Device webhook hosts reset",
+      content: jsonContent(z.object({
+        success: z.boolean(),
+        webhook_hosts: z.array(z.any()).optional(),
+        terminal: Terminal.optional(),
+      }).passthrough()),
+    },
+  },
+});
+
+registry.registerPath({
   method: "get",
   path: "/api/terminals/{id}/webhook-upload-control",
   tags: ["Terminals"],

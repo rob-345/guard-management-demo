@@ -91,13 +91,13 @@ export type HikvisionHttpHostNotification = {
   password?: string;
   httpAuthenticationMethod?: string;
   checkResponseEnabled?: boolean;
+  subscribeEvent?: HikvisionHttpHostSubscribeEvent;
   [key: string]: unknown;
 };
 
 export type HikvisionHttpHostSubscribeEvent = {
   heartbeat?: string;
   eventMode?: string;
-  channelMode?: string;
   eventTypes: string[];
   pictureURLType?: string;
   rawXml?: string;

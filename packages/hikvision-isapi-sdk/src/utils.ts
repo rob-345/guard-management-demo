@@ -249,13 +249,52 @@ export function normalizeParsedBody(contentType: string, buffer: Buffer): Hikvis
   };
 }
 
-export function buildHttpHostNotificationXml(notification: Record<string, string | number | boolean | undefined>) {
-  const body = Object.entries(notification)
+function buildHttpHostSubscribeEventXml(notification: {
+  heartbeat?: string;
+  eventMode?: string;
+  eventTypes?: string[];
+  pictureURLType?: string;
+}) {
+  const eventTypes = notification.eventTypes && notification.eventTypes.length > 0
+    ? notification.eventTypes
+    : ["AccessControllerEvent"];
+
+  const eventListXml = eventTypes
+    .map(
+      (eventType) =>
+        `    <Event>\n      <type>${escapeXml(eventType)}</type>${
+          notification.pictureURLType
+            ? `\n      <pictureURLType>${escapeXml(notification.pictureURLType)}</pictureURLType>`
+            : ""
+        }\n    </Event>`
+    )
+    .join("\n");
+
+  return `  <SubscribeEvent>\n${
+    notification.heartbeat ? `    <heartbeat>${escapeXml(notification.heartbeat)}</heartbeat>\n` : ""
+  }${
+    notification.eventMode ? `    <eventMode>${escapeXml(notification.eventMode)}</eventMode>\n` : ""
+  }    <EventList>\n${eventListXml}\n    </EventList>\n  </SubscribeEvent>`;
+}
+
+export function buildHttpHostNotificationXml(notification: Record<string, unknown>) {
+  const { subscribeEvent, ...baseNotification } = notification;
+  const body = Object.entries(baseNotification)
     .filter(([, value]) => value !== undefined && value !== null && value !== "")
     .map(([tag, value]) => `  <${tag}>${escapeXml(String(value))}</${tag}>`)
     .join("\n");
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<HttpHostNotification xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">\n${body}\n</HttpHostNotification>`;
+  const subscribeEventXml =
+    subscribeEvent && typeof subscribeEvent === "object"
+      ? `\n${buildHttpHostSubscribeEventXml(subscribeEvent as {
+          heartbeat?: string;
+          eventMode?: string;
+          eventTypes?: string[];
+          pictureURLType?: string;
+        })}`
+      : "";
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<HttpHostNotification xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">\n${body}${subscribeEventXml}\n</HttpHostNotification>`;
 }
 
 export function buildCaptureFaceDataXml({

@@ -478,6 +478,14 @@ export class HikvisionIsapiClient {
     ).body;
   }
 
+  async deleteAllHttpHosts() {
+    return (
+      await this.requestObject("/ISAPI/Event/notification/httpHosts", {
+        method: "DELETE",
+      })
+    ).body;
+  }
+
   async getHttpHostUploadCtrl(hostId: string): Promise<HikvisionHttpHostUploadCtrlResult> {
     const envelope = await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}/uploadCtrl`);
     return {

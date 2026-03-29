@@ -28,6 +28,10 @@ export async function deleteHttpHost(client: HikvisionIsapiClient, hostId: strin
   return client.deleteHttpHost(hostId);
 }
 
+export async function deleteAllHttpHosts(client: HikvisionIsapiClient) {
+  return client.deleteAllHttpHosts();
+}
+
 export async function getHttpHostUploadCtrl(client: HikvisionIsapiClient, hostId: string) {
   return client.getHttpHostUploadCtrl(hostId);
 }

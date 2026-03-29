@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/api-route";
-import { HikvisionClient, HikvisionInvalidResponseError } from "@/lib/hikvision";
+import { HikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
 import type { Terminal } from "@/lib/types";
 
@@ -41,10 +41,40 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   try {
     const client = new HikvisionClient(terminal);
-    const result = await client.subscribeEvent({
-      eventMode: parsed.data.eventMode || "all",
-      channelMode: parsed.data.channelMode || "all"
+    const currentHost = await client.getHttpHost(terminal.webhook_host_id).catch(() => undefined);
+
+    const callbackUrl = terminal.webhook_url || currentHost?.url;
+    if (!callbackUrl) {
+      return NextResponse.json(
+        { error: "The terminal does not currently have a callback URL. Configure the webhook first." },
+        { status: 400 }
+      );
+    }
+
+    const callbackTarget = new URL(callbackUrl);
+    const hostAddressType =
+      currentHost?.addressingFormatType ||
+      (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(callbackTarget.hostname) ? "ipaddress" : "hostname");
+    const portNo = currentHost?.portNo || (callbackTarget.port ? Number(callbackTarget.port) : undefined);
+
+    const result = await client.configureHttpHost(terminal.webhook_host_id, {
+      id: terminal.webhook_host_id,
+      url: callbackUrl,
+      protocolType: currentHost?.protocolType || "HTTP",
+      parameterFormatType: currentHost?.parameterFormatType || "JSON",
+      addressingFormatType: hostAddressType,
+      httpAuthenticationMethod: currentHost?.httpAuthenticationMethod || "none",
+      hostName: hostAddressType === "hostname" ? callbackTarget.hostname : undefined,
+      ipAddress: hostAddressType === "ipaddress" ? callbackTarget.hostname : undefined,
+      portNo,
+      subscribeEvent: {
+        heartbeat: "30",
+        eventMode: parsed.data.eventMode || "all",
+        eventTypes: ["AccessControllerEvent"],
+        pictureURLType: "binary"
+      }
     });
+    const refreshedHost = await client.getHttpHost(terminal.webhook_host_id);
 
     const now = new Date().toISOString();
     await terminals.updateOne(
@@ -52,8 +82,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       {
         $set: {
           webhook_status: "active",
-          webhook_subscription_status: "subscribed",
-          ...(result.subscriptionId ? { webhook_subscription_id: result.subscriptionId } : {}),
+          webhook_url: refreshedHost.url || callbackUrl,
+          webhook_subscription_status: refreshedHost.subscribeEvent ? "subscribed" : "unset",
           updated_at: now
         },
         $unset: {
@@ -65,78 +95,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const updatedTerminal = await terminals.findOne({ id });
     return NextResponse.json({
       success: true,
-      subscription_id: result.subscriptionId,
+      subscription_id: undefined,
       result,
+      host: refreshedHost,
       terminal: updatedTerminal
     });
   } catch (error) {
-    const isDeployExceedMax =
-      error instanceof HikvisionInvalidResponseError &&
-      error.details?.subStatusCode?.toLowerCase() === "deployexceedmax";
-
-    if (isDeployExceedMax && terminal.webhook_host_id) {
-      try {
-        const client = new HikvisionClient(terminal);
-        const currentHost = await client.getHttpHost(terminal.webhook_host_id);
-
-        if (currentHost.subscribeEvent && currentHost.url) {
-          const now = new Date().toISOString();
-          await terminals.updateOne(
-            { id },
-            {
-              $set: {
-                webhook_status: "active",
-                webhook_subscription_status: "subscribed",
-                webhook_url: currentHost.url,
-                webhook_upload_ctrl: terminal.webhook_upload_ctrl,
-                updated_at: now
-              },
-              $unset: {
-                webhook_subscription_error: ""
-              }
-            }
-          );
-
-          const updatedTerminal = await terminals.findOne({ id });
-          return NextResponse.json({
-            success: true,
-            already_subscribed: true,
-            result: {
-              source: "httpHosts",
-              host: currentHost
-            },
-            terminal: updatedTerminal
-          });
-        }
-
-        if (currentHost.subscribeEvent && !currentHost.url) {
-          throw new HikvisionInvalidResponseError(
-            "The terminal still has a deployed event subscription but its HTTP host has no callback URL. Reconfigure the webhook host before subscribing again.",
-            {
-              statusString: "Invalid Content",
-              subStatusCode: "deployExceedMax",
-              errorMsg: "Device host subscription exists without a callback URL"
-            }
-          );
-        }
-      } catch {
-        // Fall through to the normal error response below if inspection fails.
-      }
-    }
-
-    const errorMessage = isDeployExceedMax
-      ? "The terminal reports that the maximum number of event subscriptions is already deployed. Clear the existing device subscription or reuse it before subscribing again."
-      : error instanceof HikvisionInvalidResponseError
-        ? [
-            error.details?.statusString,
-            error.details?.subStatusCode,
-            error.details?.errorMsg
-          ]
-            .filter((value): value is string => Boolean(value && value.trim()))
-            .join(" - ") || error.message
-        : error instanceof Error
-          ? error.message
-          : "Failed to subscribe events";
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to subscribe events";
 
     await terminals.updateOne(
       { id },
@@ -153,7 +119,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       {
         error: errorMessage
       },
-      { status: isDeployExceedMax ? 409 : 500 }
+      { status: 500 }
     );
   }
 }

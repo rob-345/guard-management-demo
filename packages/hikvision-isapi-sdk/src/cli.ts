@@ -14,6 +14,7 @@ type Command =
   | "webhook-list"
   | "webhook-configure"
   | "webhook-delete-host"
+  | "webhook-reset"
   | "webhook-test"
   | "webhook-subscribe"
   | "webhook-unsubscribe"
@@ -48,6 +49,7 @@ Commands:
   webhook-list
   webhook-configure
   webhook-delete-host
+  webhook-reset
   webhook-test
   webhook-subscribe
   webhook-unsubscribe
@@ -186,6 +188,9 @@ async function main() {
       break;
     case "webhook-delete-host":
       result = await client.deleteHttpHost(readRequired("host-id"));
+      break;
+    case "webhook-reset":
+      result = await client.deleteAllHttpHosts();
       break;
     case "webhook-test":
       result = await client.testHttpHost(readRequired("host-id"));

@@ -196,9 +196,29 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
       `/api/terminals/${terminal.id}/webhook-unsubscribe`,
       {},
       {
-        successMessage: "Event subscription disabled"
+        successMessage: "Event subscription cleared"
       }
     );
+  }
+
+  async function handleResetDeviceWebhooks() {
+    if (
+      !window.confirm(
+        "Reset all device webhook hosts? This clears the terminal's current callback destinations and embedded event subscription so we can start from a clean state."
+      )
+    ) {
+      return;
+    }
+
+    await runAction(
+      "webhook-reset",
+      `/api/terminals/${terminal.id}/webhook-reset`,
+      {},
+      {
+        successMessage: "Device webhook hosts reset"
+      }
+    );
+    setDeviceWebhookHosts([]);
   }
 
   async function inspectDeviceWebhookHosts() {
@@ -662,7 +682,7 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                The guide sample documents a simple `all` / `all` subscription. Keep both options checked to subscribe this terminal to event pushes.
+                This terminal firmware stores event push settings inside the configured HTTP host. We apply the callback URL plus a guide-backed `SubscribeEvent` payload there when you subscribe.
               </p>
 
               <div className="grid gap-3 md:grid-cols-2">
@@ -703,7 +723,12 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
                 <Button
                   variant="outline"
                   onClick={handleUnsubscribeEvents}
-                  disabled={busyAction !== null || !terminal.webhook_subscription_id}>
+                  disabled={
+                    busyAction !== null ||
+                    (terminal.webhook_subscription_status !== "subscribed" &&
+                      terminal.webhook_status !== "active" &&
+                      terminal.webhook_status !== "configured")
+                  }>
                   {busyAction === "webhook-unsubscribe" ? (
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
@@ -733,6 +758,17 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
                   )}
                   Inspect Device Webhooks
                 </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleResetDeviceWebhooks}
+                  disabled={busyAction !== null}>
+                  {busyAction === "webhook-reset" ? (
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  Reset Device Webhooks
+                </Button>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
@@ -754,7 +790,7 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
 
               {terminal.webhook_subscription_status === "subscribed" && !terminal.webhook_subscription_id ? (
                 <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
-                  The terminal appears to have an active subscription attached to its HTTP host configuration, but it is not exposing a subscription ID that this app can unsubscribe with directly. Inspect the device webhook hosts below if you need to clear and recreate it.
+                  This firmware stores the event push subscription inside the terminal's HTTP host configuration and may not expose a standalone subscription ID. Use `Unsubscribe Events` or `Reset Device Webhooks` if we need to clear the deployed host subscription and start fresh.
                 </div>
               ) : null}
 
