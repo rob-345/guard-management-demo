@@ -3,6 +3,7 @@ import {
   HikvisionCaptureError,
   HikvisionFaceUploadError,
   HikvisionInvalidResponseError,
+  HikvisionSdkError,
   HikvisionTransportError,
   HikvisionUnsupportedCapabilityError,
   HikvisionVerificationError,
@@ -271,7 +272,7 @@ export class HikvisionIsapiClient {
         return this.performRequest(path, options, attempt + 1);
       }
 
-      if (error instanceof HikvisionAuthError || error instanceof HikvisionTransportError) {
+      if (error instanceof HikvisionSdkError) {
         throw error;
       }
 

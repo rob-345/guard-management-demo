@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const client = new HikvisionClient(terminal);
         const currentHost = await client.getHttpHost(terminal.webhook_host_id);
 
-        if (currentHost.subscribeEvent) {
+        if (currentHost.subscribeEvent && currentHost.url) {
           const now = new Date().toISOString();
           await terminals.updateOne(
             { id },
@@ -87,6 +87,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
               $set: {
                 webhook_status: "active",
                 webhook_subscription_status: "subscribed",
+                webhook_url: currentHost.url,
                 webhook_upload_ctrl: terminal.webhook_upload_ctrl,
                 updated_at: now
               },
@@ -106,6 +107,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             },
             terminal: updatedTerminal
           });
+        }
+
+        if (currentHost.subscribeEvent && !currentHost.url) {
+          throw new HikvisionInvalidResponseError(
+            "The terminal still has a deployed event subscription but its HTTP host has no callback URL. Reconfigure the webhook host before subscribing again.",
+            {
+              statusString: "Invalid Content",
+              subStatusCode: "deployExceedMax",
+              errorMsg: "Device host subscription exists without a callback URL"
+            }
+          );
         }
       } catch {
         // Fall through to the normal error response below if inspection fails.

@@ -24,33 +24,35 @@ export async function DELETE(
     const client = new HikvisionClient(terminal);
     const result = await client.deleteHttpHost(hostId);
     const remainingHosts = await client.getHttpHosts().catch(() => []);
-    const currentHostStillExists = remainingHosts.some((host) => host.id === terminal.webhook_host_id);
+    const currentHostAfterDelete = terminal.webhook_host_id
+      ? remainingHosts.find((host) => host.id === terminal.webhook_host_id)
+      : undefined;
     const now = new Date().toISOString();
 
     await terminals.updateOne(
       { id },
       {
         $set: {
-          webhook_status:
-            terminal.webhook_host_id === hostId || !currentHostStillExists ? "unset" : terminal.webhook_status || "unset",
-          webhook_subscription_status:
-            terminal.webhook_host_id === hostId || !currentHostStillExists
-              ? "unset"
-              : terminal.webhook_subscription_status || "unset",
+          webhook_status: currentHostAfterDelete?.url
+            ? currentHostAfterDelete.subscribeEvent
+              ? "active"
+              : "configured"
+            : "unset",
+          webhook_subscription_status: currentHostAfterDelete?.subscribeEvent ? "subscribed" : "unset",
+          ...(currentHostAfterDelete?.url ? { webhook_url: currentHostAfterDelete.url } : {}),
           updated_at: now
         },
-        $unset:
-          terminal.webhook_host_id === hostId || !currentHostStillExists
-            ? {
-                webhook_host_id: "",
-                webhook_url: "",
-                webhook_subscription_id: "",
-                webhook_subscription_error: "",
-                webhook_upload_ctrl: ""
-              }
-            : {
-                webhook_subscription_error: ""
-              }
+        $unset: currentHostAfterDelete?.url
+          ? {
+              webhook_subscription_error: ""
+            }
+          : {
+              webhook_host_id: "",
+              webhook_url: "",
+              webhook_subscription_id: "",
+              webhook_subscription_error: "",
+              webhook_upload_ctrl: ""
+            }
       }
     );
 

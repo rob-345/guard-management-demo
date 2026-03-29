@@ -79,6 +79,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   let deviceConfigResult: Record<string, unknown> | undefined;
+  let currentHost: Awaited<ReturnType<HikvisionClient["getHttpHost"]>> | undefined;
   try {
     const client = new HikvisionClient(terminal);
     deviceConfigResult = await client.configureHttpHost(
@@ -97,6 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       parsed.data.security,
       parsed.data.iv
     );
+    currentHost = await client.getHttpHost(hostId).catch(() => undefined);
   } catch (error) {
     await terminals.updateOne(
       { id },
@@ -131,8 +133,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       $set: {
         webhook_host_id: hostId,
         webhook_url: callbackUrl,
-        webhook_status: "configured",
-        webhook_subscription_status: "unset",
+        webhook_status: currentHost?.url ? (currentHost.subscribeEvent ? "active" : "configured") : "configured",
+        webhook_subscription_status: currentHost?.subscribeEvent ? "subscribed" : "unset",
         updated_at: now
       },
       $unset: {
