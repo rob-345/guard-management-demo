@@ -104,9 +104,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
 
   if (deviceInfo.status === "fulfilled") {
     snapshot.device_info = deviceInfo.value;
-    snapshot.device_uid = deriveDeviceUid(deviceInfo.value, terminal.edge_terminal_id);
-  } else {
-    snapshot.device_uid = deriveDeviceUid(undefined, terminal.edge_terminal_id);
+    snapshot.device_uid = deriveDeviceUid(deviceInfo.value, terminal.edge_terminal_id || terminal.id);
   }
 
   const capabilitySnapshot = {
@@ -155,10 +153,6 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
   ) {
     snapshot.status = "online";
     snapshot.last_seen = now;
-  }
-
-  if (!snapshot.device_uid) {
-    snapshot.device_uid = deriveDeviceUid(undefined, terminal.edge_terminal_id);
   }
 
   return snapshot;

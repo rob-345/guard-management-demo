@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { getSessionFromRequest } from "@/lib/auth";
-import { deriveWebhookHostId, probeTerminal } from "@/lib/terminal-integration";
+import { fetchTerminalMetadataBackfill, probeTerminal, terminalNeedsMetadataBackfill } from "@/lib/terminal-integration";
 import { getCollection } from "@/lib/mongodb";
 import type { Terminal } from "@/lib/types";
 
@@ -52,12 +52,10 @@ export async function POST(request: NextRequest) {
     const terminals = await getCollection<Terminal>("terminals");
     const now = new Date().toISOString();
     const terminalId = uuidv4();
-    const callbackToken = uuidv4().replace(/-/g, "");
 
     const terminal: Terminal = {
       id: terminalId,
       edge_terminal_id: terminalId,
-      device_uid: terminalId,
       name,
       ip_address,
       username,
@@ -65,12 +63,9 @@ export async function POST(request: NextRequest) {
       snapshot_stream_id: snapshot_stream_id || "101",
       site_id,
       status: "offline",
+      heartbeat_status: "offline",
+      heartbeat_checked_at: now,
       activation_status: "unknown",
-      webhook_status: "unset",
-      webhook_token: callbackToken,
-      webhook_host_id: deriveWebhookHostId(callbackToken),
-      webhook_subscription_status: "unset",
-      webhook_subscription_error: undefined,
       created_at: now,
       updated_at: now
     };
@@ -85,11 +80,21 @@ export async function POST(request: NextRequest) {
       terminal.capability_snapshot = probe.capability_snapshot;
       terminal.acs_work_status = probe.acs_work_status;
       terminal.face_recognize_mode = probe.face_recognize_mode;
-      terminal.webhook_status = probe.webhook_status ?? terminal.webhook_status;
-      terminal.webhook_url = probe.webhook_url;
-      terminal.webhook_host_id = probe.webhook_host_id;
+      terminal.heartbeat_status = probe.heartbeat_status ?? terminal.heartbeat_status;
+      terminal.heartbeat_checked_at = probe.heartbeat_checked_at ?? terminal.heartbeat_checked_at;
     } catch (error) {
       console.warn("Failed to probe terminal during registration:", error);
+    }
+
+    if (terminalNeedsMetadataBackfill(terminal)) {
+      try {
+        const metadata = await fetchTerminalMetadataBackfill(terminal);
+        terminal.device_uid = metadata.device_uid ?? terminal.device_uid;
+        terminal.device_info = metadata.device_info ?? terminal.device_info;
+        terminal.face_recognize_mode = metadata.face_recognize_mode ?? terminal.face_recognize_mode;
+      } catch (error) {
+        console.warn("Failed to backfill terminal metadata during registration:", error);
+      }
     }
 
     await terminals.insertOne({ ...terminal, _id: terminal.id });
