@@ -1,11 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 
 import {
-  deleteBufferFromGridFS,
   downloadBufferFromGridFS,
   uploadBufferToGridFS,
 } from "./gridfs";
-import { getCollection } from "./mongodb";
 import { getTerminalSnapshot } from "./terminal-snapshot";
 import type { ClockingEvent, Terminal } from "./types";
 
@@ -48,14 +46,37 @@ type EventSnapshotMetadata = Pick<
   | "snapshot_captured_at"
 >;
 
-type TerminalSnapshotBufferEntry = EventSnapshotMetadata & {
+type TerminalSnapshotBufferEntry = {
   id: string;
   terminal_id: string;
   site_id: string;
+  buffer: Buffer;
   captured_at: string;
+  snapshot_filename: string;
+  snapshot_mime_type: string;
+  snapshot_size: number;
+  snapshot_captured_at: string;
   created_at: string;
   updated_at: string;
 };
+
+type TerminalSnapshotBufferStoredEntry = Omit<TerminalSnapshotBufferEntry, "buffer">;
+
+declare global {
+  var __guard_terminal_snapshot_buffer:
+    | Map<string, TerminalSnapshotBufferEntry[]>
+    | undefined;
+  var __guard_terminal_snapshot_capture_in_flight:
+    | Map<string, Promise<TerminalSnapshotBufferStoredEntry>>
+    | undefined;
+}
+
+const terminalSnapshotBuffer =
+  globalThis.__guard_terminal_snapshot_buffer ??
+  (globalThis.__guard_terminal_snapshot_buffer = new Map());
+const terminalSnapshotCaptureInFlight =
+  globalThis.__guard_terminal_snapshot_capture_in_flight ??
+  (globalThis.__guard_terminal_snapshot_capture_in_flight = new Map());
 
 function slugify(value: string) {
   return value
@@ -111,7 +132,7 @@ function toEventSignals(
 
 function toSnapshotMetadata(
   entry: Pick<
-    TerminalSnapshotBufferEntry,
+    EventSnapshotMetadata,
     | "snapshot_file_id"
     | "snapshot_filename"
     | "snapshot_mime_type"
@@ -126,6 +147,39 @@ function toSnapshotMetadata(
     snapshot_size: entry.snapshot_size,
     snapshot_captured_at: entry.snapshot_captured_at,
   };
+}
+
+function toCapturedAtMs(value: string) {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
+}
+
+function cleanupTerminalSnapshotFrames(terminalId: string, nowMs = Date.now()) {
+  const entries = terminalSnapshotBuffer.get(terminalId) || [];
+  const retentionCutoffMs = nowMs - TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS;
+  const keptEntries = [...entries]
+    .sort((left, right) => toCapturedAtMs(right.captured_at) - toCapturedAtMs(left.captured_at))
+    .filter((entry, index) => {
+      const capturedAtMs = toCapturedAtMs(entry.captured_at);
+      return (
+        index < TERMINAL_SNAPSHOT_BUFFER_SIZE || capturedAtMs >= retentionCutoffMs
+      );
+    });
+
+  if (keptEntries.length === 0) {
+    terminalSnapshotBuffer.delete(terminalId);
+    return [];
+  }
+
+  terminalSnapshotBuffer.set(terminalId, keptEntries);
+  return keptEntries;
+}
+
+function toStoredBufferEntry(
+  entry: TerminalSnapshotBufferEntry
+): TerminalSnapshotBufferStoredEntry {
+  const { buffer: _buffer, ...storedEntry } = entry;
+  return storedEntry;
 }
 
 export function isFaceAuthenticationClockingEvent(
@@ -150,82 +204,74 @@ export function isFaceAuthenticationClockingEvent(
 }
 
 export async function captureTerminalSnapshotBufferFrame(terminal: Terminal) {
-  const startedAtMs = Date.now();
-  const snapshot = await getTerminalSnapshot(terminal);
-  const finishedAtMs = Date.now();
-  const capturedAt = estimateCapturedAtFromRequestWindow(startedAtMs, finishedAtMs);
-  const filename = buildSnapshotBufferFilename(
-    terminal,
-    capturedAt,
-    snapshot.contentType
-  );
-  const fileId = await uploadBufferToGridFS(
-    snapshot.buffer,
-    filename,
-    snapshot.contentType,
-    EVENT_SNAPSHOT_BUCKET
-  );
-
-  const now = new Date().toISOString();
-  const entry: TerminalSnapshotBufferEntry = {
-    id: uuidv4(),
-    terminal_id: terminal.id,
-    site_id: terminal.site_id,
-    captured_at: capturedAt,
-    snapshot_file_id: fileId,
-    snapshot_filename: filename,
-    snapshot_mime_type: snapshot.contentType,
-    snapshot_size: snapshot.buffer.byteLength,
-    snapshot_captured_at: capturedAt,
-    created_at: now,
-    updated_at: now,
-  };
-
-  const buffer = await getCollection<TerminalSnapshotBufferEntry>(
-    TERMINAL_SNAPSHOT_BUFFER_COLLECTION
-  );
-  await buffer.insertOne({ ...entry, _id: entry.id } as never);
-
-  const allEntries = await buffer
-    .find({ terminal_id: terminal.id })
-    .sort({ captured_at: -1 })
-    .toArray();
-  const retentionCutoff = new Date(
-    Date.now() - TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS
-  ).toISOString();
-  const protectedIds = new Set<string>(
-    allEntries
-      .filter(
-        (item, index) =>
-          index < TERMINAL_SNAPSHOT_BUFFER_SIZE || item.captured_at >= retentionCutoff
-      )
-      .map((item) => item.id)
-  );
-  const staleEntries = allEntries.filter((item) => !protectedIds.has(item.id));
-
-  if (staleEntries.length > 0) {
-    await buffer.deleteMany({
-      id: { $in: staleEntries.map((item) => item.id) },
-    });
-
-    await Promise.all(
-      staleEntries.map((item) =>
-        deleteBufferFromGridFS(item.snapshot_file_id || "", EVENT_SNAPSHOT_BUCKET).catch(
-          () => undefined
-        )
-      )
-    );
+  const existingCapture = terminalSnapshotCaptureInFlight.get(terminal.id);
+  if (existingCapture) {
+    return existingCapture;
   }
 
-  return entry;
+  const capturePromise = (async () => {
+    cleanupTerminalSnapshotFrames(terminal.id);
+
+    const startedAtMs = Date.now();
+    const snapshot = await getTerminalSnapshot(terminal);
+    const finishedAtMs = Date.now();
+    const capturedAt = estimateCapturedAtFromRequestWindow(startedAtMs, finishedAtMs);
+    const now = new Date().toISOString();
+    const entry: TerminalSnapshotBufferEntry = {
+      id: uuidv4(),
+      terminal_id: terminal.id,
+      site_id: terminal.site_id,
+      buffer: snapshot.buffer,
+      captured_at: capturedAt,
+      snapshot_filename: buildSnapshotBufferFilename(
+        terminal,
+        capturedAt,
+        snapshot.contentType
+      ),
+      snapshot_mime_type: snapshot.contentType,
+      snapshot_size: snapshot.buffer.byteLength,
+      snapshot_captured_at: capturedAt,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const nextEntries = [entry, ...(terminalSnapshotBuffer.get(terminal.id) || [])];
+    terminalSnapshotBuffer.set(terminal.id, nextEntries);
+    cleanupTerminalSnapshotFrames(terminal.id);
+    return toStoredBufferEntry(entry);
+  })();
+
+  terminalSnapshotCaptureInFlight.set(terminal.id, capturePromise);
+
+  try {
+    return await capturePromise;
+  } finally {
+    terminalSnapshotCaptureInFlight.delete(terminal.id);
+  }
+}
+
+export function scheduleTerminalSnapshotBufferCapture(terminal: Terminal) {
+  if (terminalSnapshotCaptureInFlight.has(terminal.id)) {
+    return false;
+  }
+
+  void captureTerminalSnapshotBufferFrame(terminal).catch(() => undefined);
+  return true;
+}
+
+export function getTerminalSnapshotBufferSummary(terminalId: string) {
+  const entries = cleanupTerminalSnapshotFrames(terminalId);
+  return {
+    frame_count: entries.length,
+    latest_captured_at: entries[0]?.captured_at,
+  };
 }
 
 export function selectClosestTerminalSnapshotBufferEntry(
   entries: Array<
-    Pick<
-      TerminalSnapshotBufferEntry,
-      "captured_at" | "snapshot_file_id" | "snapshot_filename" | "id"
-    >
+    Pick<TerminalSnapshotBufferStoredEntry, "captured_at" | "snapshot_filename" | "id"> & {
+      snapshot_file_id?: string;
+    }
   >,
   eventTime: string,
   maxDistanceMs = TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS
@@ -237,9 +283,9 @@ export function selectClosestTerminalSnapshotBufferEntry(
 
   let closest:
     | (Pick<
-        TerminalSnapshotBufferEntry,
-        "captured_at" | "snapshot_file_id" | "snapshot_filename" | "id"
-      > & { distanceMs: number })
+        TerminalSnapshotBufferStoredEntry,
+        "captured_at" | "snapshot_filename" | "id"
+      > & { snapshot_file_id?: string; distanceMs: number })
     | null = null;
 
   for (const entry of entries) {
@@ -273,14 +319,7 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
     return undefined;
   }
 
-  const buffer = await getCollection<TerminalSnapshotBufferEntry>(
-    TERMINAL_SNAPSHOT_BUFFER_COLLECTION
-  );
-  const entries = await buffer
-    .find({ terminal_id: event.terminal_id })
-    .sort({ captured_at: -1 })
-    .toArray();
-
+  const entries = cleanupTerminalSnapshotFrames(event.terminal_id);
   const match = selectClosestTerminalSnapshotBufferEntry(entries, eventTime);
   if (!match) {
     return undefined;
@@ -291,8 +330,27 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
     return undefined;
   }
 
-  await buffer.deleteOne({ id: matchedEntry.id });
-  return toSnapshotMetadata(matchedEntry);
+  const fileId = await uploadBufferToGridFS(
+    matchedEntry.buffer,
+    matchedEntry.snapshot_filename,
+    matchedEntry.snapshot_mime_type,
+    EVENT_SNAPSHOT_BUCKET
+  );
+
+  const remainingEntries = entries.filter((entry) => entry.id !== matchedEntry.id);
+  if (remainingEntries.length === 0) {
+    terminalSnapshotBuffer.delete(event.terminal_id);
+  } else {
+    terminalSnapshotBuffer.set(event.terminal_id, remainingEntries);
+  }
+
+  return toSnapshotMetadata({
+    snapshot_file_id: fileId,
+    snapshot_filename: matchedEntry.snapshot_filename,
+    snapshot_mime_type: matchedEntry.snapshot_mime_type,
+    snapshot_size: matchedEntry.snapshot_size,
+    snapshot_captured_at: matchedEntry.snapshot_captured_at,
+  });
 }
 
 export async function loadClockingEventSnapshot(

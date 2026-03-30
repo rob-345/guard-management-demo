@@ -1,7 +1,7 @@
 import { captureTerminalSnapshotBufferFrame } from "@/lib/event-snapshots";
 import { ingestTerminalClockingEvent } from "@/lib/clocking-event-ingest";
 import { normalizeAcsEventRecord } from "@/lib/hikvision-event-diagnostics";
-import { HikvisionClient } from "@/lib/hikvision";
+import { HikvisionClient, getCachedHikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
 import type { ClockingEvent, Terminal } from "@/lib/types";
 
@@ -197,7 +197,7 @@ export async function fetchTerminalEventHistory(
   terminal: Terminal,
   options: PollTerminalOptions = {}
 ): Promise<TerminalEventHistoryResult> {
-  const client = new HikvisionClient(terminal);
+  const client = getCachedHikvisionClient(terminal);
   const eventsCollection = await getCollection<ClockingEvent>("clocking_events");
   const capabilities =
     (terminal.capability_snapshot?.acsEvents as Record<string, unknown> | undefined) ||
@@ -300,7 +300,7 @@ export async function pollTerminalEvents(
   terminal: Terminal,
   options: PollTerminalOptions = {}
 ): Promise<PollTerminalEventsResult> {
-  const client = new HikvisionClient(terminal);
+  const client = getCachedHikvisionClient(terminal);
   const [heartbeat, history] = await Promise.all([
     updateTerminalHeartbeat(terminal, client),
     fetchTerminalEventHistory(terminal, {
