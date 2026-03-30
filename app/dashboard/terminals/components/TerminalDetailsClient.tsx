@@ -180,6 +180,25 @@ type TerminalEventPollResponse = {
   }>;
 };
 
+type TerminalDeviceEventCountResponse = {
+  success?: boolean;
+  total_num?: number;
+  storage_mode?: string;
+  storage_check_time?: string;
+  storage_period?: number;
+  checked_at?: string;
+};
+
+type TerminalDeviceEventClearResponse = {
+  success?: boolean;
+  previous_mode?: string;
+  restored_mode?: string;
+  check_time?: string;
+  before_count?: number;
+  after_count?: number;
+  cleared_at?: string;
+};
+
 function detailValue(value: unknown) {
   if (value === undefined || value === null || value === "") return "—";
   if (Array.isArray(value)) return value.join(", ");
@@ -241,11 +260,14 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [clearDeviceEventsOpen, setClearDeviceEventsOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [terminalEventHistory, setTerminalEventHistory] = useState<TerminalEventHistoryResponse | null>(null);
   const [eventDiagnostics, setEventDiagnostics] = useState<TerminalEventDiagnosticsResponse | null>(null);
   const [alertStreamSample, setAlertStreamSample] = useState<TerminalAlertStreamResponse | null>(null);
   const [pollResult, setPollResult] = useState<TerminalEventPollResponse | null>(null);
+  const [deviceEventCount, setDeviceEventCount] = useState<TerminalDeviceEventCountResponse | null>(null);
+  const [deviceEventClearResult, setDeviceEventClearResult] = useState<TerminalDeviceEventClearResponse | null>(null);
   const [pollMaxResults, setPollMaxResults] = useState("20");
 
   const deviceInfo = terminal.device_info || {};
@@ -373,6 +395,48 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
         },
       }
     );
+  }
+
+  async function refreshDeviceEventCount() {
+    await runAction(
+      "terminal-event-count",
+      `/api/terminals/${terminal.id}/events/count`,
+      undefined,
+      {
+        method: "GET",
+        successMessage: "Device event count refreshed",
+        onSuccess: (data) => {
+          setDeviceEventCount((data as TerminalDeviceEventCountResponse) || null);
+        },
+      }
+    );
+  }
+
+  async function clearDeviceEventLog() {
+    const data = await runAction(
+      "terminal-event-clear",
+      `/api/terminals/${terminal.id}/events/clear`,
+      {},
+      {
+        successMessage: "Device event log cleared",
+        onSuccess: (payload) => {
+          const parsed = (payload as TerminalDeviceEventClearResponse) || null;
+          setDeviceEventClearResult(parsed);
+          if (parsed) {
+            setDeviceEventCount({
+              success: true,
+              total_num: parsed.after_count,
+              storage_mode: parsed.restored_mode,
+              checked_at: parsed.cleared_at,
+            });
+          }
+        },
+      }
+    );
+
+    if (data) {
+      setClearDeviceEventsOpen(false);
+    }
   }
 
   async function handleDelete() {
@@ -880,6 +944,81 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
                 {eventDiagnostics.terminal_history_error}
               </div>
             ) : null}
+
+            <div className="rounded-lg border bg-muted/20 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Device Event Log</p>
+                  <p className="text-sm text-muted-foreground">
+                    These controls affect the terminal&apos;s own `AcsEvent` history only. App-stored clocking events
+                    remain unchanged.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={refreshDeviceEventCount}
+                    disabled={busyAction !== null}
+                  >
+                    {busyAction === "terminal-event-count" ? (
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Server className="mr-2 h-4 w-4" />
+                    )}
+                    Refresh Device Count
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setClearDeviceEventsOpen(true)}
+                    disabled={busyAction !== null}
+                  >
+                    {busyAction === "terminal-event-clear" ? (
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="mr-2 h-4 w-4" />
+                    )}
+                    Clear Device Event Log
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-lg border bg-background p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Terminal-side Count</p>
+                  <p className="mt-2 text-2xl font-semibold">{deviceEventCount?.total_num ?? "—"}</p>
+                </div>
+                <div className="rounded-lg border bg-background p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Storage Mode</p>
+                  <p className="mt-2 text-sm font-medium">{deviceEventCount?.storage_mode || "—"}</p>
+                </div>
+                <div className="rounded-lg border bg-background p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Storage Check Time</p>
+                  <p className="mt-2 text-sm font-medium break-words">
+                    {deviceEventCount?.storage_check_time || "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-background p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Last Refresh</p>
+                  <p className="mt-2 text-sm font-medium">{formatDateTime(deviceEventCount?.checked_at)}</p>
+                </div>
+              </div>
+
+              {deviceEventClearResult ? (
+                <div className="mt-4 rounded-lg border bg-background p-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary">Before {deviceEventClearResult.before_count ?? "—"}</Badge>
+                    <Badge variant="secondary">After {deviceEventClearResult.after_count ?? "—"}</Badge>
+                    {deviceEventClearResult.restored_mode ? (
+                      <Badge variant="outline">Restored {deviceEventClearResult.restored_mode}</Badge>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 text-muted-foreground">
+                    Last clear ran at {formatDateTime(deviceEventClearResult.cleared_at)} using device check time{" "}
+                    <span className="font-mono text-foreground">{deviceEventClearResult.check_time || "—"}</span>.
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
 
@@ -1142,6 +1281,27 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
             )}
           </CardContent>
         </Card>
+
+        <AlertDialog open={clearDeviceEventsOpen} onOpenChange={setClearDeviceEventsOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear the terminal&apos;s event log?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This wipes the device-side `AcsEvent` history on {terminal.name}. It does not delete any clocking
+                events already stored in this app.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busyAction === "terminal-event-clear"}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={clearDeviceEventLog}
+                disabled={busyAction === "terminal-event-clear"}
+              >
+                {busyAction === "terminal-event-clear" ? "Clearing..." : "Clear Device Log"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </TabsContent>
     </Tabs>
   );
