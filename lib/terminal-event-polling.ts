@@ -43,6 +43,7 @@ type PollTerminalOptions = {
   maxResults?: number;
   startTime?: string;
   endTime?: string;
+  captureSnapshotBuffer?: boolean;
 };
 
 export type TerminalEventHistoryResult = {
@@ -301,14 +302,23 @@ export async function pollTerminalEvents(
   options: PollTerminalOptions = {}
 ): Promise<PollTerminalEventsResult> {
   const client = getCachedHikvisionClient(terminal);
-  const [heartbeat, history] = await Promise.all([
+  const tasks: Array<Promise<unknown>> = [
     updateTerminalHeartbeat(terminal, client),
     fetchTerminalEventHistory(terminal, {
       ...options,
       allEvents: true,
     }),
-    captureTerminalSnapshotBufferFrame(terminal).catch(() => undefined),
-  ]);
+  ];
+
+  if (options.captureSnapshotBuffer !== false) {
+    tasks.push(captureTerminalSnapshotBufferFrame(terminal).catch(() => undefined));
+  }
+
+  const [heartbeat, history] = (await Promise.all(tasks)) as [
+    Awaited<ReturnType<typeof updateTerminalHeartbeat>>,
+    Awaited<ReturnType<typeof fetchTerminalEventHistory>>,
+    unknown?,
+  ];
   const ingestedEvents = [];
 
   for (const normalizedEvent of history.terminal_events.filter((event) => event.event_type !== "unknown")) {

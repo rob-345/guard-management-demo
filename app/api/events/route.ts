@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/api-route";
 import { getHydratedClockingEvents } from "@/lib/clocking-events";
+import { ensureTerminalLiveMonitor } from "@/lib/terminal-live-monitor";
 
 export async function GET(request: NextRequest) {
   const unauthorized = await requireSession(request);
   if (unauthorized) return unauthorized;
+
+  ensureTerminalLiveMonitor();
 
   const limitParam = request.nextUrl.searchParams.get("limit");
   const parsedLimit = limitParam ? Number.parseInt(limitParam, 10) : Number.NaN;

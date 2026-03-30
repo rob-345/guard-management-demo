@@ -11,30 +11,38 @@ import type { HydratedClockingEvent } from "@/lib/clocking-events";
 
 type PollAllTerminalsResponse = {
   success?: boolean;
+  running?: boolean;
+  started_at?: string;
   interval_seconds?: number;
+  snapshot_interval_ms?: number;
   terminal_count?: number;
-  polled_at?: string;
+  last_event_poll_at?: string;
+  last_snapshot_cycle_at?: string;
   inserted_count?: number;
   duplicate_count?: number;
+  fetched_count?: number;
   online_heartbeats?: number;
-  results?: Array<{
+  buffered_terminals?: number;
+  event_poll_in_flight?: boolean;
+  snapshot_cycle_in_flight?: boolean;
+  last_error?: string;
+  terminals?: Array<{
     terminal_id: string;
     terminal_name: string;
-    success: boolean;
+    heartbeat_status?: string;
+    success?: boolean;
     error?: string;
+    last_event_poll_at?: string;
+    last_snapshot_captured_at?: string;
+    frame_count?: number;
+    fetched_count?: number;
+    inserted_count?: number;
+    duplicate_count?: number;
+    updated_at: string;
   }>;
 };
 
-type SnapshotBufferResponse = {
-  success?: boolean;
-  interval_ms?: number;
-  terminal_count?: number;
-  captured_count?: number;
-  captured_at?: string;
-};
-
 const POLL_INTERVAL_MS = 1_000;
-const SNAPSHOT_BUFFER_INTERVAL_MS = 250;
 
 function formatDateTime(value?: string) {
   if (!value) return "Never";
@@ -44,14 +52,9 @@ function formatDateTime(value?: string) {
 
 export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClockingEvent[] }) {
   const inFlightRef = useRef(false);
-  const snapshotBufferInFlightRef = useRef(false);
   const [events, setEvents] = useState(initialEvents);
   const [polling, setPolling] = useState(false);
-  const [snapshotBuffering, setSnapshotBuffering] = useState(false);
   const [lastPoll, setLastPoll] = useState<PollAllTerminalsResponse | null>(null);
-  const [lastSnapshotBuffer, setLastSnapshotBuffer] = useState<SnapshotBufferResponse | null>(
-    null
-  );
 
   async function fetchRecentEvents() {
     const response = await fetch("/api/events?limit=100", {
@@ -66,7 +69,25 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
     return (await response.json()) as HydratedClockingEvent[];
   }
 
-  async function runPoll() {
+  async function fetchMonitorStatus() {
+    const response = await fetch("/api/terminals/live-monitor", {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const payload = (await response.json().catch(() => null)) as PollAllTerminalsResponse | null;
+    if (!response.ok) {
+      throw new Error(
+        payload && "error" in payload && typeof payload.error === "string"
+          ? payload.error
+          : "Failed to load monitor status"
+      );
+    }
+
+    return payload;
+  }
+
+  async function refreshDashboard() {
     if (inFlightRef.current) {
       return;
     }
@@ -75,69 +96,58 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
     setPolling(true);
 
     try {
-      const response = await fetch("/api/terminals/poll", {
-        method: "POST",
-        cache: "no-store",
-      });
-
-      const payload = (await response.json().catch(() => null)) as PollAllTerminalsResponse | null;
-      if (!response.ok) {
-        throw new Error(payload && "error" in payload && typeof payload.error === "string" ? payload.error : "Failed to poll terminals");
-      }
-
-      setLastPoll(payload);
-      const latestEvents = await fetchRecentEvents();
+      const [status, latestEvents] = await Promise.all([
+        fetchMonitorStatus(),
+        fetchRecentEvents(),
+      ]);
+      setLastPoll(status);
       setEvents(latestEvents);
     } catch (error) {
-      console.error("Clocking event polling failed:", error);
+      console.error("Clocking event refresh failed:", error);
     } finally {
       inFlightRef.current = false;
       setPolling(false);
     }
   }
 
-  async function pumpSnapshotBuffer() {
-    if (snapshotBufferInFlightRef.current) {
+  async function runPollNow() {
+    if (inFlightRef.current) {
       return;
     }
 
-    snapshotBufferInFlightRef.current = true;
-    setSnapshotBuffering(true);
-
+    inFlightRef.current = true;
+    setPolling(true);
     try {
-      const response = await fetch("/api/terminals/snapshot-buffer", {
+      const response = await fetch("/api/terminals/live-monitor", {
         method: "POST",
         cache: "no-store",
       });
 
-      const payload = (await response.json().catch(() => null)) as SnapshotBufferResponse | null;
+      const payload = (await response.json().catch(() => null)) as PollAllTerminalsResponse | null;
       if (!response.ok) {
-        throw new Error("Failed to capture snapshot buffer");
+        throw new Error(
+          payload && "error" in payload && typeof payload.error === "string"
+            ? payload.error
+            : "Failed to refresh live monitor"
+        );
       }
 
-      setLastSnapshotBuffer(payload);
+      setLastPoll(payload);
+      const latestEvents = await fetchRecentEvents();
+      setEvents(latestEvents);
     } catch (error) {
-      console.error("Snapshot buffer pump failed:", error);
+      console.error("Manual live monitor refresh failed:", error);
     } finally {
-      snapshotBufferInFlightRef.current = false;
-      setSnapshotBuffering(false);
+      inFlightRef.current = false;
+      setPolling(false);
     }
   }
 
   useEffect(() => {
-    void runPoll();
+    void refreshDashboard();
     const timer = window.setInterval(() => {
-      void runPoll();
+      void refreshDashboard();
     }, POLL_INTERVAL_MS);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    void pumpSnapshotBuffer();
-    const timer = window.setInterval(() => {
-      void pumpSnapshotBuffer();
-    }, SNAPSHOT_BUFFER_INTERVAL_MS);
 
     return () => window.clearInterval(timer);
   }, []);
@@ -148,21 +158,27 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">Clocking Events</h2>
           <p className="text-sm text-muted-foreground">
-            This page polls each terminal&apos;s latest `AcsEvent` page every second using heartbeat plus
-            `AcsEvent`.
+            The server now keeps a background monitor running for terminal event polling and snapshot
+            buffering, even when this page is closed.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={polling || snapshotBuffering ? "secondary" : "outline"}>
-            {polling || snapshotBuffering ? "Monitoring live" : "Idle"}
+          <Badge
+            variant={
+              lastPoll?.event_poll_in_flight || lastPoll?.snapshot_cycle_in_flight
+                ? "secondary"
+                : "outline"
+            }
+          >
+            {lastPoll?.running ? "Server monitor running" : "Starting monitor"}
           </Badge>
-          <Button variant="outline" size="sm" onClick={() => void runPoll()} disabled={polling}>
+          <Button variant="outline" size="sm" onClick={() => void runPollNow()} disabled={polling}>
             {polling ? (
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Activity className="mr-2 h-4 w-4" />
             )}
-            Poll now
+            Refresh now
           </Button>
         </div>
       </div>
@@ -173,16 +189,18 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Every 1 second</Badge>
-            <Badge variant="outline">Snapshots every 250 ms</Badge>
+            <Badge variant="outline">
+              Events every {lastPoll?.interval_seconds ?? 1} second
+            </Badge>
+            <Badge variant="outline">
+              Snapshots every {lastPoll?.snapshot_interval_ms ?? 250} ms
+            </Badge>
             <Badge variant="secondary">Events {events.length}</Badge>
             {typeof lastPoll?.terminal_count === "number" ? (
               <Badge variant="secondary">Terminals {lastPoll.terminal_count}</Badge>
             ) : null}
-            {typeof lastSnapshotBuffer?.captured_count === "number" ? (
-              <Badge variant="secondary">
-                Buffered {lastSnapshotBuffer.captured_count}
-              </Badge>
+            {typeof lastPoll?.buffered_terminals === "number" ? (
+              <Badge variant="secondary">Buffered {lastPoll.buffered_terminals}</Badge>
             ) : null}
             {typeof lastPoll?.inserted_count === "number" ? (
               <Badge variant="secondary">Inserted {lastPoll.inserted_count}</Badge>
@@ -192,16 +210,31 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
             ) : null}
           </div>
           <p className="text-sm text-muted-foreground">
-            Last poll: {formatDateTime(lastPoll?.polled_at)}
+            Last event poll: {formatDateTime(lastPoll?.last_event_poll_at)}
           </p>
           <p className="text-sm text-muted-foreground">
-            Last snapshot buffer: {formatDateTime(lastSnapshotBuffer?.captured_at)}
+            Last snapshot cycle: {formatDateTime(lastPoll?.last_snapshot_cycle_at)}
           </p>
-          {lastPoll?.results?.some((result) => !result.success) ? (
+          {(lastPoll?.terminals ?? []).length ? (
+            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+              {(lastPoll?.terminals ?? []).map((terminal) => (
+                <Badge key={terminal.terminal_id} variant="outline" className="max-w-full">
+                  {terminal.terminal_name} · frames {terminal.frame_count ?? 0} · last snap{" "}
+                  {formatDateTime(terminal.last_snapshot_captured_at)}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
+          {lastPoll?.last_error ? (
             <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-800">
-              {lastPoll.results
-                .filter((result) => !result.success)
-                .map((result) => `${result.terminal_name}: ${result.error}`)
+              {lastPoll.last_error}
+            </div>
+          ) : null}
+          {(lastPoll?.terminals ?? []).some((terminal) => terminal.error) ? (
+            <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-800">
+              {(lastPoll?.terminals ?? [])
+                .filter((terminal) => terminal.error)
+                .map((terminal) => `${terminal.terminal_name}: ${terminal.error}`)
                 .join(" • ")}
             </div>
           ) : null}
