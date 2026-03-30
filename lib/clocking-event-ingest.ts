@@ -3,8 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { reconcileGuardAttendanceForGuard } from "./attendance";
 import {
-  matchQueuedSnapshotToClockingEvent,
-  queueAccessControlSnapshotForEvent,
+  matchClosestBufferedSnapshotToClockingEvent,
 } from "./event-snapshots";
 import type { NormalizedHikvisionTerminalEvent } from "./hikvision-event-diagnostics";
 import { resolveGuardByEmployeeNo } from "./guard-face";
@@ -135,8 +134,7 @@ export async function ingestTerminalClockingEvent(input: {
   followUpTasks.push(
     (async () => {
       try {
-        await queueAccessControlSnapshotForEvent(terminal, event);
-        snapshotMetadata = await matchQueuedSnapshotToClockingEvent(event);
+        snapshotMetadata = await matchClosestBufferedSnapshotToClockingEvent(event);
         if (!snapshotMetadata) {
           return;
         }

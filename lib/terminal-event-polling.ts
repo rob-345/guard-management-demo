@@ -1,3 +1,4 @@
+import { captureTerminalSnapshotBufferFrame } from "@/lib/event-snapshots";
 import { ingestTerminalClockingEvent } from "@/lib/clocking-event-ingest";
 import { normalizeAcsEventRecord } from "@/lib/hikvision-event-diagnostics";
 import { HikvisionClient } from "@/lib/hikvision";
@@ -301,10 +302,13 @@ export async function pollTerminalEvents(
 ): Promise<PollTerminalEventsResult> {
   const client = new HikvisionClient(terminal);
   const heartbeat = await updateTerminalHeartbeat(terminal, client);
-  const history = await fetchTerminalEventHistory(terminal, {
-    ...options,
-    allEvents: true,
-  });
+  const [history] = await Promise.all([
+    fetchTerminalEventHistory(terminal, {
+      ...options,
+      allEvents: true,
+    }),
+    captureTerminalSnapshotBufferFrame(terminal).catch(() => undefined),
+  ]);
   const ingestedEvents = [];
 
   for (const normalizedEvent of history.terminal_events.filter((event) => event.event_type !== "unknown")) {

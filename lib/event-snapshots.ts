@@ -10,9 +10,9 @@ import { getTerminalSnapshot } from "./terminal-snapshot";
 import type { ClockingEvent, Terminal } from "./types";
 
 export const EVENT_SNAPSHOT_BUCKET = "event_snapshots";
-export const ACCESS_CONTROL_SNAPSHOT_QUEUE_COLLECTION = "access_control_snapshot_queue";
-export const ACCESS_CONTROL_SNAPSHOT_MATCH_WINDOW_MS = 15_000;
-const ACCESS_CONTROL_SNAPSHOT_RETENTION_MS = 15_000;
+export const TERMINAL_SNAPSHOT_BUFFER_COLLECTION = "terminal_snapshot_buffer";
+export const TERMINAL_SNAPSHOT_BUFFER_SIZE = 3;
+export const TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS = 5_000;
 
 const FACE_AUTHENTICATION_MINORS = new Set([
   "57",
@@ -47,12 +47,10 @@ type EventSnapshotMetadata = Pick<
   | "snapshot_captured_at"
 >;
 
-type AccessControlSnapshotQueueEntry = EventSnapshotMetadata & {
+type TerminalSnapshotBufferEntry = EventSnapshotMetadata & {
   id: string;
   terminal_id: string;
   site_id: string;
-  source_event_time: string;
-  source_event_key?: string;
   captured_at: string;
   created_at: string;
   updated_at: string;
@@ -72,14 +70,14 @@ function getSnapshotExtension(contentType: string) {
   return "jpg";
 }
 
-function buildAccessControlSnapshotFilename(
+function buildSnapshotBufferFilename(
   terminal: Terminal,
   capturedAt: string,
   contentType: string
 ) {
   const terminalSlug = slugify(terminal.name) || "terminal";
   const safeTimestamp = capturedAt.replace(/[:.]/g, "-");
-  return `${terminalSlug}-access-control-${safeTimestamp}.${getSnapshotExtension(contentType)}`;
+  return `${terminalSlug}-buffer-${safeTimestamp}.${getSnapshotExtension(contentType)}`;
 }
 
 function toIsoOrNull(value?: string) {
@@ -107,7 +105,7 @@ function toEventSignals(
 
 function toSnapshotMetadata(
   entry: Pick<
-    AccessControlSnapshotQueueEntry,
+    TerminalSnapshotBufferEntry,
     | "snapshot_file_id"
     | "snapshot_filename"
     | "snapshot_mime_type"
@@ -145,76 +143,10 @@ export function isFaceAuthenticationClockingEvent(
   return /\b(face|recognition|human detection)\b/.test(toEventSignals(event));
 }
 
-export function isAccessControlSnapshotSourceEvent(
-  event: Pick<
-    ClockingEvent,
-    | "major"
-    | "event_type"
-    | "minor"
-    | "raw_event_type"
-    | "event_description"
-    | "event_state"
-  >
-) {
-  return event.major === "5" && !isFaceAuthenticationClockingEvent(event);
-}
-
-async function removeQueuedEntries(
-  entries: Array<Pick<AccessControlSnapshotQueueEntry, "id" | "snapshot_file_id">>
-) {
-  if (entries.length === 0) {
-    return;
-  }
-
-  const queue = await getCollection<AccessControlSnapshotQueueEntry>(
-    ACCESS_CONTROL_SNAPSHOT_QUEUE_COLLECTION
-  );
-  await queue.deleteMany({
-    id: { $in: entries.map((entry) => entry.id) },
-  });
-}
-
-async function purgeQueuedEntries(
-  entries: Array<Pick<AccessControlSnapshotQueueEntry, "id" | "snapshot_file_id">>
-) {
-  await removeQueuedEntries(entries);
-  await Promise.all(
-    entries.map((entry) =>
-      deleteBufferFromGridFS(entry.snapshot_file_id || "", EVENT_SNAPSHOT_BUCKET).catch(
-        () => undefined
-      )
-    )
-  );
-}
-
-async function cleanupStaleAccessControlSnapshots(terminalId?: string) {
-  const retentionCutoff = new Date(
-    Date.now() - ACCESS_CONTROL_SNAPSHOT_RETENTION_MS
-  ).toISOString();
-  const queue = await getCollection<AccessControlSnapshotQueueEntry>(
-    ACCESS_CONTROL_SNAPSHOT_QUEUE_COLLECTION
-  );
-  const staleEntries = await queue
-    .find({
-      ...(terminalId ? { terminal_id: terminalId } : {}),
-      created_at: { $lt: retentionCutoff },
-    })
-    .toArray();
-
-  await purgeQueuedEntries(staleEntries);
-}
-
-export async function queueAccessControlSnapshotForEvent(
-  terminal: Terminal,
-  event: ClockingEvent
-) {
-  if (!isAccessControlSnapshotSourceEvent(event)) {
-    return undefined;
-  }
-
+export async function captureTerminalSnapshotBufferFrame(terminal: Terminal) {
   const snapshot = await getTerminalSnapshot(terminal);
   const capturedAt = new Date().toISOString();
-  const filename = buildAccessControlSnapshotFilename(
+  const filename = buildSnapshotBufferFilename(
     terminal,
     capturedAt,
     snapshot.contentType
@@ -227,12 +159,10 @@ export async function queueAccessControlSnapshotForEvent(
   );
 
   const now = new Date().toISOString();
-  const entry: AccessControlSnapshotQueueEntry = {
+  const entry: TerminalSnapshotBufferEntry = {
     id: uuidv4(),
     terminal_id: terminal.id,
     site_id: terminal.site_id,
-    source_event_time: toIsoOrNull(event.event_time) || now,
-    source_event_key: event.event_key,
     captured_at: capturedAt,
     snapshot_file_id: fileId,
     snapshot_filename: filename,
@@ -243,27 +173,43 @@ export async function queueAccessControlSnapshotForEvent(
     updated_at: now,
   };
 
-  const queue = await getCollection<AccessControlSnapshotQueueEntry>(
-    ACCESS_CONTROL_SNAPSHOT_QUEUE_COLLECTION
+  const buffer = await getCollection<TerminalSnapshotBufferEntry>(
+    TERMINAL_SNAPSHOT_BUFFER_COLLECTION
   );
-  await queue.insertOne({ ...entry, _id: entry.id } as never);
-  await cleanupStaleAccessControlSnapshots(terminal.id);
+  await buffer.insertOne({ ...entry, _id: entry.id } as never);
+
+  const staleEntries = await buffer
+    .find({ terminal_id: terminal.id })
+    .sort({ captured_at: -1 })
+    .skip(TERMINAL_SNAPSHOT_BUFFER_SIZE)
+    .toArray();
+
+  if (staleEntries.length > 0) {
+    await buffer.deleteMany({
+      id: { $in: staleEntries.map((item) => item.id) },
+    });
+
+    await Promise.all(
+      staleEntries.map((item) =>
+        deleteBufferFromGridFS(item.snapshot_file_id || "", EVENT_SNAPSHOT_BUCKET).catch(
+          () => undefined
+        )
+      )
+    );
+  }
+
   return entry;
 }
 
-export function selectClosestQueuedAccessControlSnapshot(
+export function selectClosestTerminalSnapshotBufferEntry(
   entries: Array<
     Pick<
-      AccessControlSnapshotQueueEntry,
-      | "captured_at"
-      | "source_event_time"
-      | "snapshot_file_id"
-      | "snapshot_filename"
-      | "id"
+      TerminalSnapshotBufferEntry,
+      "captured_at" | "snapshot_file_id" | "snapshot_filename" | "id"
     >
   >,
   eventTime: string,
-  maxDistanceMs = ACCESS_CONTROL_SNAPSHOT_MATCH_WINDOW_MS
+  maxDistanceMs = TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS
 ) {
   const eventTimestamp = Date.parse(eventTime);
   if (!Number.isFinite(eventTimestamp)) {
@@ -272,26 +218,18 @@ export function selectClosestQueuedAccessControlSnapshot(
 
   let closest:
     | (Pick<
-        AccessControlSnapshotQueueEntry,
-        | "captured_at"
-        | "source_event_time"
-        | "snapshot_file_id"
-        | "snapshot_filename"
-        | "id"
+        TerminalSnapshotBufferEntry,
+        "captured_at" | "snapshot_file_id" | "snapshot_filename" | "id"
       > & { distanceMs: number })
     | null = null;
 
   for (const entry of entries) {
-    const sourceEventTimestamp = Date.parse(entry.source_event_time);
-    if (!Number.isFinite(sourceEventTimestamp)) {
+    const capturedTimestamp = Date.parse(entry.captured_at);
+    if (!Number.isFinite(capturedTimestamp)) {
       continue;
     }
 
-    if (sourceEventTimestamp > eventTimestamp) {
-      continue;
-    }
-
-    const distanceMs = eventTimestamp - sourceEventTimestamp;
+    const distanceMs = Math.abs(capturedTimestamp - eventTimestamp);
     if (distanceMs > maxDistanceMs) {
       continue;
     }
@@ -304,7 +242,7 @@ export function selectClosestQueuedAccessControlSnapshot(
   return closest;
 }
 
-export async function matchQueuedSnapshotToClockingEvent(
+export async function matchClosestBufferedSnapshotToClockingEvent(
   event: ClockingEvent
 ): Promise<EventSnapshotMetadata | undefined> {
   if (!isFaceAuthenticationClockingEvent(event)) {
@@ -316,17 +254,16 @@ export async function matchQueuedSnapshotToClockingEvent(
     return undefined;
   }
 
-  await cleanupStaleAccessControlSnapshots(event.terminal_id);
-
-  const queue = await getCollection<AccessControlSnapshotQueueEntry>(
-    ACCESS_CONTROL_SNAPSHOT_QUEUE_COLLECTION
+  const buffer = await getCollection<TerminalSnapshotBufferEntry>(
+    TERMINAL_SNAPSHOT_BUFFER_COLLECTION
   );
-  const entries = await queue
+  const entries = await buffer
     .find({ terminal_id: event.terminal_id })
-    .sort({ source_event_time: -1, created_at: -1 })
+    .sort({ captured_at: -1 })
+    .limit(TERMINAL_SNAPSHOT_BUFFER_SIZE)
     .toArray();
 
-  const match = selectClosestQueuedAccessControlSnapshot(entries, eventTime);
+  const match = selectClosestTerminalSnapshotBufferEntry(entries, eventTime);
   if (!match) {
     return undefined;
   }
@@ -336,7 +273,7 @@ export async function matchQueuedSnapshotToClockingEvent(
     return undefined;
   }
 
-  await removeQueuedEntries([matchedEntry]);
+  await buffer.deleteOne({ id: matchedEntry.id });
   return toSnapshotMetadata(matchedEntry);
 }
 
