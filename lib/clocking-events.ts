@@ -18,7 +18,7 @@ export async function getHydratedClockingEvents(
   const collection = await getCollection<ClockingEvent>("clocking_events");
   const events = await collection
     .find(options.terminalId ? { terminal_id: options.terminalId } : {})
-    .sort({ event_time: -1 })
+    .sort({ created_at: -1, event_time: -1 })
     .limit(options.limit ?? 100)
     .toArray();
 

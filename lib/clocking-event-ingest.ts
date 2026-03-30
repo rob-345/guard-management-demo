@@ -39,6 +39,19 @@ function buildClockingEventKey(input: {
     .digest("hex");
 }
 
+function normalizeClockingEventTime(value?: string) {
+  if (!value) {
+    return new Date().toISOString();
+  }
+
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) {
+    return value;
+  }
+
+  return new Date(parsed).toISOString();
+}
+
 export async function ingestTerminalClockingEvent(input: {
   terminal: Terminal;
   normalizedEvent: NormalizedHikvisionTerminalEvent;
@@ -47,7 +60,7 @@ export async function ingestTerminalClockingEvent(input: {
   const terminal = input.terminal;
   const normalizedEvent = input.normalizedEvent;
   const eventType = normalizedEvent.event_type || "unknown";
-  const eventTime = normalizedEvent.event_time || new Date().toISOString();
+  const eventTime = normalizeClockingEventTime(normalizedEvent.event_time);
   const employeeNo = normalizedEvent.employee_no;
   const eventKey = buildClockingEventKey({
     terminalId: terminal.id,
