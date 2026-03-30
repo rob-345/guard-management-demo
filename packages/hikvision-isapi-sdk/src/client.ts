@@ -11,34 +11,47 @@ import {
 import { buildDigestAuthorization } from "./auth/digest";
 import type {
   FaceLibType,
+  HikvisionAcsEventRecord,
+  HikvisionAcsEventMultiSearchInput,
+  HikvisionAcsEventMultiSearchResult,
+  HikvisionAcsEventSearchInput,
+  HikvisionAcsEventSearchResult,
+  HikvisionAcsEventTotalNumResult,
+  HikvisionAlertStreamChunk,
+  HikvisionAlertStreamFollowResult,
+  HikvisionAlertStreamSample,
   HikvisionCaptureFaceResult,
+  HikvisionClearAcsEventsResult,
   HikvisionClientConfig,
   HikvisionCountFacesResult,
   HikvisionDeviceInfo,
+  HikvisionEventStorageCapabilities,
+  HikvisionEventStorageConfig,
+  HikvisionEventStorageConfigInput,
+  HikvisionHeartbeatResult,
   HikvisionFaceLibraryInfo,
   HikvisionFaceRecordInput,
   HikvisionFaceRecordResult,
   HikvisionFaceSearchRecord,
   HikvisionFaceSearchResult,
-  HikvisionHttpHostDetails,
-  HikvisionHttpHostUploadCtrlResult,
-  HikvisionHttpHostNotification,
+  HikvisionPersonInfoExtend,
   HikvisionResponseEnvelope,
-  HikvisionSubscribeEventInput,
-  HikvisionSubscribeEventResult,
+  HikvisionUserInfoInput,
+  HikvisionUpsertUserInfoResult,
+  HikvisionUserStateValidationResult,
   HikvisionVerifyFaceResult,
-  HikvisionWebhookTestResult,
 } from "./models";
 import {
   buildCaptureFaceDataXml,
-  buildSubscribeEventXml,
   buildEmployeeNoCandidates,
-  buildHttpHostNotificationXml,
+  consumeMultipartMixedText,
   escapeXml,
-  extractSubscriptionId,
   extractMultipartImage,
-  parseHttpHostNotification,
-  parseHttpHostNotificationList,
+  parseAcsEventRecordsFromObject,
+  parseAcsEventRecordsFromMultipartText,
+  parseAcsEventRecordsFromXml,
+  parseJsonSafe,
+  parseSimpleXml,
   inferIsapiStatus,
   isSuccessStatus,
   log,
@@ -60,6 +73,66 @@ function asArray<T>(value: T | T[] | undefined | null): T[] {
   if (Array.isArray(value)) return value;
   if (value === undefined || value === null) return [];
   return [value];
+}
+
+function defaultUserInfoInput(): HikvisionUserInfoInput {
+  const defaultDoorRight = process.env.HIKVISION_DEFAULT_DOOR_RIGHT || "1";
+  const defaultPlanTemplateNo = process.env.HIKVISION_DEFAULT_PLAN_TEMPLATE_NO || "1";
+
+  return {
+    userType: "normal",
+    onlyVerify: false,
+    doorRight: defaultDoorRight,
+    rightPlan: [
+      {
+        doorNo: 1,
+        planTemplateNo: defaultPlanTemplateNo,
+      },
+    ],
+    valid: {
+      enable: true,
+      beginTime: "2024-01-01T00:00:00",
+      endTime: "2037-12-31T23:59:59",
+      timeType: "local",
+    },
+  };
+}
+
+function normalizePhoneNumber(value?: string) {
+  return (value || "").replace(/\s+/g, "").trim();
+}
+
+function normalizePersonInfoExtends(extendsInput?: HikvisionPersonInfoExtend[]) {
+  if (!extendsInput || extendsInput.length === 0) {
+    return undefined;
+  }
+
+  return extendsInput.map((entry, index) =>
+    compact({
+      id: entry.id ?? index + 1,
+      enable: entry.enable ?? true,
+      name: entry.name,
+      value: entry.value,
+    })
+  );
+}
+
+function extractPersonInfoExtends(user: Record<string, unknown> | null | undefined) {
+  if (!user) return [];
+
+  const candidates = [
+    user.PersonInfoExtends,
+    normalizeRecord(user.PersonInfoExtendList).PersonInfoExtend,
+  ];
+
+  for (const candidate of candidates) {
+    const items = asArray<Record<string, unknown>>(candidate as Record<string, unknown> | Record<string, unknown>[] | undefined);
+    if (items.length > 0) {
+      return items;
+    }
+  }
+
+  return [];
 }
 
 function extractRoot(payload: Record<string, unknown>, rootKey?: string) {
@@ -156,6 +229,79 @@ function extractFaceSearchRecords(payload: Record<string, unknown>) {
           candidate.name === record.name
       ) === index
   );
+}
+
+function extractAcsEventSearchRecords(payload: Record<string, unknown>) {
+  return parseAcsEventRecordsFromObject(payload);
+}
+
+function parseAcsEventSearchResultEnvelope(
+  envelope: HikvisionResponseEnvelope<Record<string, unknown>>,
+  fallbackMaxResults: number,
+  fallbackSearchResultPosition = 0
+): HikvisionAcsEventSearchResult {
+  const body =
+    typeof envelope.body.AcsEvent === "object" && envelope.body.AcsEvent !== null
+      ? (envelope.body.AcsEvent as Record<string, unknown>)
+      : envelope.body;
+  const records = extractAcsEventSearchRecords(envelope.body);
+  const totalMatchesCandidate =
+    typeof body.totalMatches === "number"
+      ? body.totalMatches
+      : typeof body.totalMatches === "string"
+        ? Number(body.totalMatches)
+        : typeof body.numOfMatches === "number"
+          ? body.numOfMatches
+          : typeof body.numOfMatches === "string"
+            ? Number(body.numOfMatches)
+            : records.length;
+  const searchResultPositionCandidate =
+    typeof body.searchResultPosition === "number"
+      ? body.searchResultPosition
+      : typeof body.searchResultPosition === "string"
+        ? Number(body.searchResultPosition)
+        : fallbackSearchResultPosition;
+  const maxResultsCandidate =
+    typeof body.maxResults === "number"
+      ? body.maxResults
+      : typeof body.maxResults === "string"
+        ? Number(body.maxResults)
+        : fallbackMaxResults;
+
+  return {
+    totalMatches: Number.isFinite(totalMatchesCandidate) ? totalMatchesCandidate : records.length,
+    searchResultPosition: Number.isFinite(searchResultPositionCandidate) ? searchResultPositionCandidate : 0,
+    maxResults: Number.isFinite(maxResultsCandidate) ? maxResultsCandidate : fallbackMaxResults,
+    records,
+    rawResponse: envelope,
+  };
+}
+
+function normalizeAcsEventDateTime(value?: string) {
+  if (!value) return undefined;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) {
+    return value;
+  }
+
+  return new Date(parsed).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+function formatEventStorageCheckTime(value: Date | string) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return trimmed;
+    if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+      return trimmed.replace("T", " ");
+    }
+    const parsed = Date.parse(trimmed);
+    if (!Number.isFinite(parsed)) {
+      return trimmed.slice(0, 19).replace("T", " ");
+    }
+    return new Date(parsed).toISOString().slice(0, 19).replace("T", " ");
+  }
+
+  return value.toISOString().slice(0, 19).replace("T", " ");
 }
 
 export class HikvisionIsapiClient {
@@ -420,128 +566,9 @@ export class HikvisionIsapiClient {
     return (await this.requestObject("/ISAPI/AccessControl/FaceRecognizeMode?format=json", {}, "FaceRecognizeMode")).body;
   }
 
-  async getSubscribeEventCapabilities() {
-    return (await this.requestObject("/ISAPI/Event/notification/subscribeEventCap", {}, "SubscribeEventCap")).body;
-  }
-
-  async subscribeEvent(payload: HikvisionSubscribeEventInput = {}): Promise<HikvisionSubscribeEventResult> {
-    const envelope = await this.requestObject("/ISAPI/Event/notification/subscribeEvent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/xml; charset=UTF-8",
-      },
-      body: buildSubscribeEventXml({
-        eventMode: payload.eventMode || "all",
-        channelMode: payload.channelMode || "all",
-      }),
-    }, "SubscribeEvent");
-
-    return {
-      success: true,
-      subscriptionId: extractSubscriptionId(envelope.body, envelope.rawText),
-      rawResponse: envelope,
-    };
-  }
-
-  async unsubscribeEvent(id: string) {
-    return (
-      await this.requestObject(`/ISAPI/Event/notification/unSubscribeEvent?ID=${encodeURIComponent(id)}`, {
-        method: "PUT",
-      })
-    ).body;
-  }
-
   async getAlertStream() {
     const envelope = await this.requestBinary("/ISAPI/Event/notification/alertStream");
     return envelope.body.toString("utf8");
-  }
-
-  async getHttpHostCapabilities() {
-    return (await this.requestObject("/ISAPI/Event/notification/httpHosts/capabilities", {}, "HttpHostNotificationCap")).body;
-  }
-
-  async getHttpHosts(): Promise<HikvisionHttpHostDetails[]> {
-    const envelope = await this.requestBinary("/ISAPI/Event/notification/httpHosts");
-    return parseHttpHostNotificationList(envelope.body.toString("utf8"));
-  }
-
-  async getHttpHost(hostId: string): Promise<HikvisionHttpHostDetails> {
-    const envelope = await this.requestBinary(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}`);
-    return parseHttpHostNotification(envelope.body.toString("utf8"));
-  }
-
-  async deleteHttpHost(hostId: string) {
-    return (
-      await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}`, {
-        method: "DELETE",
-      })
-    ).body;
-  }
-
-  async deleteAllHttpHosts() {
-    return (
-      await this.requestObject("/ISAPI/Event/notification/httpHosts", {
-        method: "DELETE",
-      })
-    ).body;
-  }
-
-  async getHttpHostUploadCtrl(hostId: string): Promise<HikvisionHttpHostUploadCtrlResult> {
-    const envelope = await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}/uploadCtrl`);
-    return {
-      success: true,
-      hostId,
-      body: envelope.body,
-      rawResponse: envelope,
-    };
-  }
-
-  async configureHttpHost(
-    hostId: string,
-    hostNotification: HikvisionHttpHostNotification,
-    security?: string,
-    iv?: string
-  ) {
-    const query = new URLSearchParams();
-    if (security) query.set("security", security);
-    if (iv) query.set("iv", iv);
-
-    const suffix = query.toString() ? `?${query.toString()}` : "";
-    const xml = buildHttpHostNotificationXml({
-      ...hostNotification,
-      id: hostId,
-      checkResponseEnabled: hostNotification.checkResponseEnabled ?? true,
-    });
-
-    try {
-      return (
-        await this.requestObject(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}${suffix}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/xml; charset=UTF-8",
-          },
-          body: xml,
-        })
-      ).body;
-    } catch {
-      return (
-        await this.requestObject(`/ISAPI/Event/notification/httpHosts${suffix}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/xml; charset=UTF-8",
-          },
-          body: xml,
-        })
-      ).body;
-    }
-  }
-
-  async testHttpHost(hostId: string): Promise<HikvisionWebhookTestResult> {
-    const envelope = await this.requestBinary(`/ISAPI/Event/notification/httpHosts/${encodeURIComponent(hostId)}/test`);
-    return {
-      success: true,
-      responseText: envelope.body.toString("utf8"),
-    };
   }
 
   async getSnapshotCapabilities(streamId = "101") {
@@ -686,6 +713,502 @@ export class HikvisionIsapiClient {
     return (await this.requestObject("/ISAPI/AccessControl/AcsWorkStatus?format=json", {}, "AcsWorkStatus")).body;
   }
 
+  async getHeartbeat(): Promise<HikvisionHeartbeatResult> {
+    const checkedAt = new Date().toISOString();
+    const envelope = await this.requestObject("/ISAPI/AccessControl/AcsWorkStatus?format=json", {}, "AcsWorkStatus");
+    return {
+      success: true,
+      checkedAt,
+      workStatus: envelope.body,
+      rawResponse: envelope,
+    };
+  }
+
+  async getAcsEventCapabilities() {
+    return (
+      await this.requestObject("/ISAPI/AccessControl/AcsEvent/capabilities?format=json")
+    ).body;
+  }
+
+  async getAcsEventTotalNum(major = 0, minor = 0): Promise<HikvisionAcsEventTotalNumResult> {
+    const envelope = await this.requestObject("/ISAPI/AccessControl/AcsEventTotalNum?format=json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify({
+        AcsEventTotalNumCond: {
+          major,
+          minor,
+        },
+      }),
+    });
+
+    const payload =
+      typeof envelope.body.AcsEventTotalNum === "object" && envelope.body.AcsEventTotalNum !== null
+        ? (envelope.body.AcsEventTotalNum as Record<string, unknown>)
+        : envelope.body;
+    const totalNum = Number(payload.totalNum ?? 0);
+
+    return {
+      totalNum: Number.isFinite(totalNum) ? totalNum : 0,
+      rawResponse: envelope,
+    };
+  }
+
+  async getAcsEventStorageCapabilities(): Promise<HikvisionEventStorageCapabilities> {
+    const envelope = await this.requestObject(
+      "/ISAPI/AccessControl/AcsEvent/StorageCfg/capabilities?format=json"
+    );
+    const payload =
+      typeof envelope.body.EventStorageCfgCap === "object" && envelope.body.EventStorageCfgCap !== null
+        ? (envelope.body.EventStorageCfgCap as Record<string, unknown>)
+        : envelope.body;
+    const mode = payload.mode as Record<string, unknown> | undefined;
+    const checkTime = payload.checkTime as Record<string, unknown> | undefined;
+    const period = payload.period as Record<string, unknown> | undefined;
+    const rawModeOptions = mode?.["@opt"];
+    const modeOptions = Array.isArray(rawModeOptions)
+      ? rawModeOptions.map((entry) => String(entry))
+      : typeof rawModeOptions === "string"
+        ? rawModeOptions.split(",").map((entry) => entry.trim()).filter(Boolean)
+        : [];
+    const checkTimeMinLength = Number(checkTime?.["@min"]);
+    const checkTimeMaxLength = Number(checkTime?.["@max"]);
+    const periodMin = Number(period?.["@min"]);
+    const periodMax = Number(period?.["@max"]);
+
+    return {
+      modeOptions,
+      checkTimeMinLength: Number.isFinite(checkTimeMinLength) ? checkTimeMinLength : undefined,
+      checkTimeMaxLength: Number.isFinite(checkTimeMaxLength) ? checkTimeMaxLength : undefined,
+      periodMin: Number.isFinite(periodMin) ? periodMin : undefined,
+      periodMax: Number.isFinite(periodMax) ? periodMax : undefined,
+      rawResponse: envelope,
+    };
+  }
+
+  async getAcsEventStorageConfig(): Promise<HikvisionEventStorageConfig> {
+    const envelope = await this.requestObject("/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json");
+    const payload =
+      typeof envelope.body.EventStorageCfg === "object" && envelope.body.EventStorageCfg !== null
+        ? (envelope.body.EventStorageCfg as Record<string, unknown>)
+        : envelope.body;
+    const period = Number(payload.period);
+
+    return {
+      mode: typeof payload.mode === "string" ? payload.mode : undefined,
+      checkTime: typeof payload.checkTime === "string" ? payload.checkTime : undefined,
+      period: Number.isFinite(period) ? period : undefined,
+      rawResponse: envelope,
+    };
+  }
+
+  async setAcsEventStorageConfig(input: HikvisionEventStorageConfigInput) {
+    return this.requestObject("/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify({
+        EventStorageCfg: compact({
+          mode: input.mode,
+          checkTime: input.checkTime,
+          period: input.period,
+        }),
+      }),
+    });
+  }
+
+  async clearAcsEventsByTime(referenceTime?: Date | string): Promise<HikvisionClearAcsEventsResult> {
+    const [previousConfig, beforeCount] = await Promise.all([
+      this.getAcsEventStorageConfig(),
+      this.getAcsEventTotalNum(),
+    ]);
+    const effectiveReferenceTime = referenceTime || previousConfig.rawResponse.headers.date || new Date();
+    const checkTime = formatEventStorageCheckTime(effectiveReferenceTime);
+
+    await this.setAcsEventStorageConfig({
+      mode: "time",
+      checkTime,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    const afterCount = await this.getAcsEventTotalNum();
+
+    if (previousConfig.mode) {
+      await this.setAcsEventStorageConfig({
+        mode: previousConfig.mode,
+        checkTime: previousConfig.checkTime,
+        period: previousConfig.period,
+      });
+    }
+
+    return {
+      previousConfig: {
+        mode: previousConfig.mode,
+        checkTime: previousConfig.checkTime,
+        period: previousConfig.period,
+      },
+      appliedConfig: {
+        mode: "time",
+        checkTime,
+      },
+      restoredConfig: {
+        mode: previousConfig.mode,
+        checkTime: previousConfig.checkTime,
+        period: previousConfig.period,
+      },
+      beforeCount: beforeCount.totalNum,
+      afterCount: afterCount.totalNum,
+    };
+  }
+
+  async searchAcsEvents(input: HikvisionAcsEventSearchInput = {}): Promise<HikvisionAcsEventSearchResult> {
+    const maxResults = input.maxResults ?? 20;
+    const major = input.major ?? 0;
+    const minor = input.minor ?? 0;
+    const body = compact({
+      AcsEventCond: compact({
+        searchID: input.searchID || `acs-${Date.now()}`,
+        searchResultPosition: input.searchResultPosition ?? 0,
+        maxResults,
+        major,
+        minor,
+        startTime: normalizeAcsEventDateTime(input.startTime),
+        endTime: normalizeAcsEventDateTime(input.endTime),
+        employeeNo: input.employeeNo,
+        cardNo: input.cardNo,
+        name: input.name,
+      }),
+    });
+
+    const envelope = await this.requestObject("/ISAPI/AccessControl/AcsEvent?format=json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify(body),
+    });
+
+    return parseAcsEventSearchResultEnvelope(
+      envelope,
+      maxResults,
+      input.searchResultPosition ?? 0
+    );
+  }
+
+  async searchLatestAcsEvents(
+    input: HikvisionAcsEventSearchInput = {}
+  ): Promise<HikvisionAcsEventSearchResult> {
+    const maxResults = input.maxResults ?? 20;
+    const probe = await this.searchAcsEvents({
+      ...input,
+      maxResults: 1,
+      searchResultPosition: 0,
+    });
+
+    const latestSearchResultPosition = Math.max(probe.totalMatches - maxResults, 0);
+    if (probe.totalMatches <= 0) {
+      return probe;
+    }
+
+    return this.searchAcsEvents({
+      ...input,
+      maxResults,
+      searchResultPosition: latestSearchResultPosition,
+    });
+  }
+
+  async searchAcsEventsMulti(
+    input: HikvisionAcsEventMultiSearchInput
+  ): Promise<HikvisionAcsEventMultiSearchResult> {
+    const uniqueMinors = [...new Set(input.minors.map((value) => Number(value)).filter((value) => Number.isFinite(value)))];
+    const perMinor: HikvisionAcsEventMultiSearchResult["perMinor"] = [];
+    const records: HikvisionAcsEventRecord[] = [];
+
+    for (const minor of uniqueMinors) {
+      try {
+        const result = await this.searchAcsEvents({
+          ...input,
+          minor,
+        });
+        perMinor.push({
+          minor,
+          result,
+        });
+        records.push(...result.records);
+      } catch (error) {
+        perMinor.push({
+          minor,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    const deduped = records.filter(
+      (record, index, collection) =>
+        collection.findIndex((candidate) => {
+          const candidateEmployee = candidate.employeeNo || candidate.employeeNoString || "";
+          const recordEmployee = record.employeeNo || record.employeeNoString || "";
+          const candidateTime = candidate.eventTime || candidate.dateTime || "";
+          const recordTime = record.eventTime || record.dateTime || "";
+          return (
+            String(candidate.major ?? "") === String(record.major ?? "") &&
+            String(candidate.minor ?? "") === String(record.minor ?? "") &&
+            candidateEmployee === recordEmployee &&
+            candidateTime === recordTime
+          );
+        }) === index
+    );
+
+    return {
+      major: input.major,
+      minors: uniqueMinors,
+      records: deduped,
+      perMinor,
+    };
+  }
+
+  async getAcsEventsFallback(input: HikvisionAcsEventSearchInput = {}): Promise<HikvisionAcsEventSearchResult> {
+    const maxResults = input.maxResults ?? 20;
+    const query = new URLSearchParams({
+      searchResultPosition: String(input.searchResultPosition ?? 0),
+      maxResults: String(maxResults),
+    });
+
+    if (input.major !== undefined) {
+      query.set("major", String(input.major));
+    }
+    if (input.minor !== undefined) {
+      query.set("minor", String(input.minor));
+    }
+
+    const envelope = await this.requestBinary(`/ISAPI/AccessControl/AcsEvent?${query.toString()}`);
+    const contentType = envelope.headers["content-type"] || "";
+    const parsed = normalizeParsedBody(contentType, envelope.body);
+
+    if (parsed.kind === "binary") {
+      throw new HikvisionInvalidResponseError("AcsEvent fallback returned binary content unexpectedly");
+    }
+
+    const body =
+      parsed.kind === "json"
+        ? parsed.value
+        : {
+            ...parseSimpleXml(parsed.text, [
+              "totalMatches",
+              "numOfMatches",
+              "searchResultPosition",
+              "maxResults",
+            ]),
+            _xml: parsed.text,
+          };
+
+    const responseEnvelope: HikvisionResponseEnvelope<Record<string, unknown>> = {
+      ok: envelope.ok,
+      status: envelope.status,
+      statusText: envelope.statusText,
+      headers: envelope.headers,
+      body,
+      rawText: parsed.text,
+      isapiStatus: inferIsapiStatus(parsed.kind === "json" ? body : parsed.text),
+    };
+
+    if (!isSuccessStatus(responseEnvelope.isapiStatus)) {
+      throw new HikvisionInvalidResponseError("AcsEvent fallback indicated failure", {
+        ...responseEnvelope.isapiStatus,
+        body: responseEnvelope.rawText,
+      });
+    }
+
+    const records =
+      parsed.kind === "json"
+        ? parseAcsEventRecordsFromObject(parsed.value)
+        : parseAcsEventRecordsFromXml(parsed.text);
+
+    return {
+      totalMatches:
+        Number(body.totalMatches ?? body.numOfMatches ?? records.length) || records.length,
+      searchResultPosition: Number(body.searchResultPosition ?? input.searchResultPosition ?? 0) || 0,
+      maxResults: Number(body.maxResults ?? maxResults) || maxResults,
+      records,
+      rawResponse: responseEnvelope,
+    };
+  }
+
+  async readAlertStreamSample(options?: {
+    timeoutMs?: number;
+    maxBytes?: number;
+  }): Promise<HikvisionAlertStreamSample> {
+    const response = await this.performRequest("/ISAPI/Event/notification/alertStream");
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new HikvisionTransportError("Alert stream response did not expose a readable stream");
+    }
+
+    const maxBytes = options?.maxBytes ?? 4096;
+    const timeoutMs = options?.timeoutMs ?? 5_000;
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    let truncated = false;
+
+    const timer = setTimeout(() => {
+      truncated = true;
+      void reader.cancel("alert-stream-sample-timeout");
+    }, timeoutMs);
+
+    try {
+      while (totalBytes < maxBytes) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value || value.byteLength === 0) {
+          continue;
+        }
+
+        const remaining = maxBytes - totalBytes;
+        if (value.byteLength > remaining) {
+          chunks.push(value.slice(0, remaining));
+          totalBytes += remaining;
+          truncated = true;
+          break;
+        }
+
+        chunks.push(value);
+        totalBytes += value.byteLength;
+      }
+    } finally {
+      clearTimeout(timer);
+      await reader.cancel().catch(() => undefined);
+    }
+
+    const buffer = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
+    const contentType = response.headers.get("content-type") || "application/octet-stream";
+    const sampleText = buffer.toString("utf8");
+    const normalizedContentType = contentType.toLowerCase();
+    const events =
+      normalizedContentType.includes("multipart/")
+        ? parseAcsEventRecordsFromMultipartText(sampleText)
+        : normalizedContentType.includes("json")
+          ? parseAcsEventRecordsFromObject(parseJsonSafe(sampleText) || {})
+          : parseAcsEventRecordsFromXml(sampleText);
+
+    return {
+      success: true,
+      contentType,
+      sampleText,
+      sampleBytes: buffer.length,
+      truncated,
+      events,
+      rawHeaders: Object.fromEntries(response.headers.entries()),
+    };
+  }
+
+  async followAlertStream(options?: {
+    durationMs?: number;
+    onChunk?: (chunk: HikvisionAlertStreamChunk) => void | Promise<void>;
+  }): Promise<HikvisionAlertStreamFollowResult> {
+    const response = await this.performRequest("/ISAPI/Event/notification/alertStream");
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new HikvisionTransportError("Alert stream response did not expose a readable stream");
+    }
+
+    const durationMs = options?.durationMs ?? 15_000;
+    const startedAt = Date.now();
+    const chunks: HikvisionAlertStreamChunk[] = [];
+    let totalBytes = 0;
+    let finished = false;
+    const contentType = response.headers.get("content-type") || "application/octet-stream";
+    const boundary = contentType.toLowerCase().includes("multipart/")
+      ? response.headers.get("content-type")
+        ? response.headers.get("content-type")
+        : contentType
+      : null;
+    const multipartBoundary =
+      boundary && boundary.toLowerCase().includes("multipart/")
+        ? boundary.match(/boundary="?([^=";]+)"?/i)?.[1] || null
+        : null;
+    let pendingText = "";
+
+    const timer = setTimeout(() => {
+      finished = true;
+      void reader.cancel("alert-stream-follow-timeout");
+    }, durationMs);
+
+    try {
+      while (!finished) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value || value.byteLength === 0) {
+          continue;
+        }
+
+        totalBytes += value.byteLength;
+        const text = Buffer.from(value).toString("utf8");
+
+        if (multipartBoundary) {
+          pendingText += text;
+          const consumed = consumeMultipartMixedText(pendingText, multipartBoundary);
+          pendingText = consumed.remainder;
+
+          for (const part of consumed.parts) {
+            const bodyText = part.bodyText.trim();
+            const events =
+              bodyText.startsWith("{") || bodyText.startsWith("[")
+                ? parseAcsEventRecordsFromObject(parseJsonSafe(bodyText) || {})
+                : bodyText.startsWith("<")
+                  ? parseAcsEventRecordsFromXml(bodyText)
+                  : [];
+            const chunk: HikvisionAlertStreamChunk = {
+              timestamp: new Date().toISOString(),
+              byteLength: Buffer.byteLength(part.rawText),
+              text: part.rawText,
+              events,
+            };
+
+            chunks.push(chunk);
+            if (options?.onChunk) {
+              await options.onChunk(chunk);
+            }
+          }
+        } else {
+          const events =
+            contentType.toLowerCase().includes("json")
+              ? parseAcsEventRecordsFromObject(parseJsonSafe(text) || {})
+              : parseAcsEventRecordsFromXml(text);
+          const chunk: HikvisionAlertStreamChunk = {
+            timestamp: new Date().toISOString(),
+            byteLength: value.byteLength,
+            text,
+            events,
+          };
+
+          chunks.push(chunk);
+          if (options?.onChunk) {
+            await options.onChunk(chunk);
+          }
+        }
+
+        if (Date.now() - startedAt >= durationMs) {
+          break;
+        }
+      }
+    } finally {
+      clearTimeout(timer);
+      await reader.cancel().catch(() => undefined);
+    }
+
+    return {
+      success: true,
+      contentType,
+      durationMs: Date.now() - startedAt,
+      totalBytes,
+      chunks,
+      rawHeaders: Object.fromEntries(response.headers.entries()),
+    };
+  }
+
   async findUserByEmployeeNo(employeeNo: string) {
     const envelope = await this.requestObject("/ISAPI/AccessControl/UserInfo/Search?format=json", {
       method: "POST",
@@ -774,7 +1297,28 @@ export class HikvisionIsapiClient {
     };
   }
 
-  private async ensureUserInfoRecord(employeeNo: string, name?: string) {
+  private buildUserInfoPayload(employeeNo: string, name?: string, overrides?: HikvisionUserInfoInput) {
+    const defaults = defaultUserInfoInput();
+    const valid = {
+      ...defaults.valid,
+      ...(overrides?.valid || {}),
+    };
+
+    return compact({
+      employeeNo,
+      userType: overrides?.userType || defaults.userType,
+      name,
+      onlyVerify: overrides?.onlyVerify ?? defaults.onlyVerify,
+      doorRight: overrides?.doorRight ?? defaults.doorRight,
+      RightPlan: overrides?.rightPlan ?? defaults.rightPlan,
+      Valid: valid,
+      phoneNumber: overrides?.phoneNumber,
+      gender: overrides?.gender,
+      PersonInfoExtends: normalizePersonInfoExtends(overrides?.personInfoExtends),
+    });
+  }
+
+  private async ensureUserInfoRecord(employeeNo: string, name?: string, userInfo?: HikvisionUserInfoInput) {
     const employeeNoCandidates = buildEmployeeNoCandidates(employeeNo);
     const applyEndpoints: Array<{ path: string; method: "PUT" | "POST" }> = [
       { path: "/ISAPI/AccessControl/UserInfo/SetUp?format=json", method: "PUT" },
@@ -783,17 +1327,7 @@ export class HikvisionIsapiClient {
 
     const applyBody = (candidate: string) =>
       JSON.stringify({
-        UserInfo: {
-          employeeNo: candidate,
-          userType: "normal",
-          name,
-          Valid: {
-            enable: true,
-            beginTime: "2024-01-01T00:00:00",
-            endTime: "2037-12-31T23:59:59",
-            timeType: "local",
-          },
-        },
+        UserInfo: this.buildUserInfoPayload(candidate, name, userInfo),
       });
 
     let lastError: unknown = null;
@@ -820,6 +1354,180 @@ export class HikvisionIsapiClient {
       : new HikvisionFaceUploadError("Failed to apply Hikvision user information");
   }
 
+  async upsertUserInfo(input: {
+    employeeNo: string;
+    name?: string;
+    userInfo?: HikvisionUserInfoInput;
+  }): Promise<HikvisionUpsertUserInfoResult> {
+    const employeeNo = await this.ensureUserInfoRecord(input.employeeNo, input.name, input.userInfo);
+    const user = await this.findUserByEmployeeNo(employeeNo).catch(() => null);
+    return {
+      employeeNo,
+      user,
+    };
+  }
+
+  async validateUserState(input: {
+    employeeNo: string;
+    name?: string;
+    phoneNumber?: string;
+    gender?: string;
+    userType?: string;
+    personRole?: string;
+    requireFace?: boolean;
+    fdid?: string;
+    faceLibType?: FaceLibType;
+  }): Promise<HikvisionUserStateValidationResult> {
+    try {
+      const user = await this.findUserByEmployeeNo(input.employeeNo);
+      if (!user) {
+        return {
+          status: "user_missing",
+          employeeNo: input.employeeNo,
+          userPresent: false,
+          facePresent: false,
+          detailsMatch: false,
+          accessReady: false,
+          mismatches: ["user_missing"],
+          user: null,
+        };
+      }
+
+      const mismatches: string[] = [];
+      if (typeof input.name === "string" && input.name.trim()) {
+        const actualName = typeof user.name === "string" ? user.name.trim() : "";
+        if (actualName !== input.name.trim()) {
+          mismatches.push("name");
+        }
+      }
+
+      if (typeof input.phoneNumber === "string") {
+        const phoneCandidates = [
+          typeof user.phoneNumber === "string" ? user.phoneNumber : "",
+          typeof user.telephoneNo === "string" ? user.telephoneNo : "",
+          typeof user.phoneNo === "string" ? user.phoneNo : "",
+        ]
+          .map((value) => normalizePhoneNumber(value))
+          .filter((value) => value.length > 0);
+        const expectedPhone = normalizePhoneNumber(input.phoneNumber);
+        if (phoneCandidates.length > 0 && !phoneCandidates.includes(expectedPhone)) {
+          mismatches.push("phoneNumber");
+        }
+      }
+
+      if (input.gender && input.gender !== "unknown") {
+        const actualGender = typeof user.gender === "string" ? user.gender : "";
+        if (actualGender !== input.gender) {
+          mismatches.push("gender");
+        }
+      }
+
+      if (input.userType) {
+        const actualUserType = typeof user.userType === "string" ? user.userType : "";
+        if (actualUserType !== input.userType) {
+          mismatches.push("userType");
+        }
+      }
+
+      if (input.personRole) {
+        const personRole = extractPersonInfoExtends(user)
+          .map((entry) => (typeof entry.value === "string" ? entry.value.trim() : ""))
+          .find((value) => value.length > 0);
+        if (personRole !== input.personRole) {
+          mismatches.push("personRole");
+        }
+      }
+
+      const onlyVerify = Boolean(user.onlyVerify);
+      const valid = normalizeRecord(user.Valid);
+      const validEnabled = valid.enable !== false;
+      const doorRight = typeof user.doorRight === "string" ? user.doorRight : "";
+      const rightPlan = asArray<Record<string, unknown>>(user.RightPlan as Record<string, unknown> | Record<string, unknown>[] | undefined);
+      const accessReady = !onlyVerify && validEnabled && doorRight.length > 0 && rightPlan.length > 0;
+      if (!accessReady) {
+        mismatches.push("access");
+      }
+
+      const faceLibraries = await this.getFdLibList().catch(() =>
+        input.fdid
+          ? [{ fdid: input.fdid, faceLibType: input.faceLibType || "blackFD" }]
+          : [{ fdid: "1", faceLibType: input.faceLibType || "blackFD" }]
+      );
+
+      const libraries = input.fdid
+        ? [
+            ...faceLibraries.filter((library) => library.fdid === input.fdid),
+            ...faceLibraries.filter((library) => library.fdid !== input.fdid),
+          ]
+        : faceLibraries;
+
+      let matchingRecord: HikvisionFaceSearchRecord | null = null;
+      const rawResponses: Record<string, unknown> = { user };
+      for (const library of libraries) {
+        const search = await this.searchFaceRecords(library.fdid, library.faceLibType, {
+          fpid: input.employeeNo,
+          name: input.name,
+        }).catch(() => null);
+        rawResponses[`search:${library.fdid}:${library.faceLibType}`] = search?.rawResponse;
+        const match = search?.records.find(
+          (record) => record.fpid === input.employeeNo || record.employeeNo === input.employeeNo
+        );
+        if (match) {
+          matchingRecord = match;
+          break;
+        }
+      }
+
+      const numOfFace =
+        typeof user.numOfFace === "number"
+          ? user.numOfFace
+          : Number(user.numOfFace);
+      const facePresent = Boolean((Number.isFinite(numOfFace) && numOfFace > 0) || matchingRecord);
+      if (input.requireFace !== false && !facePresent) {
+        mismatches.push("face");
+      }
+
+      const detailsMatch = mismatches.filter((entry) => entry !== "access" && entry !== "face").length === 0;
+
+      let status: HikvisionUserStateValidationResult["status"] = "verified";
+      if (!facePresent && input.requireFace !== false) {
+        status = "face_missing";
+      } else if (!detailsMatch || !accessReady) {
+        status = "details_mismatch";
+      }
+
+      return {
+        status,
+        employeeNo: input.employeeNo,
+        userPresent: true,
+        facePresent,
+        detailsMatch,
+        accessReady,
+        mismatches,
+        user,
+        matchingRecord,
+        registeredFaceCount: Number.isFinite(numOfFace) ? numOfFace : undefined,
+        rawResponses,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Terminal validation failed";
+      const isTransport =
+        error instanceof HikvisionTransportError ||
+        error instanceof HikvisionAuthError;
+
+      return {
+        status: isTransport ? "terminal_unreachable" : "validation_error",
+        employeeNo: input.employeeNo,
+        userPresent: false,
+        facePresent: false,
+        detailsMatch: false,
+        accessReady: false,
+        mismatches: [isTransport ? "terminal_unreachable" : "validation_error"],
+        error: message,
+      };
+    }
+  }
+
   async addFaceRecord(input: HikvisionFaceRecordInput): Promise<HikvisionFaceRecordResult> {
     const capabilities = await this.getFdLibCapabilities();
     this.ensureCapability(
@@ -837,7 +1545,7 @@ export class HikvisionIsapiClient {
       throw new HikvisionFaceUploadError("addFaceRecord requires employeeNo or fpid so the terminal can link the face to a user");
     }
 
-    const employeeNoUsed = await this.ensureUserInfoRecord(personIdentifier, input.name);
+    const employeeNoUsed = await this.ensureUserInfoRecord(personIdentifier, input.name, input.userInfo);
 
     const body = compact({
       faceURL: input.faceUrl,
@@ -891,7 +1599,7 @@ export class HikvisionIsapiClient {
       throw new HikvisionFaceUploadError("applyFaceRecord requires employeeNo or fpid so the terminal can link the face to a user");
     }
 
-    const employeeNoUsed = await this.ensureUserInfoRecord(personIdentifier, input.name);
+    const employeeNoUsed = await this.ensureUserInfoRecord(personIdentifier, input.name, input.userInfo);
 
     const body = compact({
       faceURL: input.faceUrl,
@@ -1113,6 +1821,7 @@ export class HikvisionIsapiClient {
     filename?: string;
     mimeType?: string;
     fdid?: string;
+    userInfo?: HikvisionUserInfoInput;
   }) {
     const employeeNoCandidates = buildEmployeeNoCandidates(input.employeeNo);
     const name = input.name.trim();
@@ -1127,17 +1836,7 @@ export class HikvisionIsapiClient {
 
     const applyBody = (employeeNo: string) =>
       JSON.stringify({
-        UserInfo: {
-          employeeNo,
-          userType: "normal",
-          name,
-          Valid: {
-            enable: true,
-            beginTime: "2024-01-01T00:00:00",
-            endTime: "2037-12-31T23:59:59",
-            timeType: "local",
-          },
-        },
+        UserInfo: this.buildUserInfoPayload(employeeNo, name, input.userInfo),
       });
 
     let employeeNoUsed: string | null = null;
@@ -1179,60 +1878,117 @@ export class HikvisionIsapiClient {
         ]
       : faceLibraries;
 
+    if (faceUrl) {
+      let uploadError: unknown = null;
+
+      for (const library of libraries) {
+        try {
+          const existingRecord = await this.searchFaceRecords(library.fdid, library.faceLibType, {
+            fpid: employeeNoUsed,
+          }).catch(() => null);
+          const alreadyPresent = Boolean(
+            existingRecord?.records.some(
+              (record) => record.fpid === employeeNoUsed || record.employeeNo === employeeNoUsed
+            )
+          );
+          const countBefore = await this.countFaces(library.fdid, library.faceLibType).catch(() => undefined);
+
+          let upload: HikvisionFaceRecordResult;
+          if (alreadyPresent) {
+              upload = await this.applyFaceRecord({
+                fdid: library.fdid,
+                faceLibType: library.faceLibType,
+                faceUrl,
+                fpid: employeeNoUsed,
+                name,
+                employeeNo: employeeNoUsed,
+                userInfo: input.userInfo,
+              });
+          } else {
+            try {
+              upload = await this.addFaceRecord({
+                fdid: library.fdid,
+                faceLibType: library.faceLibType,
+                faceUrl,
+                fpid: employeeNoUsed,
+                name,
+                employeeNo: employeeNoUsed,
+                userInfo: input.userInfo,
+              });
+            } catch (error) {
+              if (!(error instanceof HikvisionUnsupportedCapabilityError)) {
+                throw error;
+              }
+              upload = await this.applyFaceRecord({
+                fdid: library.fdid,
+                faceLibType: library.faceLibType,
+                faceUrl,
+                fpid: employeeNoUsed,
+                name,
+                employeeNo: employeeNoUsed,
+                userInfo: input.userInfo,
+              });
+            }
+          }
+
+          const verification = await this.verifyFaceSynced(library.fdid, library.faceLibType, {
+            fpid: upload.fpid || employeeNoUsed,
+            name,
+            countBefore: countBefore?.recordDataNumber,
+          });
+
+          if (verification.verified) {
+            return { employeeNo: employeeNoUsed, alreadyPresent };
+          }
+
+          uploadError = new HikvisionVerificationError(
+            "Face record upload completed but verification did not confirm a synced record"
+          );
+        } catch (error) {
+          uploadError = error;
+        }
+      }
+
+      if (await this.userHasFace(employeeNoUsed).catch(() => false)) {
+        return { employeeNo: employeeNoUsed, alreadyPresent: true };
+      }
+
+      throw uploadError instanceof Error ? uploadError : new HikvisionFaceUploadError("Failed to register face");
+    }
+
     let uploadError: unknown = null;
     for (const library of libraries) {
       try {
-        if (faceUrl) {
-          const formData = new FormData();
-          formData.append("FDID", library.fdid);
-          formData.append("employeeNo", employeeNoUsed);
-          formData.append("name", name);
-          formData.append("faceURL", faceUrl);
-          await this.performRequest("/ISAPI/Intelligent/FDLib/pictureUpload", {
-            method: "POST",
-            body: formData,
-          });
-        } else {
-          const uploadMeta = `<?xml version="1.0" encoding="UTF-8"?><PictureUploadData><FDID>${escapeXml(library.fdid)}</FDID><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name></PictureUploadData>`;
-          const formData = new FormData();
-          formData.append(
-            "PictureUploadData",
-            new Blob([uploadMeta], { type: "application/xml" }),
-            "PictureUploadData.xml"
-          );
-          formData.append("face_picture", new Blob([imageBuffer], { type: mimeType }), filename);
-          await this.performRequest("/ISAPI/Intelligent/FDLib/pictureUpload", {
-            method: "POST",
-            body: formData,
-          });
+        const uploadMeta = `<?xml version="1.0" encoding="UTF-8"?><PictureUploadData><FDID>${escapeXml(library.fdid)}</FDID><employeeNo>${escapeXml(employeeNoUsed)}</employeeNo><name>${escapeXml(name)}</name></PictureUploadData>`;
+        const formData = new FormData();
+        formData.append(
+          "PictureUploadData",
+          new Blob([uploadMeta], { type: "application/xml" }),
+          "PictureUploadData.xml"
+        );
+        formData.append("face_picture", new Blob([imageBuffer], { type: mimeType }), filename);
+        await this.performRequest("/ISAPI/Intelligent/FDLib/pictureUpload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (await this.userHasFace(employeeNoUsed).catch(() => false)) {
+          return { employeeNo: employeeNoUsed, alreadyPresent: false };
         }
-        uploadError = null;
-        break;
+
+        uploadError = new HikvisionVerificationError(
+          "pictureUpload returned success but the terminal did not report a stored face for the user"
+        );
       } catch (error) {
         uploadError = error;
       }
     }
 
-    if (uploadError) {
-      const fallbackLibrary = libraries[0] || { fdid: input.fdid || "1", faceLibType: "blackFD" };
-      try {
-        await this.addFaceRecord({
-          fdid: fallbackLibrary.fdid,
-          faceLibType: fallbackLibrary.faceLibType,
-          faceUrl,
-          fpid: employeeNoUsed,
-          name,
-          employeeNo: employeeNoUsed,
-        });
-      } catch (fallbackError) {
-        if (await this.userHasFace(employeeNoUsed).catch(() => false)) {
-          return { employeeNo: employeeNoUsed, alreadyPresent: true };
-        }
-        throw fallbackError instanceof Error ? fallbackError : new HikvisionFaceUploadError("Failed to register face");
-      }
+    if (await this.userHasFace(employeeNoUsed).catch(() => false)) {
+      return { employeeNo: employeeNoUsed, alreadyPresent: true };
     }
 
-    return { employeeNo: employeeNoUsed, alreadyPresent: false };
+    throw uploadError instanceof Error ? uploadError : new HikvisionFaceUploadError("Failed to register face");
   }
 
   async deleteFace(employeeNo: string) {

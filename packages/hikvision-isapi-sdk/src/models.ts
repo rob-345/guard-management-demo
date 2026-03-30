@@ -63,6 +63,37 @@ export type HikvisionResponseEnvelope<T = Record<string, unknown>> = {
   isapiStatus?: HikvisionIsapiStatus;
 };
 
+export type HikvisionDebugRequest = {
+  method: string;
+  path: string;
+  url: string;
+  headers: Record<string, string>;
+  contentType?: string;
+  bodyText?: string;
+  bodyBytes?: number;
+};
+
+export type HikvisionDebugResponse = {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  contentType?: string;
+  bodyText?: string;
+  bodyBytes?: number;
+  isapiStatus?: HikvisionIsapiStatus;
+};
+
+export type HikvisionDebugExchange = {
+  timestamp: string;
+  request: HikvisionDebugRequest;
+  response?: HikvisionDebugResponse;
+  error?: {
+    name: string;
+    message: string;
+    details?: Record<string, unknown>;
+  };
+};
+
 export type HikvisionDeviceInfo = {
   deviceName?: string;
   deviceID?: string;
@@ -78,60 +109,150 @@ export type HikvisionDeviceInfo = {
   [key: string]: unknown;
 };
 
-export type HikvisionHttpHostNotification = {
-  id?: string;
-  url?: string;
-  protocolType?: string;
-  parameterFormatType?: string;
-  addressingFormatType?: string;
-  hostName?: string;
+export type HikvisionAcsEventSearchInput = {
+  searchID?: string;
+  searchResultPosition?: number;
+  maxResults?: number;
+  major?: number | string;
+  minor?: number | string;
+  startTime?: string;
+  endTime?: string;
+  employeeNo?: string;
+  cardNo?: string;
+  name?: string;
+};
+
+export type HikvisionAcsEventRecord = {
+  serialNo?: string;
+  employeeNo?: string;
+  employeeNoString?: string;
+  name?: string;
+  cardNo?: string;
+  major?: number | string;
+  minor?: number | string;
+  eventTime?: string;
+  dateTime?: string;
+  eventType?: string;
+  eventState?: string;
+  eventDescription?: string;
+  attendanceStatus?: string;
+  currentVerifyMode?: string;
+  cardReaderNo?: number | string;
+  doorNo?: number | string;
+  cardType?: number | string;
+  mask?: string;
+  faceRect?: Record<string, unknown>;
+  onlyVerify?: boolean;
+  deviceID?: string;
+  deviceId?: string;
+  terminalId?: string;
+  terminalID?: string;
   ipAddress?: string;
-  portNo?: number;
-  userName?: string;
-  password?: string;
-  httpAuthenticationMethod?: string;
-  checkResponseEnabled?: boolean;
-  subscribeEvent?: HikvisionHttpHostSubscribeEvent;
-  [key: string]: unknown;
+  macAddress?: string;
+  raw: Record<string, unknown>;
 };
 
-export type HikvisionHttpHostSubscribeEvent = {
-  heartbeat?: string;
-  eventMode?: string;
-  eventTypes: string[];
-  pictureURLType?: string;
-  rawXml?: string;
-};
-
-export type HikvisionHttpHostDetails = {
-  id?: string;
-  url?: string;
-  protocolType?: string;
-  parameterFormatType?: string;
-  addressingFormatType?: string;
-  hostName?: string;
-  ipAddress?: string;
-  portNo?: number;
-  httpAuthenticationMethod?: string;
-  subscribeEvent?: HikvisionHttpHostSubscribeEvent;
-  rawXml?: string;
-};
-
-export type HikvisionSubscribeEventInput = {
-  eventMode?: string;
-  channelMode?: string;
-};
-
-export type HikvisionSubscribeEventResult = {
-  success: boolean;
-  subscriptionId?: string;
+export type HikvisionAcsEventSearchResult = {
+  totalMatches: number;
+  searchResultPosition: number;
+  maxResults: number;
+  records: HikvisionAcsEventRecord[];
   rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
 };
 
-export type HikvisionHttpHostUploadCtrlResult = {
+export type HikvisionAcsEventTotalNumResult = {
+  totalNum: number;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionEventStorageMode = "regular" | "time" | "cycle" | string;
+
+export type HikvisionEventStorageConfig = {
+  mode?: HikvisionEventStorageMode;
+  checkTime?: string;
+  period?: number;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionEventStorageConfigInput = {
+  mode: HikvisionEventStorageMode;
+  checkTime?: string;
+  period?: number;
+};
+
+export type HikvisionEventStorageCapabilities = {
+  modeOptions: string[];
+  checkTimeMinLength?: number;
+  checkTimeMaxLength?: number;
+  periodMin?: number;
+  periodMax?: number;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionClearAcsEventsResult = {
+  previousConfig: {
+    mode?: HikvisionEventStorageMode;
+    checkTime?: string;
+    period?: number;
+  };
+  appliedConfig: {
+    mode: HikvisionEventStorageMode;
+    checkTime: string;
+  };
+  restoredConfig: {
+    mode?: HikvisionEventStorageMode;
+    checkTime?: string;
+    period?: number;
+  };
+  beforeCount: number;
+  afterCount: number;
+};
+
+export type HikvisionAcsEventMultiSearchInput = HikvisionAcsEventSearchInput & {
+  minors: Array<number | string>;
+};
+
+export type HikvisionAcsEventMultiSearchResult = {
+  major?: number | string;
+  minors: number[];
+  records: HikvisionAcsEventRecord[];
+  perMinor: Array<{
+    minor: number;
+    result?: HikvisionAcsEventSearchResult;
+    error?: string;
+  }>;
+};
+
+export type HikvisionAlertStreamSample = {
   success: boolean;
-  hostId: string;
-  body: Record<string, unknown>;
+  contentType: string;
+  sampleText: string;
+  sampleBytes: number;
+  truncated: boolean;
+  events: HikvisionAcsEventRecord[];
+  rawHeaders: Record<string, string>;
+};
+
+export type HikvisionAlertStreamChunk = {
+  timestamp: string;
+  byteLength: number;
+  text: string;
+  events: HikvisionAcsEventRecord[];
+};
+
+export type HikvisionAlertStreamFollowResult = {
+  success: boolean;
+  contentType: string;
+  durationMs: number;
+  totalBytes: number;
+  chunks: HikvisionAlertStreamChunk[];
+  rawHeaders: Record<string, string>;
+};
+
+export type HikvisionHeartbeatResult = {
+  success: boolean;
+  checkedAt: string;
+  workStatus: Record<string, unknown>;
   rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
 };
 
@@ -171,7 +292,67 @@ export type HikvisionFaceRecordInput = {
   fpid?: string;
   name?: string;
   employeeNo?: string;
+  userInfo?: HikvisionUserInfoInput;
   extraFields?: Record<string, unknown>;
+};
+
+export type HikvisionUserValidInput = {
+  enable?: boolean;
+  beginTime?: string;
+  endTime?: string;
+  timeType?: string;
+};
+
+export type HikvisionUserRightPlan = {
+  doorNo: number;
+  planTemplateNo: string;
+};
+
+export type HikvisionPersonInfoExtend = {
+  id?: number;
+  enable?: boolean;
+  name?: string;
+  value?: string;
+};
+
+export type HikvisionUserInfoInput = {
+  userType?: string;
+  onlyVerify?: boolean;
+  doorRight?: string;
+  rightPlan?: HikvisionUserRightPlan[];
+  valid?: HikvisionUserValidInput;
+  phoneNumber?: string;
+  gender?: string;
+  personInfoExtends?: HikvisionPersonInfoExtend[];
+};
+
+export type HikvisionUpsertUserInfoResult = {
+  employeeNo: string;
+  user?: Record<string, unknown> | null;
+  rawResponse?: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionUserStateValidationStatus =
+  | "verified"
+  | "face_missing"
+  | "user_missing"
+  | "details_mismatch"
+  | "terminal_unreachable"
+  | "validation_error";
+
+export type HikvisionUserStateValidationResult = {
+  status: HikvisionUserStateValidationStatus;
+  employeeNo: string;
+  userPresent: boolean;
+  facePresent: boolean;
+  detailsMatch: boolean;
+  accessReady: boolean;
+  mismatches: string[];
+  user?: Record<string, unknown> | null;
+  matchingRecord?: HikvisionFaceSearchRecord | null;
+  registeredFaceCount?: number;
+  error?: string;
+  rawResponses?: Record<string, unknown>;
 };
 
 export type HikvisionFaceRecordResult = {
@@ -243,9 +424,4 @@ export type HikvisionCountFacesResult = {
   terminalNo?: string;
   recordDataNumber: number;
   rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
-};
-
-export type HikvisionWebhookTestResult = {
-  success: boolean;
-  responseText: string;
 };
