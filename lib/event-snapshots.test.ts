@@ -82,7 +82,7 @@ test("selectClosestTerminalSnapshotBufferEntry can bias matching slightly after 
         id: "snap-compensated",
         snapshot_file_id: "file-compensated",
         snapshot_filename: "compensated.jpg",
-        captured_at: "2026-03-30T10:00:13.165Z",
+        captured_at: "2026-03-30T10:00:17.165Z",
       },
     ],
     "2026-03-30T10:00:11Z",
@@ -90,7 +90,7 @@ test("selectClosestTerminalSnapshotBufferEntry can bias matching slightly after 
     TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS
   );
 
-  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS, 2500);
+  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS, 6000);
   assert.equal(match?.id, "snap-compensated");
 });
 

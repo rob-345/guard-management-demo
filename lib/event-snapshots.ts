@@ -16,7 +16,7 @@ export const TERMINAL_SNAPSHOT_BUFFER_COLLECTION = "terminal_snapshot_buffer";
 export const TERMINAL_SNAPSHOT_BUFFER_SIZE = 3;
 export const TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS = 5_000;
 export const TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS = 15_000;
-export const TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS = 2_500;
+export const TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS = 6_000;
 
 const FACE_AUTHENTICATION_MINORS = new Set([
   "57",
@@ -334,7 +334,7 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
   const matchStartedAt = new Date().toISOString();
   const entries = cleanupTerminalSnapshotFrames(event.terminal_id);
   const targetOffsetMs = shouldBiasSnapshotMatchAfterEvent(event.event_time)
-    ? TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS
+    ? getSnapshotMatchTargetOffsetMs(eventTime, event.created_at)
     : 0;
   annotateLiveClockingEventTrace(event.id, {
     snapshot_match_started_at: matchStartedAt,
@@ -451,4 +451,23 @@ function shouldBiasSnapshotMatchAfterEvent(eventTime?: string) {
   }
 
   return !/\.\d{1,3}Z$/i.test(eventTime);
+}
+
+function getSnapshotMatchTargetOffsetMs(eventTime: string, eventCreatedAt?: string) {
+  const fallbackOffsetMs = TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS;
+  if (!eventCreatedAt) {
+    return fallbackOffsetMs;
+  }
+
+  const eventTimeMs = Date.parse(eventTime);
+  const createdAtMs = Date.parse(eventCreatedAt);
+  if (!Number.isFinite(eventTimeMs) || !Number.isFinite(createdAtMs)) {
+    return fallbackOffsetMs;
+  }
+
+  const observedIngestLagMs = Math.max(0, createdAtMs - eventTimeMs);
+  return Math.min(
+    TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS - 500,
+    Math.max(fallbackOffsetMs, observedIngestLagMs)
+  );
 }
