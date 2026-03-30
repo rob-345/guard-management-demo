@@ -73,16 +73,16 @@ test("selectClosestTerminalSnapshotBufferEntry can bias matching slightly after 
   const match = selectClosestTerminalSnapshotBufferEntry(
     [
       {
-        id: "snap-before",
-        snapshot_file_id: "file-before",
-        snapshot_filename: "before.jpg",
+        id: "snap-near-event",
+        snapshot_file_id: "file-near-event",
+        snapshot_filename: "near-event.jpg",
         captured_at: "2026-03-30T10:00:10.629Z",
       },
       {
-        id: "snap-after",
-        snapshot_file_id: "file-after",
-        snapshot_filename: "after.jpg",
-        captured_at: "2026-03-30T10:00:11.509Z",
+        id: "snap-compensated",
+        snapshot_file_id: "file-compensated",
+        snapshot_filename: "compensated.jpg",
+        captured_at: "2026-03-30T10:00:13.165Z",
       },
     ],
     "2026-03-30T10:00:11Z",
@@ -90,8 +90,8 @@ test("selectClosestTerminalSnapshotBufferEntry can bias matching slightly after 
     TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS
   );
 
-  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS, 400);
-  assert.equal(match?.id, "snap-after");
+  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS, 2500);
+  assert.equal(match?.id, "snap-compensated");
 });
 
 test("selectClosestTerminalSnapshotBufferEntry rejects stale buffered frames", () => {

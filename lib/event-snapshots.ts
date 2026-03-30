@@ -16,7 +16,7 @@ export const TERMINAL_SNAPSHOT_BUFFER_COLLECTION = "terminal_snapshot_buffer";
 export const TERMINAL_SNAPSHOT_BUFFER_SIZE = 3;
 export const TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS = 5_000;
 export const TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS = 15_000;
-export const TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS = 400;
+export const TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS = 2_500;
 
 const FACE_AUTHENTICATION_MINORS = new Set([
   "57",
@@ -338,6 +338,7 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
     : 0;
   annotateLiveClockingEventTrace(event.id, {
     snapshot_match_started_at: matchStartedAt,
+    snapshot_match_target_offset_ms: targetOffsetMs,
     buffer_frame_count: entries.length,
     buffer_candidates: entries.map((entry) => ({
       entry_id: entry.id,

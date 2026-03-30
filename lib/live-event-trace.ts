@@ -27,6 +27,7 @@ export type LiveClockingEventTrace = {
   snapshot_match_started_at?: string;
   snapshot_match_finished_at?: string;
   snapshot_match_duration_ms?: number;
+  snapshot_match_target_offset_ms?: number;
   buffer_frame_count?: number;
   buffer_candidates?: LiveEventSnapshotCandidate[];
   matched_snapshot_entry_id?: string;
