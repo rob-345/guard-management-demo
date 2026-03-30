@@ -301,8 +301,8 @@ export async function pollTerminalEvents(
   options: PollTerminalOptions = {}
 ): Promise<PollTerminalEventsResult> {
   const client = new HikvisionClient(terminal);
-  const heartbeat = await updateTerminalHeartbeat(terminal, client);
-  const [history] = await Promise.all([
+  const [heartbeat, history] = await Promise.all([
+    updateTerminalHeartbeat(terminal, client),
     fetchTerminalEventHistory(terminal, {
       ...options,
       allEvents: true,

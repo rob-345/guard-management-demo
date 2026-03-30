@@ -25,7 +25,16 @@ type PollAllTerminalsResponse = {
   }>;
 };
 
+type SnapshotBufferResponse = {
+  success?: boolean;
+  interval_ms?: number;
+  terminal_count?: number;
+  captured_count?: number;
+  captured_at?: string;
+};
+
 const POLL_INTERVAL_MS = 1_000;
+const SNAPSHOT_BUFFER_INTERVAL_MS = 250;
 
 function formatDateTime(value?: string) {
   if (!value) return "Never";
@@ -35,9 +44,14 @@ function formatDateTime(value?: string) {
 
 export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClockingEvent[] }) {
   const inFlightRef = useRef(false);
+  const snapshotBufferInFlightRef = useRef(false);
   const [events, setEvents] = useState(initialEvents);
   const [polling, setPolling] = useState(false);
+  const [snapshotBuffering, setSnapshotBuffering] = useState(false);
   const [lastPoll, setLastPoll] = useState<PollAllTerminalsResponse | null>(null);
+  const [lastSnapshotBuffer, setLastSnapshotBuffer] = useState<SnapshotBufferResponse | null>(
+    null
+  );
 
   async function fetchRecentEvents() {
     const response = await fetch("/api/events?limit=100", {
@@ -82,11 +96,48 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
     }
   }
 
+  async function pumpSnapshotBuffer() {
+    if (snapshotBufferInFlightRef.current) {
+      return;
+    }
+
+    snapshotBufferInFlightRef.current = true;
+    setSnapshotBuffering(true);
+
+    try {
+      const response = await fetch("/api/terminals/snapshot-buffer", {
+        method: "POST",
+        cache: "no-store",
+      });
+
+      const payload = (await response.json().catch(() => null)) as SnapshotBufferResponse | null;
+      if (!response.ok) {
+        throw new Error("Failed to capture snapshot buffer");
+      }
+
+      setLastSnapshotBuffer(payload);
+    } catch (error) {
+      console.error("Snapshot buffer pump failed:", error);
+    } finally {
+      snapshotBufferInFlightRef.current = false;
+      setSnapshotBuffering(false);
+    }
+  }
+
   useEffect(() => {
     void runPoll();
     const timer = window.setInterval(() => {
       void runPoll();
     }, POLL_INTERVAL_MS);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    void pumpSnapshotBuffer();
+    const timer = window.setInterval(() => {
+      void pumpSnapshotBuffer();
+    }, SNAPSHOT_BUFFER_INTERVAL_MS);
 
     return () => window.clearInterval(timer);
   }, []);
@@ -102,8 +153,8 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={polling ? "secondary" : "outline"}>
-            {polling ? "Polling live" : "Idle"}
+          <Badge variant={polling || snapshotBuffering ? "secondary" : "outline"}>
+            {polling || snapshotBuffering ? "Monitoring live" : "Idle"}
           </Badge>
           <Button variant="outline" size="sm" onClick={() => void runPoll()} disabled={polling}>
             {polling ? (
@@ -123,9 +174,15 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline">Every 1 second</Badge>
+            <Badge variant="outline">Snapshots every 250 ms</Badge>
             <Badge variant="secondary">Events {events.length}</Badge>
             {typeof lastPoll?.terminal_count === "number" ? (
               <Badge variant="secondary">Terminals {lastPoll.terminal_count}</Badge>
+            ) : null}
+            {typeof lastSnapshotBuffer?.captured_count === "number" ? (
+              <Badge variant="secondary">
+                Buffered {lastSnapshotBuffer.captured_count}
+              </Badge>
             ) : null}
             {typeof lastPoll?.inserted_count === "number" ? (
               <Badge variant="secondary">Inserted {lastPoll.inserted_count}</Badge>
@@ -136,6 +193,9 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
           </div>
           <p className="text-sm text-muted-foreground">
             Last poll: {formatDateTime(lastPoll?.polled_at)}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Last snapshot buffer: {formatDateTime(lastSnapshotBuffer?.captured_at)}
           </p>
           {lastPoll?.results?.some((result) => !result.success) ? (
             <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-800">

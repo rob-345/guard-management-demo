@@ -13,6 +13,7 @@ export const EVENT_SNAPSHOT_BUCKET = "event_snapshots";
 export const TERMINAL_SNAPSHOT_BUFFER_COLLECTION = "terminal_snapshot_buffer";
 export const TERMINAL_SNAPSHOT_BUFFER_SIZE = 3;
 export const TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS = 5_000;
+export const TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS = 15_000;
 
 const FACE_AUTHENTICATION_MINORS = new Set([
   "57",
@@ -80,6 +81,11 @@ function buildSnapshotBufferFilename(
   return `${terminalSlug}-buffer-${safeTimestamp}.${getSnapshotExtension(contentType)}`;
 }
 
+function estimateCapturedAtFromRequestWindow(startedAtMs: number, finishedAtMs: number) {
+  const midpointMs = startedAtMs + Math.max(0, finishedAtMs - startedAtMs) / 2;
+  return new Date(midpointMs).toISOString();
+}
+
 function toIsoOrNull(value?: string) {
   if (!value) return null;
   const parsed = Date.parse(value);
@@ -144,8 +150,10 @@ export function isFaceAuthenticationClockingEvent(
 }
 
 export async function captureTerminalSnapshotBufferFrame(terminal: Terminal) {
+  const startedAtMs = Date.now();
   const snapshot = await getTerminalSnapshot(terminal);
-  const capturedAt = new Date().toISOString();
+  const finishedAtMs = Date.now();
+  const capturedAt = estimateCapturedAtFromRequestWindow(startedAtMs, finishedAtMs);
   const filename = buildSnapshotBufferFilename(
     terminal,
     capturedAt,
@@ -178,11 +186,22 @@ export async function captureTerminalSnapshotBufferFrame(terminal: Terminal) {
   );
   await buffer.insertOne({ ...entry, _id: entry.id } as never);
 
-  const staleEntries = await buffer
+  const allEntries = await buffer
     .find({ terminal_id: terminal.id })
     .sort({ captured_at: -1 })
-    .skip(TERMINAL_SNAPSHOT_BUFFER_SIZE)
     .toArray();
+  const retentionCutoff = new Date(
+    Date.now() - TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS
+  ).toISOString();
+  const protectedIds = new Set<string>(
+    allEntries
+      .filter(
+        (item, index) =>
+          index < TERMINAL_SNAPSHOT_BUFFER_SIZE || item.captured_at >= retentionCutoff
+      )
+      .map((item) => item.id)
+  );
+  const staleEntries = allEntries.filter((item) => !protectedIds.has(item.id));
 
   if (staleEntries.length > 0) {
     await buffer.deleteMany({
@@ -260,7 +279,6 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
   const entries = await buffer
     .find({ terminal_id: event.terminal_id })
     .sort({ captured_at: -1 })
-    .limit(TERMINAL_SNAPSHOT_BUFFER_SIZE)
     .toArray();
 
   const match = selectClosestTerminalSnapshotBufferEntry(entries, eventTime);
