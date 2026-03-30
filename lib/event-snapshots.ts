@@ -4,6 +4,10 @@ import {
   downloadBufferFromGridFS,
   uploadBufferToGridFS,
 } from "./gridfs";
+import {
+  annotateLiveClockingEventTrace,
+  finalizeLiveClockingEventTrace,
+} from "./live-event-trace";
 import { getTerminalSnapshot } from "./terminal-snapshot";
 import type { ClockingEvent, Terminal } from "./types";
 
@@ -316,17 +320,44 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
 
   const eventTime = toIsoOrNull(event.event_time);
   if (!eventTime) {
+    finalizeLiveClockingEventTrace(event.id, {
+      snapshot_match_status: "skipped",
+      snapshot_skip_reason: "Event time could not be parsed",
+    });
     return undefined;
   }
 
+  const matchStartedAt = new Date().toISOString();
   const entries = cleanupTerminalSnapshotFrames(event.terminal_id);
+  annotateLiveClockingEventTrace(event.id, {
+    snapshot_match_started_at: matchStartedAt,
+    buffer_frame_count: entries.length,
+    buffer_candidates: entries.map((entry) => ({
+      entry_id: entry.id,
+      captured_at: entry.captured_at,
+      delta_ms: toDeltaMs(entry.captured_at, eventTime) || 0,
+    })),
+  });
   const match = selectClosestTerminalSnapshotBufferEntry(entries, eventTime);
   if (!match) {
+    const matchFinishedAt = new Date().toISOString();
+    finalizeLiveClockingEventTrace(event.id, {
+      snapshot_match_status: "no_match",
+      snapshot_match_finished_at: matchFinishedAt,
+      snapshot_match_duration_ms: toDeltaMs(matchFinishedAt, matchStartedAt),
+    });
     return undefined;
   }
 
   const matchedEntry = entries.find((entry) => entry.id === match.id);
   if (!matchedEntry) {
+    const matchFinishedAt = new Date().toISOString();
+    finalizeLiveClockingEventTrace(event.id, {
+      snapshot_match_status: "error",
+      snapshot_match_finished_at: matchFinishedAt,
+      snapshot_match_duration_ms: toDeltaMs(matchFinishedAt, matchStartedAt),
+      snapshot_match_error: "Matched buffer entry was missing from the hot buffer",
+    });
     return undefined;
   }
 
@@ -343,6 +374,20 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
   } else {
     terminalSnapshotBuffer.set(event.terminal_id, remainingEntries);
   }
+
+  const matchFinishedAt = new Date().toISOString();
+  finalizeLiveClockingEventTrace(event.id, {
+    snapshot_match_status: "matched",
+    snapshot_match_finished_at: matchFinishedAt,
+    snapshot_match_duration_ms: toDeltaMs(matchFinishedAt, matchStartedAt),
+    matched_snapshot_entry_id: matchedEntry.id,
+    matched_snapshot_captured_at: matchedEntry.snapshot_captured_at,
+    matched_snapshot_delta_ms: toDeltaMs(
+      matchedEntry.snapshot_captured_at,
+      eventTime
+    ),
+    snapshot_file_id: fileId,
+  });
 
   return toSnapshotMetadata({
     snapshot_file_id: fileId,
@@ -371,4 +416,18 @@ export async function loadClockingEventSnapshot(
     mimeType: event.snapshot_mime_type || "image/jpeg",
     filename: event.snapshot_filename || `clocking-event-${Date.now()}.jpg`,
   };
+}
+
+function toDeltaMs(left?: string, right?: string) {
+  if (!left || !right) {
+    return undefined;
+  }
+
+  const leftMs = Date.parse(left);
+  const rightMs = Date.parse(right);
+  if (!Number.isFinite(leftMs) || !Number.isFinite(rightMs)) {
+    return undefined;
+  }
+
+  return leftMs - rightMs;
 }

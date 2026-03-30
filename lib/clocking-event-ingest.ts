@@ -3,9 +3,14 @@ import { v4 as uuidv4 } from "uuid";
 
 import { reconcileGuardAttendanceForGuard } from "./attendance";
 import {
+  isFaceAuthenticationClockingEvent,
   matchClosestBufferedSnapshotToClockingEvent,
 } from "./event-snapshots";
 import type { NormalizedHikvisionTerminalEvent } from "./hikvision-event-diagnostics";
+import {
+  finalizeLiveClockingEventTrace,
+  startLiveClockingEventTrace,
+} from "./live-event-trace";
 import { resolveGuardByEmployeeNo } from "./guard-face";
 import { getCollection } from "./mongodb";
 import type {
@@ -106,6 +111,22 @@ export async function ingestTerminalClockingEvent(input: {
     created_at: new Date().toISOString(),
   };
 
+  const shouldTraceEvent = isFaceAuthenticationClockingEvent(event);
+  if (shouldTraceEvent) {
+    startLiveClockingEventTrace({
+      eventId,
+      eventKey,
+      terminal,
+      employeeNo,
+      source: input.source,
+      eventType,
+      minor: normalizedEvent.minor,
+      rawEventType: normalizedEvent.raw_event_type,
+      eventDescription: normalizedEvent.event_description,
+      eventTime,
+    });
+  }
+
   await events.insertOne({ ...event, _id: eventId } as never);
   await terminals.updateOne(
     { id: terminal.id },
@@ -145,7 +166,14 @@ export async function ingestTerminalClockingEvent(input: {
             $set: snapshotMetadata,
           }
         );
-      } catch {
+      } catch (error) {
+        if (shouldTraceEvent) {
+          finalizeLiveClockingEventTrace(event.id, {
+            snapshot_match_status: "error",
+            snapshot_match_error:
+              error instanceof Error ? error.message : "Snapshot matching failed",
+          });
+        }
         // We keep the event even if snapshot matching fails.
       }
     })()
