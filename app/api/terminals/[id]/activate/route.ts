@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth";
 import { getCollection } from "@/lib/mongodb";
 import { HikvisionClient } from "@/lib/hikvision";
+import { fetchTerminalMetadataBackfill, terminalNeedsMetadataBackfill } from "@/lib/terminal-integration";
 import { Terminal } from "@/lib/types";
 
 export async function POST(
@@ -26,15 +27,31 @@ export async function POST(
 
     const status = await client.getActivationStatus();
     const now = new Date().toISOString();
+    const metadataBackfill =
+      status === "activated" && terminalNeedsMetadataBackfill(terminal)
+        ? await fetchTerminalMetadataBackfill(terminal).catch(() => null)
+        : null;
+    const activationPatch: Record<string, unknown> = {
+      activation_status: status,
+      status: status === "activated" ? "online" : "offline",
+      last_seen: status === "activated" ? now : terminal.last_seen,
+      updated_at: now
+    };
+
+    if (metadataBackfill?.device_info) {
+      activationPatch.device_info = metadataBackfill.device_info;
+    }
+    if (metadataBackfill?.device_uid) {
+      activationPatch.device_uid = metadataBackfill.device_uid;
+    }
+    if (metadataBackfill?.face_recognize_mode) {
+      activationPatch.face_recognize_mode = metadataBackfill.face_recognize_mode;
+    }
+
     await collection.updateOne(
       { id },
       {
-        $set: {
-          activation_status: status,
-          status: status === "activated" ? "online" : "offline",
-          last_seen: status === "activated" ? now : terminal.last_seen,
-          updated_at: now
-        }
+        $set: activationPatch
       }
     );
 

@@ -7,22 +7,17 @@ export type TerminalProbeSnapshot = {
   activation_status?: Terminal["activation_status"];
   status?: Terminal["status"];
   last_seen?: string;
+  heartbeat_status?: Terminal["heartbeat_status"];
+  heartbeat_checked_at?: string;
   registered_face_count?: number;
   device_uid?: string;
   device_info?: Terminal["device_info"];
   capability_snapshot?: Terminal["capability_snapshot"];
   acs_work_status?: Terminal["acs_work_status"];
   face_recognize_mode?: string;
-  webhook_status?: Terminal["webhook_status"];
-  webhook_token?: string;
-  webhook_host_id?: string;
-  webhook_url?: string;
-  webhook_subscription_id?: string;
-  webhook_subscription_status?: Terminal["webhook_subscription_status"];
-  webhook_subscription_error?: string;
 };
 
-function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4().split("-")[0]) {
+export function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4().split("-")[0]) {
   return (
     deviceInfo?.serialNumber ||
     deviceInfo?.deviceID ||
@@ -32,8 +27,46 @@ function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback = uuidv4
   );
 }
 
-export function deriveWebhookHostId(seed: string) {
-  return "1";
+export function extractFaceRecognizeMode(value: unknown) {
+  const payload = value as Record<string, unknown> | undefined;
+  if (!payload) return undefined;
+  const nested =
+    typeof payload.FaceRecognizeMode === "object" && payload.FaceRecognizeMode !== null
+      ? (payload.FaceRecognizeMode as Record<string, unknown>)
+      : payload;
+  return typeof nested.mode === "string" ? nested.mode : undefined;
+}
+
+export function terminalNeedsMetadataBackfill(
+  terminal: Pick<Terminal, "id" | "edge_terminal_id" | "device_uid" | "device_info" | "face_recognize_mode">
+) {
+  const fallbackUid = terminal.edge_terminal_id || terminal.id || "";
+  if (!terminal.device_info) return true;
+  if (!terminal.device_uid) return true;
+  if (!terminal.face_recognize_mode) return true;
+
+  const expectedUid = deriveDeviceUid(terminal.device_info, fallbackUid);
+  return (
+    terminal.device_uid === terminal.id ||
+    terminal.device_uid === fallbackUid ||
+    terminal.device_uid !== expectedUid
+  );
+}
+
+export async function fetchTerminalMetadataBackfill(
+  terminal: Terminal,
+  client = new HikvisionClient(terminal)
+): Promise<Pick<Terminal, "device_uid" | "device_info" | "face_recognize_mode">> {
+  const [deviceInfo, faceRecognizeMode] = await Promise.all([
+    client.getDeviceInfo(),
+    client.getFaceRecognizeMode().catch(() => undefined),
+  ]);
+
+  return {
+    device_info: deviceInfo,
+    device_uid: deriveDeviceUid(deviceInfo, terminal.edge_terminal_id || terminal.id),
+    face_recognize_mode: extractFaceRecognizeMode(faceRecognizeMode),
+  };
 }
 
 export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSnapshot> {
@@ -43,15 +76,10 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
 
   const snapshot: TerminalProbeSnapshot = {
     status: "offline",
+    heartbeat_status: "offline",
+    heartbeat_checked_at: now,
     activation_status: "unknown",
     last_seen: undefined,
-    webhook_status: terminal.webhook_status || "unset",
-    webhook_token: terminal.webhook_token,
-    webhook_host_id: terminal.webhook_host_id,
-    webhook_url: terminal.webhook_url,
-    webhook_subscription_id: terminal.webhook_subscription_id,
-    webhook_subscription_status: terminal.webhook_subscription_status || "unset",
-    webhook_subscription_error: terminal.webhook_subscription_error
   };
 
   try {
@@ -60,19 +88,17 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     snapshot.activation_status = "error";
   }
 
-  const [deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, subscribeEventCapabilities, httpHostCapabilities, currentHttpHost, snapshotCapabilities, acsWorkStatus, registeredFaceCount] =
+  const [heartbeat, deviceInfo, systemCapabilities, accessControlCapabilities, userInfoCapabilities, fdLibCapabilities, faceRecognizeMode, acsEventCapabilities, snapshotCapabilities, registeredFaceCount] =
     await Promise.allSettled([
+      client.getHeartbeat(),
       client.getDeviceInfo(),
       client.getSystemCapabilities(),
       client.getAccessControlCapabilities(),
       client.getUserInfoCapabilities(),
       client.getFdLibCapabilities(),
       client.getFaceRecognizeMode(),
-      client.getSubscribeEventCapabilities(),
-      client.getHttpHostCapabilities(),
-      terminal.webhook_host_id ? client.getHttpHost(terminal.webhook_host_id) : Promise.resolve(undefined),
+      client.getAcsEventCapabilities(),
       client.getSnapshotCapabilities(snapshotStreamId),
-      client.getAcsWorkStatus(),
       client.getRegisteredFaceCount()
     ]);
 
@@ -90,16 +116,18 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
     userInfo: userInfoCapabilities.status === "fulfilled" ? userInfoCapabilities.value : undefined,
     fdLib: fdLibCapabilities.status === "fulfilled" ? fdLibCapabilities.value : undefined,
     faceRecognizeMode: faceRecognizeMode.status === "fulfilled" ? faceRecognizeMode.value : undefined,
-    subscribeEvent:
-      subscribeEventCapabilities.status === "fulfilled" ? subscribeEventCapabilities.value : undefined,
-    httpHosts: httpHostCapabilities.status === "fulfilled" ? httpHostCapabilities.value : undefined,
+    acsEvents: acsEventCapabilities.status === "fulfilled" ? acsEventCapabilities.value : undefined,
     picture: snapshotCapabilities.status === "fulfilled" ? snapshotCapabilities.value : undefined
   };
 
   snapshot.capability_snapshot = capabilitySnapshot;
 
-  if (acsWorkStatus.status === "fulfilled") {
-    snapshot.acs_work_status = acsWorkStatus.value;
+  if (heartbeat.status === "fulfilled") {
+    snapshot.acs_work_status = heartbeat.value.workStatus;
+    snapshot.heartbeat_status = heartbeat.value.success ? "online" : "error";
+    snapshot.heartbeat_checked_at = heartbeat.value.checkedAt;
+  } else {
+    snapshot.heartbeat_status = "error";
   }
 
   if (registeredFaceCount.status === "fulfilled") {
@@ -107,24 +135,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
   }
 
   if (faceRecognizeMode.status === "fulfilled") {
-    const payload = faceRecognizeMode.value as Record<string, unknown>;
-    const nested =
-      typeof payload.FaceRecognizeMode === "object" && payload.FaceRecognizeMode !== null
-        ? (payload.FaceRecognizeMode as Record<string, unknown>)
-        : payload;
-    snapshot.face_recognize_mode = typeof nested.mode === "string" ? nested.mode : undefined;
-  }
-
-  if (currentHttpHost.status === "fulfilled" && currentHttpHost.value) {
-    snapshot.webhook_status = currentHttpHost.value.url ? "configured" : snapshot.webhook_status;
-    if (currentHttpHost.value.subscribeEvent) {
-      snapshot.webhook_status = "active";
-      snapshot.webhook_subscription_status = "subscribed";
-      snapshot.webhook_subscription_error = undefined;
-    } else if (snapshot.webhook_subscription_status !== "error") {
-      snapshot.webhook_subscription_status = currentHttpHost.value.url ? "unsubscribed" : snapshot.webhook_subscription_status;
-      snapshot.webhook_subscription_error = undefined;
-    }
+    snapshot.face_recognize_mode = extractFaceRecognizeMode(faceRecognizeMode.value);
   }
 
   if (snapshot.activation_status === "activated") {
@@ -135,6 +146,7 @@ export async function probeTerminal(terminal: Terminal): Promise<TerminalProbeSn
   } else if (snapshot.activation_status === "error") {
     snapshot.status = "error";
   } else if (
+    heartbeat.status === "fulfilled" ||
     deviceInfo.status === "fulfilled" ||
     systemCapabilities.status === "fulfilled" ||
     accessControlCapabilities.status === "fulfilled" ||

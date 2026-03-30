@@ -4,6 +4,7 @@ import { normalizeAcsEventRecord } from "@/lib/hikvision-event-diagnostics";
 import { HikvisionClient, getCachedHikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
 import { HikvisionInvalidResponseError } from "@guard-management/hikvision-isapi-sdk";
+import { fetchTerminalMetadataBackfill, terminalNeedsMetadataBackfill } from "@/lib/terminal-integration";
 import type { ClockingEvent, Terminal } from "@/lib/types";
 
 function toOptionalNumber(value: unknown) {
@@ -180,18 +181,33 @@ async function updateTerminalHeartbeat(terminal: Terminal, client: HikvisionClie
     heartbeatCheckedAt = heartbeat.checkedAt;
     heartbeatSuccess = heartbeat.success;
     heartbeatStatus = heartbeat.success ? "online" : "error";
+    const metadataBackfill =
+      heartbeat.success && terminalNeedsMetadataBackfill(terminal)
+        ? await fetchTerminalMetadataBackfill(terminal).catch(() => null)
+        : null;
+    const heartbeatPatch: Record<string, unknown> = {
+      acs_work_status: heartbeat.workStatus,
+      heartbeat_status: heartbeatStatus,
+      heartbeat_checked_at: heartbeat.checkedAt,
+      status: heartbeat.success ? "online" : "error",
+      last_seen: heartbeat.checkedAt,
+      updated_at: now,
+    };
+
+    if (metadataBackfill?.device_info) {
+      heartbeatPatch.device_info = metadataBackfill.device_info;
+    }
+    if (metadataBackfill?.device_uid) {
+      heartbeatPatch.device_uid = metadataBackfill.device_uid;
+    }
+    if (metadataBackfill?.face_recognize_mode) {
+      heartbeatPatch.face_recognize_mode = metadataBackfill.face_recognize_mode;
+    }
 
     await terminals.updateOne(
       { id: terminal.id },
       {
-        $set: {
-          acs_work_status: heartbeat.workStatus,
-          heartbeat_status: heartbeatStatus,
-          heartbeat_checked_at: heartbeat.checkedAt,
-          status: heartbeat.success ? "online" : "error",
-          last_seen: heartbeat.checkedAt,
-          updated_at: now,
-        },
+        $set: heartbeatPatch,
       }
     );
   } catch {
