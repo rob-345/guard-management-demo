@@ -16,6 +16,7 @@ export const TERMINAL_SNAPSHOT_BUFFER_COLLECTION = "terminal_snapshot_buffer";
 export const TERMINAL_SNAPSHOT_BUFFER_SIZE = 3;
 export const TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS = 5_000;
 export const TERMINAL_SNAPSHOT_BUFFER_RETENTION_MS = 15_000;
+export const TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS = 400;
 
 const FACE_AUTHENTICATION_MINORS = new Set([
   "57",
@@ -278,12 +279,15 @@ export function selectClosestTerminalSnapshotBufferEntry(
     }
   >,
   eventTime: string,
-  maxDistanceMs = TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS
+  maxDistanceMs = TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS,
+  targetOffsetMs = 0
 ) {
   const eventTimestamp = Date.parse(eventTime);
   if (!Number.isFinite(eventTimestamp)) {
     return null;
   }
+
+  const targetTimestamp = eventTimestamp + targetOffsetMs;
 
   let closest:
     | (Pick<
@@ -298,7 +302,7 @@ export function selectClosestTerminalSnapshotBufferEntry(
       continue;
     }
 
-    const distanceMs = Math.abs(capturedTimestamp - eventTimestamp);
+    const distanceMs = Math.abs(capturedTimestamp - targetTimestamp);
     if (distanceMs > maxDistanceMs) {
       continue;
     }
@@ -329,6 +333,9 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
 
   const matchStartedAt = new Date().toISOString();
   const entries = cleanupTerminalSnapshotFrames(event.terminal_id);
+  const targetOffsetMs = shouldBiasSnapshotMatchAfterEvent(event.event_time)
+    ? TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS
+    : 0;
   annotateLiveClockingEventTrace(event.id, {
     snapshot_match_started_at: matchStartedAt,
     buffer_frame_count: entries.length,
@@ -338,7 +345,12 @@ export async function matchClosestBufferedSnapshotToClockingEvent(
       delta_ms: toDeltaMs(entry.captured_at, eventTime) || 0,
     })),
   });
-  const match = selectClosestTerminalSnapshotBufferEntry(entries, eventTime);
+  const match = selectClosestTerminalSnapshotBufferEntry(
+    entries,
+    eventTime,
+    TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS,
+    targetOffsetMs
+  );
   if (!match) {
     const matchFinishedAt = new Date().toISOString();
     finalizeLiveClockingEventTrace(event.id, {
@@ -430,4 +442,12 @@ function toDeltaMs(left?: string, right?: string) {
   }
 
   return leftMs - rightMs;
+}
+
+function shouldBiasSnapshotMatchAfterEvent(eventTime?: string) {
+  if (!eventTime) {
+    return false;
+  }
+
+  return !/\.\d{1,3}Z$/i.test(eventTime);
 }

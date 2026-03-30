@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   isFaceAuthenticationClockingEvent,
   selectClosestTerminalSnapshotBufferEntry,
+  TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS,
   TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS,
 } from "@/lib/event-snapshots";
 
@@ -65,6 +66,31 @@ test("selectClosestTerminalSnapshotBufferEntry can choose a later snapshot when 
     "2026-03-30T10:00:01.900Z"
   );
 
+  assert.equal(match?.id, "snap-after");
+});
+
+test("selectClosestTerminalSnapshotBufferEntry can bias matching slightly after a second-level event timestamp", () => {
+  const match = selectClosestTerminalSnapshotBufferEntry(
+    [
+      {
+        id: "snap-before",
+        snapshot_file_id: "file-before",
+        snapshot_filename: "before.jpg",
+        captured_at: "2026-03-30T10:00:10.629Z",
+      },
+      {
+        id: "snap-after",
+        snapshot_file_id: "file-after",
+        snapshot_filename: "after.jpg",
+        captured_at: "2026-03-30T10:00:11.509Z",
+      },
+    ],
+    "2026-03-30T10:00:11Z",
+    TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS,
+    TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS
+  );
+
+  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS, 400);
   assert.equal(match?.id, "snap-after");
 });
 
