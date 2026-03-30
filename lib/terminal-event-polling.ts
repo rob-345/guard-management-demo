@@ -3,6 +3,7 @@ import { ingestTerminalClockingEvent } from "@/lib/clocking-event-ingest";
 import { normalizeAcsEventRecord } from "@/lib/hikvision-event-diagnostics";
 import { HikvisionClient, getCachedHikvisionClient } from "@/lib/hikvision";
 import { getCollection } from "@/lib/mongodb";
+import { HikvisionInvalidResponseError } from "@guard-management/hikvision-isapi-sdk";
 import type { ClockingEvent, Terminal } from "@/lib/types";
 
 function toOptionalNumber(value: unknown) {
@@ -36,6 +37,26 @@ function toIsoOrUndefined(value?: string) {
   return Number.isFinite(parsed)
     ? new Date(parsed).toISOString().replace(/\.\d{3}Z$/, "Z")
     : undefined;
+}
+
+export function shouldRetryAcsEventSearchWithoutTimeBounds(error: unknown) {
+  if (!(error instanceof HikvisionInvalidResponseError)) {
+    return false;
+  }
+
+  const errorMsg = error.details?.errorMsg?.toLowerCase() || "";
+  const body = error.details?.body?.toLowerCase() || "";
+  const message = error.message.toLowerCase();
+
+  return (
+    error.details?.subStatusCode === "badJsonContent" &&
+    (errorMsg.includes("starttime") ||
+      errorMsg.includes("endtime") ||
+      body.includes("starttime") ||
+      body.includes("endtime") ||
+      message.includes("starttime") ||
+      message.includes("endtime"))
+  );
 }
 
 type PollTerminalOptions = {
@@ -236,11 +257,31 @@ export async function fetchTerminalEventHistory(
       endTime,
     });
   } catch (error) {
-    searchErrors.push({
-      major: 0,
-      minor: 0,
-      error: error instanceof Error ? error.message : "Unknown AcsEvent search error",
-    });
+    if ((startTime || endTime) && shouldRetryAcsEventSearchWithoutTimeBounds(error)) {
+      searchErrors.push({
+        major: 0,
+        minor: 0,
+        error: "Terminal rejected AcsEvent time filters; retried without start/end time bounds",
+      });
+
+      try {
+        latestResult = await client.searchLatestAcsEvents({
+          maxResults: pageSize,
+        });
+      } catch (retryError) {
+        searchErrors.push({
+          major: 0,
+          minor: 0,
+          error: retryError instanceof Error ? retryError.message : "Unknown AcsEvent search error",
+        });
+      }
+    } else {
+      searchErrors.push({
+        major: 0,
+        minor: 0,
+        error: error instanceof Error ? error.message : "Unknown AcsEvent search error",
+      });
+    }
   }
 
   if (latestResult) {
