@@ -35,8 +35,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getApiErrorMessage } from "@/lib/http";
+import { formatGuardPhotoLimit } from "@/lib/guard-photo";
 import type { Guard, Terminal } from "@/lib/types";
 
+import { prepareGuardPhoto } from "./guard-photo-processing";
 import { TerminalCameraCaptureDialog } from "./TerminalCameraCaptureDialog";
 
 const guardSchema = z.object({
@@ -44,6 +46,9 @@ const guardSchema = z.object({
   full_name: z.string().min(2, "Full name must be at least 2 characters"),
   phone_number: z.string().min(9, "Enter a valid phone number"),
   email: z.string().email().optional().or(z.literal("")),
+  person_type: z.enum(["normal", "visitor", "blackList"]),
+  person_role: z.enum(["Guard", "Supervisor", "Manager"]),
+  gender: z.enum(["male", "female", "unknown"]),
   status: z.enum(["active", "suspended", "on_leave"])
 });
 
@@ -95,17 +100,36 @@ async function syncGuardFaceToTerminal(guardId: string, terminalId: string) {
   const data = await res.json().catch(() => null);
   const results = Array.isArray(data?.results) ? data.results : [];
   const summary = data?.summary || {};
-  const syncedCount = results.filter((result: { status?: string }) => result.status === "synced").length;
+  const terminalValidation = data?.terminal_validation || {};
+  const syncedCount = results.filter(
+    (result: { status?: string }) => result.status === "verified" || result.status === "synced"
+  ).length;
   const alreadyPresentCount = results.filter((result: { already_present?: boolean }) => result.already_present).length;
-  const failedResults = results.filter((result: { status?: string }) => result.status === "failed");
+  const failedResults = results.filter(
+    (result: { status?: string }) =>
+      result.status !== "verified" && result.status !== "synced"
+  );
   const failedCount = failedResults.length;
+  const totalTerminals =
+    typeof terminalValidation?.total_terminals === "number"
+      ? terminalValidation.total_terminals
+      : typeof summary?.total_terminals === "number"
+        ? summary.total_terminals
+        : results.length;
+  const verifiedCount =
+    typeof terminalValidation?.verified_count === "number"
+      ? terminalValidation.verified_count
+      : typeof summary?.synced_count === "number"
+        ? summary.synced_count
+        : syncedCount;
+  const overallSynced = totalTerminals > 0 && verifiedCount === totalTerminals;
 
   return {
-    synced: Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced),
+    synced: overallSynced,
     syncedCount,
     alreadyPresentCount,
     failedCount,
-    overallSynced: Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced),
+    overallSynced,
     firstError:
       failedResults.find((result: { error?: string }) => typeof result.error === "string" && result.error.trim())?.error || null,
     data
@@ -126,6 +150,7 @@ export function GuardRegistrationDialog({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
   const [photoSource, setPhotoSource] = useState<PhotoSource>("upload");
   const [selectedTerminalId, setSelectedTerminalId] = useState<string>("");
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
@@ -141,6 +166,9 @@ export function GuardRegistrationDialog({
       full_name: "",
       phone_number: "",
       email: "",
+      person_type: "normal",
+      person_role: "Guard",
+      gender: "unknown",
       status: "active"
     }
   });
@@ -158,6 +186,9 @@ export function GuardRegistrationDialog({
       full_name: guard?.full_name || "",
       phone_number: guard?.phone_number || "",
       email: guard?.email || "",
+      person_type: guard?.person_type || "normal",
+      person_role: guard?.person_role || "Guard",
+      gender: guard?.gender || "unknown",
       status: guard?.status || "active"
     });
     setSelectedFile(null);
@@ -190,10 +221,36 @@ export function GuardRegistrationDialog({
     [selectedTerminalId, terminals]
   );
 
-  function handleFileChange(file: File | null) {
-    setPhotoSource("upload");
-    setSelectedFile(file);
-    setRemovePhoto(false);
+  async function handleFileChange(file: File | null) {
+    if (!file) {
+      setPhotoSource("upload");
+      setSelectedFile(null);
+      setRemovePhoto(false);
+      return;
+    }
+
+    setPreparingPhoto(true);
+    try {
+      const prepared = await prepareGuardPhoto({
+        file,
+        outputName: file.name || `guard-face-${Date.now()}.jpg`
+      });
+      setPhotoSource("upload");
+      setSelectedFile(prepared.file);
+      setRemovePhoto(false);
+      if (prepared.processedSize !== prepared.originalSize) {
+        toast.success(
+          `Photo prepared for face registration at ${formatGuardPhotoLimit()} or smaller.`
+        );
+      }
+    } catch (error) {
+      setSelectedFile(null);
+      toast.error(
+        `Failed to prepare guard photo: ${error instanceof Error ? error.message : String(error)}`
+      );
+    } finally {
+      setPreparingPhoto(false);
+    }
   }
 
   async function onSubmit(values: GuardFormValues) {
@@ -211,6 +268,9 @@ export function GuardRegistrationDialog({
       formData.append("full_name", values.full_name);
       formData.append("phone_number", values.phone_number);
       formData.append("email", values.email || "");
+      formData.append("person_type", values.person_type);
+      formData.append("person_role", values.person_role);
+      formData.append("gender", values.gender);
       formData.append("status", values.status);
 
       if (selectedFile) {
@@ -234,6 +294,30 @@ export function GuardRegistrationDialog({
       const savedGuard = await res.json().catch(() => null);
       let toastMessage = isEditMode ? "Guard updated successfully" : "Guard registered successfully";
       let syncWarning: { type: "info" | "error"; message: string } | null = null;
+      const editTerminalSync = savedGuard?.terminal_sync;
+
+      if (isEditMode && editTerminalSync) {
+        const failedCount =
+          typeof editTerminalSync.failed_count === "number" ? editTerminalSync.failed_count : 0;
+        const verifiedCount =
+          typeof editTerminalSync.verified_count === "number" ? editTerminalSync.verified_count : 0;
+        const totalTerminals =
+          typeof editTerminalSync.total_terminals === "number" ? editTerminalSync.total_terminals : 0;
+
+        if (totalTerminals > 0) {
+          if (failedCount === 0 && verifiedCount === totalTerminals) {
+            toastMessage = "Guard updated and synced to all enrolled terminals";
+          } else {
+            syncWarning = {
+              type: failedCount > 0 ? "error" : "info",
+              message:
+                failedCount > 0
+                  ? `Guard updated, but live terminal validation only verified ${verifiedCount}/${totalTerminals} terminals.`
+                  : `Guard updated and validated on ${verifiedCount}/${totalTerminals} enrolled terminals.`,
+            };
+          }
+        }
+      }
 
       if (!isEditMode && selectedTerminalId) {
         try {
@@ -345,8 +429,17 @@ export function GuardRegistrationDialog({
                     <FormItem>
                       <FormLabel>Employee Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. WS-0042" {...field} />
+                        <Input
+                          placeholder="e.g. WS-0042"
+                          {...field}
+                          disabled={Boolean(isEditMode && guard?.has_terminal_enrollment)}
+                        />
                       </FormControl>
+                      {isEditMode && guard?.has_terminal_enrollment ? (
+                        <p className="text-xs text-muted-foreground">
+                          Employee number is locked once this guard has terminal enrollments.
+                        </p>
+                      ) : null}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -394,6 +487,77 @@ export function GuardRegistrationDialog({
                   )}
                 />
 
+                <div className="grid gap-4 md:grid-cols-3">
+                  <FormField
+                    control={form.control}
+                    name="person_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Person Type</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="normal">Normal</SelectItem>
+                            <SelectItem value="visitor">Visitor</SelectItem>
+                            <SelectItem value="blackList">Blacklist</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="person_role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Person Role</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Guard">Guard</SelectItem>
+                            <SelectItem value="Supervisor">Supervisor</SelectItem>
+                            <SelectItem value="Manager">Manager</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="gender"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="unknown">Unknown</SelectItem>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="status"
@@ -417,17 +581,23 @@ export function GuardRegistrationDialog({
                   )}
                 />
 
-                <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Guard Photo</p>
-                      <p className="text-xs text-muted-foreground">
-                        Choose a local upload or capture a face directly from a Hikvision terminal camera.
-                        The saved photo will be enrolled to the selected terminal after you click Register Guard.
-                      </p>
-                    </div>
-                    <Badge variant="outline">{photoSourceLabel}</Badge>
-                  </div>
+	                <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+	                  <div className="flex items-start justify-between gap-3">
+	                    <div className="space-y-1">
+	                      <p className="text-sm font-medium">Guard Photo</p>
+	                      <p className="text-xs text-muted-foreground">
+	                        Choose a local upload or capture a face directly from a Hikvision terminal camera.
+	                        We keep the saved face image at or under {formatGuardPhotoLimit()}, then enroll it to
+	                        the selected terminal after you click Register Guard.
+	                      </p>
+	                      {isEditMode && guard?.has_terminal_enrollment ? (
+	                        <p className="text-xs text-muted-foreground">
+	                          Terminal-facing profile changes sync automatically to enrolled terminals after save.
+	                        </p>
+	                      ) : null}
+	                    </div>
+	                    <Badge variant="outline">{photoSourceLabel}</Badge>
+	                  </div>
 
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Enrollment Terminal</p>
@@ -498,15 +668,20 @@ export function GuardRegistrationDialog({
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0] || null;
-                      void handleFileChange(file);
-                      event.currentTarget.value = "";
-                    }}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] || null;
+                        void handleFileChange(file);
+                        event.currentTarget.value = "";
+                      }}
                   />
 
                   {!isEditMode && !selectedFile && photoSource === "upload" ? (
                     <p className="text-xs text-destructive">A photo upload or camera capture is required for new guards.</p>
+                  ) : null}
+                  {preparingPhoto ? (
+                    <p className="text-xs text-muted-foreground">
+                      Preparing the guard face image so it stays within the {formatGuardPhotoLimit()} limit.
+                    </p>
                   ) : null}
                 </div>
 
@@ -514,8 +689,8 @@ export function GuardRegistrationDialog({
                   <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Button type="submit" disabled={loading || preparingPhoto}>
+                    {(loading || preparingPhoto) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isEditMode ? "Save Changes" : "Register Guard"}
                   </Button>
                 </DialogFooter>
@@ -553,6 +728,11 @@ export function GuardRegistrationDialog({
                   <p className="text-xs text-muted-foreground">
                     {selectedFile ? selectedFile.name : "Choose a file or capture a frame to replace the image"}
                   </p>
+                  {selectedFile ? (
+                    <p className="text-xs text-muted-foreground">
+                      Prepared size: {Math.max(1, Math.round(selectedFile.size / 1024))} KB
+                    </p>
+                  ) : null}
                   {selectedTerminal ? (
                     <p className="text-xs text-muted-foreground">
                       {isEditMode ? `Selected terminal: ${selectedTerminal.name}` : `Will enroll to ${selectedTerminal.name}`}

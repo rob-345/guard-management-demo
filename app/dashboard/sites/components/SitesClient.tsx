@@ -327,8 +327,8 @@ export function SitesClient({ sites }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete site?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the site record. If terminals are still assigned, the API will block
-              the deletion until they are reassigned.
+              This will remove the site record. The API will block deletion until terminals,
+              active guard assignments, and any configured shift schedule have been cleared.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -17,6 +17,8 @@ interface Props {
   title?: string;
   description?: string;
   className?: string;
+  mediaViewportClassName?: string;
+  imageClassName?: string;
   actions?: ReactNode;
   onCapture?: (file: File) => void | Promise<void>;
   captureLabel?: string;
@@ -43,6 +45,8 @@ export function TerminalSnapshotCard({
   title = "Camera Snapshot",
   description = "A server-proxied snapshot fetched from the Hikvision terminal.",
   className,
+  mediaViewportClassName,
+  imageClassName,
   actions,
   onCapture,
   captureLabel = "Capture Snapshot",
@@ -120,9 +124,14 @@ export function TerminalSnapshotCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
-        <div className="overflow-hidden rounded-xl border bg-muted/20">
+        <div
+          className={cn(
+            "relative overflow-hidden rounded-xl border bg-muted/20 min-h-64",
+            mediaViewportClassName
+          )}
+        >
           {imageError ? (
-            <div className="flex min-h-64 items-center justify-center px-6 py-12 text-center text-sm text-muted-foreground">
+            <div className="flex h-full min-h-64 items-center justify-center px-6 py-12 text-center text-sm text-muted-foreground">
               <div className="space-y-2">
                 <Camera className="mx-auto h-8 w-8 opacity-30" />
                 <p>Snapshot unavailable.</p>
@@ -130,12 +139,15 @@ export function TerminalSnapshotCard({
               </div>
             </div>
           ) : (
-            <div className="relative">
+            <div className="h-full min-h-64">
               <img
                 key={snapshotUrl}
                 src={snapshotUrl}
                 alt={`${terminal.name} camera snapshot`}
-                className="block h-64 w-full object-cover"
+                className={cn(
+                  "absolute inset-0 h-full w-full object-cover",
+                  imageClassName
+                )}
                 onLoad={() => {
                   setImageLoading(false);
                   setImageError(false);

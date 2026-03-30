@@ -23,7 +23,9 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { getApiErrorMessage } from "@/lib/http";
+import { formatGuardPhotoLimit } from "@/lib/guard-photo";
 import type { Terminal } from "@/lib/types";
+import { prepareGuardPhoto } from "./guard-photo-processing";
 
 interface Props {
   open: boolean;
@@ -34,7 +36,6 @@ interface Props {
 }
 
 const TARGET_ASPECT_RATIO = 4 / 5;
-const MAX_OUTPUT_WIDTH = 720;
 const EDITOR_VIEWPORT_WIDTH = 320;
 
 type CaptureState = "idle" | "capturing" | "capture_busy" | "capture_timeout" | "capture_ready" | "failed";
@@ -103,22 +104,6 @@ function terminalCaptureReason(terminal: Terminal) {
   return null;
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement, quality: number) {
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error("Failed to create cropped image"));
-          return;
-        }
-        resolve(blob);
-      },
-      "image/jpeg",
-      quality
-    );
-  });
-}
-
 function loadImage(file: File) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const objectUrl = URL.createObjectURL(file);
@@ -145,61 +130,17 @@ async function processCapturedFile(
   offsetY: number,
   terminal: Terminal | null
 ): Promise<ProcessedCapture> {
-  const image = await loadImage(file);
-  const originalWidth = image.naturalWidth || image.width;
-  const originalHeight = image.naturalHeight || image.height;
-
-  if (!originalWidth || !originalHeight) {
-    throw new Error("Captured face image has invalid dimensions");
-  }
-
-  const maxCropWidth = Math.min(originalWidth, originalHeight * TARGET_ASPECT_RATIO);
-  const cropWidth = maxCropWidth / zoom;
-  const cropHeight = cropWidth / TARGET_ASPECT_RATIO;
-  const maxOffsetX = Math.max(0, originalWidth - cropWidth);
-  const maxOffsetY = Math.max(0, originalHeight - cropHeight);
-  const sourceX = maxOffsetX * (offsetX / 100);
-  const sourceY = maxOffsetY * (offsetY / 100);
-
-  let outputWidth = Math.min(Math.round(cropWidth), MAX_OUTPUT_WIDTH);
-  let outputHeight = Math.round(outputWidth / TARGET_ASPECT_RATIO);
-
-  if (outputWidth < 1 || outputHeight < 1) {
-    throw new Error("Crop area is too small");
-  }
-
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("Image processing is unavailable in this browser");
-  }
-
-  const draw = (width: number, height: number) => {
-    canvas.width = width;
-    canvas.height = height;
-    context.clearRect(0, 0, width, height);
-    context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, 0, 0, width, height);
-  };
-
-  draw(outputWidth, outputHeight);
-
-  const blob = await canvasToBlob(canvas, 1);
-
   const baseName = slugify(terminal?.name || "terminal") || "terminal";
-  const processedFile = new File([blob], `${baseName}-capture-${Date.now()}.jpg`, {
-    type: "image/jpeg"
+  return prepareGuardPhoto({
+    file,
+    outputName: `${baseName}-capture-${Date.now()}.jpg`,
+    crop: {
+      aspectRatio: TARGET_ASPECT_RATIO,
+      zoom,
+      offsetX,
+      offsetY
+    }
   });
-
-  return {
-    file: processedFile,
-    originalSize: file.size,
-    processedSize: processedFile.size,
-    originalWidth,
-    originalHeight,
-    outputWidth,
-    outputHeight
-  };
 }
 
 export function TerminalCameraCaptureDialog({
@@ -643,7 +584,8 @@ export function TerminalCameraCaptureDialog({
                       <p className="text-sm font-medium">Crop Editor</p>
                       <p className="text-xs text-muted-foreground">
                         Drag the image inside the portrait frame to center the face. Fine-tune with the
-                        sliders if you need a more precise crop.
+                        sliders if you need a more precise crop. The saved face image is kept at or under{" "}
+                        {formatGuardPhotoLimit()}.
                       </p>
                     </div>
                   </div>
@@ -786,7 +728,8 @@ export function TerminalCameraCaptureDialog({
                       {formatBytes(processedCapture.processedSize)}
                     </p>
                     <p className="mt-2 text-foreground">
-                      This processed portrait will be saved to GridFS and used for immediate terminal sync.
+                      This processed portrait stays within the {formatGuardPhotoLimit()} limit, then gets saved
+                      to GridFS and used for immediate terminal sync.
                     </p>
                   </div>
                 ) : null}

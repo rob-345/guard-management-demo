@@ -1,10 +1,11 @@
+import { listGuardsWithTerminalValidation } from "@/lib/guard-directory";
 import { getCollection } from "@/lib/mongodb";
+import { listSiteShiftSchedules } from "@/lib/site-shifts";
 import { GuardsClient } from "./components/GuardsClient";
-import type { Guard, Terminal } from "@/lib/types";
+import type { Site, SiteShiftSchedule, Terminal } from "@/lib/types";
 
 async function getGuards() {
-  const collection = await getCollection<Guard>("guards");
-  return collection.find({}).sort({ full_name: 1 }).toArray();
+  return listGuardsWithTerminalValidation({ persistCache: true });
 }
 
 async function getTerminals() {
@@ -12,12 +13,26 @@ async function getTerminals() {
   return collection.find({}).sort({ name: 1 }).toArray();
 }
 
+async function getSites() {
+  const collection = await getCollection<Site>("sites");
+  return collection.find({}).sort({ name: 1 }).toArray();
+}
+
+async function getSchedules() {
+  return listSiteShiftSchedules({ hydrate: true }) as Promise<SiteShiftSchedule[]>;
+}
+
 export default async function GuardsPage({
   searchParams
 }: {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [guards, terminals] = await Promise.all([getGuards(), getTerminals()]);
+  const [guards, terminals, sites, schedules] = await Promise.all([
+    getGuards(),
+    getTerminals(),
+    getSites(),
+    getSchedules(),
+  ]);
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const initialCreateOpen =
     resolvedSearchParams.register === "1" || resolvedSearchParams.register === "true";
@@ -30,6 +45,8 @@ export default async function GuardsPage({
     <GuardsClient
       guards={JSON.parse(JSON.stringify(guards))}
       terminals={JSON.parse(JSON.stringify(terminals))}
+      sites={JSON.parse(JSON.stringify(sites))}
+      schedules={JSON.parse(JSON.stringify(schedules))}
       initialCreateOpen={initialCreateOpen}
       initialCameraTerminalId={initialCameraTerminalId}
     />

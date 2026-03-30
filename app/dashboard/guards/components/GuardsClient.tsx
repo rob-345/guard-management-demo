@@ -22,12 +22,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, UserPlus, Fingerprint, Trash2, PencilLine } from "lucide-react";
+import {
+  MoreHorizontal,
+  UserPlus,
+  Fingerprint,
+  Trash2,
+  PencilLine,
+  MapPinned
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { getApiErrorMessage } from "@/lib/http";
-import type { Guard, Terminal } from "@/lib/types";
+import type { Guard, Site, SiteShiftSchedule, Terminal } from "@/lib/types";
 
+import { GuardAssignmentDialog } from "./GuardAssignmentDialog";
+import { GuardFaceRemoveDialog } from "./GuardFaceRemoveDialog";
 import { GuardRegistrationDialog } from "./GuardRegistrationSheet";
 import { GuardFaceSyncDialog } from "./GuardFaceSyncDialog";
 
@@ -40,8 +49,39 @@ const statusColor: Record<string, string> = {
 interface Props {
   guards: Guard[];
   terminals: Terminal[];
+  sites: Site[];
+  schedules: SiteShiftSchedule[];
   initialCreateOpen?: boolean;
   initialCameraTerminalId?: string | null;
+}
+
+function guardTerminalStatusMeta(guard: Guard) {
+  const summary = guard.terminal_validation;
+  if (!guard.has_terminal_enrollment || !summary || summary.total_terminals === 0) {
+    return {
+      label: "Not enrolled",
+      className: "border-muted-foreground/30 text-muted-foreground",
+    };
+  }
+
+  if (summary.unknown_count > 0) {
+    return {
+      label: `Unknown on ${summary.unknown_count}/${summary.total_terminals}`,
+      className: "border-sky-500/30 text-sky-700",
+    };
+  }
+
+  if (summary.failed_count > 0) {
+    return {
+      label: `Verified on ${summary.verified_count}/${summary.total_terminals}`,
+      className: "border-amber-500/30 text-amber-700",
+    };
+  }
+
+  return {
+    label: `Verified on ${summary.verified_count}/${summary.total_terminals}`,
+    className: "border-emerald-500/30 text-emerald-700",
+  };
 }
 
 function guardPhotoSrc(guard: Guard) {
@@ -51,16 +91,29 @@ function guardPhotoSrc(guard: Guard) {
   return guard.photo_url || undefined;
 }
 
+function guardAssignmentLabel(guard: Guard) {
+  if (!guard.current_assignment) {
+    return "Unassigned";
+  }
+
+  const siteName = guard.current_assignment.site?.name || guard.current_assignment.site_id;
+  return `${siteName} • ${guard.current_assignment.shift_slot}`;
+}
+
 export function GuardsClient({
   guards,
   terminals,
+  sites,
+  schedules,
   initialCreateOpen = false,
   initialCameraTerminalId = null
 }: Props) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [editGuard, setEditGuard] = useState<Guard | null>(null);
+  const [assignGuard, setAssignGuard] = useState<Guard | null>(null);
   const [syncGuard, setSyncGuard] = useState<Guard | null>(null);
+  const [removeFaceGuard, setRemoveFaceGuard] = useState<Guard | null>(null);
   const [deleteGuard, setDeleteGuard] = useState<Guard | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -120,7 +173,9 @@ export function GuardsClient({
               </div>
             ) : (
               <div className="space-y-2">
-                {guards.map((guard) => (
+                {guards.map((guard) => {
+                  const terminalStatus = guardTerminalStatusMeta(guard);
+                  return (
                   <div
                     key={guard.id}
                     className="flex items-center gap-4 rounded-lg border px-4 py-3 transition-colors hover:bg-muted/50">
@@ -138,18 +193,20 @@ export function GuardsClient({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-sm">{guard.full_name}</p>
-                        {guard.facial_imprint_synced ? (
-                          <Badge variant="outline" className="border-emerald-500/30 text-emerald-700">
-                            Face synced
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-amber-500/30 text-amber-700">
-                            Sync pending
-                          </Badge>
-                        )}
+                        <Badge
+                          variant="outline"
+                          className={terminalStatus.className}>
+                          {terminalStatus.label}
+                        </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         #{guard.employee_number} · {guard.phone_number}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {guard.person_role} · {guard.person_type} · {guard.gender}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Assignment: <span className="font-medium text-foreground">{guardAssignmentLabel(guard)}</span>
                       </p>
                     </div>
                     <Badge variant="outline" className={statusColor[guard.status] ?? ""}>
@@ -167,9 +224,17 @@ export function GuardsClient({
                           <PencilLine className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setAssignGuard(guard)}>
+                          <MapPinned className="mr-2 h-4 w-4" />
+                          {guard.current_assignment ? "Reassign" : "Assign"}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => setSyncGuard(guard)}>
                           <Fingerprint className="mr-2 h-4 w-4" />
                           Sync Face
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => setRemoveFaceGuard(guard)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remove Face
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           variant="destructive"
@@ -180,7 +245,8 @@ export function GuardsClient({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -201,6 +267,16 @@ export function GuardsClient({
         initialCameraTerminalId={initialCameraTerminalId}
       />
 
+      <GuardAssignmentDialog
+        open={Boolean(assignGuard)}
+        onOpenChange={(open) => {
+          if (!open) setAssignGuard(null);
+        }}
+        guard={assignGuard}
+        sites={sites}
+        schedules={schedules}
+      />
+
       <GuardFaceSyncDialog
         open={Boolean(syncGuard)}
         onOpenChange={(open) => {
@@ -210,12 +286,21 @@ export function GuardsClient({
         terminals={terminals}
       />
 
+      <GuardFaceRemoveDialog
+        open={Boolean(removeFaceGuard)}
+        onOpenChange={(open) => {
+          if (!open) setRemoveFaceGuard(null);
+        }}
+        guard={removeFaceGuard}
+        terminals={terminals}
+      />
+
       <AlertDialog open={Boolean(deleteGuard)} onOpenChange={(open) => !open && setDeleteGuard(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete guard?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the guard record{deleteGuard?.facial_imprint_synced ? " and clear any stored face enrollment records." : ""}. This action cannot be undone.
+              This will remove the guard record{deleteGuard?.has_terminal_enrollment ? " and clear any stored face enrollment records." : ""}. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

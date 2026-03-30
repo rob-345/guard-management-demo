@@ -2,11 +2,13 @@ import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-ope
 import { z } from "zod";
 
 import {
+  alertSchema,
   authLoginSchema,
   clockingEventSchema,
   errorResponseSchema,
   faceRemoveSchema,
   faceSyncSchema,
+  guardAssignmentSchema,
   guardMultipartSchema,
   guardSchema,
   guardUpdateMultipartSchema,
@@ -14,27 +16,30 @@ import {
   hikvisionFaceSearchSchema,
   hikvisionFullWorkflowSchema,
   shiftInputSchema,
+  shiftAttendanceResponseSchema,
   shiftSchema,
   siteInputSchema,
   siteSchema,
   successResponseSchema,
   terminalCreateSchema,
+  terminalDiagnosticEventSchema,
+  terminalEventDiagnosticsResponseSchema,
+  terminalEventHistoryResponseSchema,
+  terminalEventPollSchema,
+  terminalAlertStreamResponseSchema,
   terminalSchema,
   terminalUpdateSchema,
-  terminalWebhookDeliverySchema,
-  webhookConfigureSchema,
-  webhookSubscribeSchema,
-  webhookUnsubscribeSchema,
 } from "./schemas";
 
 const registry = new OpenAPIRegistry();
 
 const Guard = registry.register("Guard", guardSchema);
+const GuardAssignment = registry.register("GuardAssignment", guardAssignmentSchema);
+const Alert = registry.register("Alert", alertSchema);
 const Site = registry.register("Site", siteSchema);
 const Shift = registry.register("Shift", shiftSchema);
 const Terminal = registry.register("Terminal", terminalSchema);
 const ClockingEvent = registry.register("ClockingEvent", clockingEventSchema);
-const WebhookDelivery = registry.register("TerminalWebhookDelivery", terminalWebhookDeliverySchema);
 const ErrorResponse = registry.register("ErrorResponse", errorResponseSchema);
 const SuccessResponse = registry.register("SuccessResponse", successResponseSchema);
 
@@ -42,16 +47,6 @@ const IdParam = z.object({
   id: z.string().openapi({
     param: {
       name: "id",
-      in: "path",
-      required: true,
-    },
-  }),
-});
-
-const TokenParam = z.object({
-  token: z.string().openapi({
-    param: {
-      name: "token",
       in: "path",
       required: true,
     },
@@ -160,7 +155,36 @@ registry.registerPath({
     },
   },
   responses: {
-    200: { description: "Updated guard", content: jsonContent(Guard) },
+    200: {
+      description: "Updated guard",
+      content: jsonContent(
+        Guard.extend({
+          terminal_sync: z
+            .object({
+              verified_count: z.number(),
+              total_terminals: z.number(),
+              unknown_count: z.number(),
+              failed_count: z.number(),
+              results: z.array(
+                z.object({
+                  terminal_id: z.string(),
+                  status: z.string(),
+                  already_present: z.boolean().optional(),
+                  error: z.string().optional(),
+                  face_present: z.boolean().optional(),
+                  user_present: z.boolean().optional(),
+                  details_match: z.boolean().optional(),
+                  access_ready: z.boolean().optional(),
+                  validated_at: z.string().optional(),
+                  mismatches: z.array(z.string()).optional(),
+                })
+              ),
+            })
+            .nullable()
+            .optional(),
+        })
+      ),
+    },
     400: { description: "Invalid payload", content: jsonContent(ErrorResponse) },
     404: { description: "Guard not found", content: jsonContent(ErrorResponse) },
   },
@@ -183,7 +207,7 @@ registry.registerPath({
   method: "post",
   path: "/api/guards/{id}/face-sync",
   tags: ["Guards"],
-  summary: "Sync a guard face to selected terminals",
+  summary: "Sync a guard face to selected terminals on the assigned site",
   security: [{ sessionCookie: [] }],
   request: {
     params: IdParam,
@@ -201,13 +225,22 @@ registry.registerPath({
             synced_count: z.number(),
             failed_count: z.number(),
             pending_count: z.number(),
+            total_terminals: z.number().optional(),
+            unknown_count: z.number().optional(),
           }).passthrough(),
+          terminal_validation: Guard.shape.terminal_validation.unwrap(),
           results: z.array(
             z.object({
               terminal_id: z.string(),
               status: z.string(),
               already_present: z.boolean().optional(),
               error: z.string().optional(),
+              face_present: z.boolean().optional(),
+              user_present: z.boolean().optional(),
+              details_match: z.boolean().optional(),
+              access_ready: z.boolean().optional(),
+              validated_at: z.string().optional(),
+              mismatches: z.array(z.string()).optional(),
             })
           ),
         })
@@ -220,7 +253,7 @@ registry.registerPath({
   method: "post",
   path: "/api/guards/{id}/face-remove",
   tags: ["Guards"],
-  summary: "Remove a guard face from selected terminals",
+  summary: "Remove a guard face from selected terminals on the assigned site",
   security: [{ sessionCookie: [] }],
   request: {
     params: IdParam,
@@ -241,6 +274,72 @@ registry.registerPath({
   responses: {
     200: { description: "Guard photo binary" },
     404: { description: "Photo not found", content: jsonContent(ErrorResponse) },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/guards/{id}/assignment",
+  tags: ["Guards"],
+  summary: "Get the current active guard assignment",
+  security: [{ sessionCookie: [] }],
+  request: { params: IdParam },
+  responses: {
+    200: {
+      description: "Current assignment or null",
+      content: jsonContent(z.object({ assignment: GuardAssignment.nullable() })),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "put",
+  path: "/api/guards/{id}/assignment",
+  tags: ["Guards"],
+  summary: "Create or replace the current guard assignment",
+  security: [{ sessionCookie: [] }],
+  request: {
+    params: IdParam,
+    body: {
+      content: jsonContent(
+        z.object({
+          site_id: z.string().min(1),
+          shift_slot: z.enum(["day", "night"]),
+        })
+      ),
+    },
+  },
+  responses: {
+    200: {
+      description: "Assignment saved",
+      content: jsonContent(
+        z.object({
+          assignment: GuardAssignment,
+          changed: z.boolean(),
+          terminal_sync: z
+            .object({
+              summary: GuardAssignment.shape.terminal_sync.unwrap(),
+              removal_results: z.array(
+                z.object({
+                  terminal_id: z.string(),
+                  status: z.string(),
+                  error: z.string().optional(),
+                })
+              ),
+              sync_results: z.array(
+                z.object({
+                  terminal_id: z.string(),
+                  status: z.string(),
+                  error: z.string().optional(),
+                })
+              ),
+            })
+            .optional(),
+        })
+      ),
+    },
+    400: { description: "Invalid payload or assignment state", content: jsonContent(ErrorResponse) },
+    404: { description: "Guard or site not found", content: jsonContent(ErrorResponse) },
   },
 });
 
@@ -311,7 +410,7 @@ registry.registerPath({
   method: "get",
   path: "/api/shifts",
   tags: ["Shifts"],
-  summary: "List shifts",
+  summary: "List site shift schedules",
   security: [{ sessionCookie: [] }],
   responses: {
     200: { description: "Shift list", content: jsonContent(z.array(Shift)) },
@@ -322,7 +421,7 @@ registry.registerPath({
   method: "post",
   path: "/api/shifts",
   tags: ["Shifts"],
-  summary: "Create a shift",
+  summary: "Create a site shift schedule",
   security: [{ sessionCookie: [] }],
   request: { body: { content: jsonContent(shiftInputSchema) } },
   responses: {
@@ -335,7 +434,7 @@ registry.registerPath({
   method: "get",
   path: "/api/shifts/{id}",
   tags: ["Shifts"],
-  summary: "Get a shift",
+  summary: "Get a site shift schedule",
   security: [{ sessionCookie: [] }],
   request: { params: IdParam },
   responses: {
@@ -347,7 +446,7 @@ registry.registerPath({
   method: "patch",
   path: "/api/shifts/{id}",
   tags: ["Shifts"],
-  summary: "Update a shift",
+  summary: "Update a site shift schedule",
   security: [{ sessionCookie: [] }],
   request: { params: IdParam, body: { content: jsonContent(shiftInputSchema.partial()) } },
   responses: {
@@ -359,11 +458,26 @@ registry.registerPath({
   method: "delete",
   path: "/api/shifts/{id}",
   tags: ["Shifts"],
-  summary: "Delete a shift",
+  summary: "Delete a site shift schedule",
   security: [{ sessionCookie: [] }],
   request: { params: IdParam },
   responses: {
     200: { description: "Shift deleted", content: jsonContent(z.object({ success: z.boolean(), id: z.string() })) },
+    409: { description: "Active assignments still depend on the schedule", content: jsonContent(ErrorResponse) },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/shifts/attendance",
+  tags: ["Shifts"],
+  summary: "Compute live shift attendance grouped by site and shift slot",
+  security: [{ sessionCookie: [] }],
+  responses: {
+    200: {
+      description: "Attendance groups",
+      content: jsonContent(shiftAttendanceResponseSchema),
+    },
   },
 });
 
@@ -387,6 +501,48 @@ registry.registerPath({
   request: { body: { content: jsonContent(terminalCreateSchema) } },
   responses: {
     201: { description: "Terminal created", content: jsonContent(Terminal) },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/terminals/poll",
+  tags: ["Terminals"],
+  summary: "Poll heartbeat and clocking events for all terminals",
+  security: [{ sessionCookie: [] }],
+  responses: {
+    200: {
+      description: "All terminals polled",
+      content: jsonContent(
+        z.object({
+          success: z.boolean(),
+          interval_seconds: z.number(),
+          terminal_count: z.number(),
+          polled_at: z.string(),
+          inserted_count: z.number(),
+          duplicate_count: z.number(),
+          online_heartbeats: z.number(),
+          results: z.array(
+            z.object({
+              terminal_id: z.string(),
+              terminal_name: z.string(),
+              success: z.boolean(),
+              heartbeat: z
+                .object({
+                  success: z.boolean(),
+                  checkedAt: z.string(),
+                  status: z.enum(["online", "offline", "error"]),
+                })
+                .optional(),
+              fetched_count: z.number().optional(),
+              inserted_count: z.number().optional(),
+              duplicate_count: z.number().optional(),
+              error: z.string().optional(),
+            })
+          ),
+        })
+      ),
+    },
   },
 });
 
@@ -435,7 +591,7 @@ registry.registerPath({
   security: [{ sessionCookie: [] }],
   request: { params: IdParam },
   responses: {
-    200: { description: "Probed terminal", content: jsonContent(z.object({ terminal: Terminal })) },
+    200: { description: "Probed terminal", content: jsonContent(Terminal) },
   },
 });
 
@@ -502,153 +658,165 @@ registry.registerPath({
 });
 
 registry.registerPath({
-  method: "post",
-  path: "/api/terminals/{id}/webhook-configure",
+  method: "get",
+  path: "/api/terminals/{id}/events/history",
   tags: ["Terminals"],
-  summary: "Configure Hikvision webhook push for a terminal",
-  security: [{ sessionCookie: [] }],
-  request: { params: IdParam, body: { content: jsonContent(webhookConfigureSchema) } },
-  responses: {
-    200: { description: "Webhook configured", content: jsonContent(z.object({ terminal: Terminal, callback_url: z.string() }).passthrough()) },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/api/terminals/{id}/webhook-test",
-  tags: ["Terminals"],
-  summary: "Ask the terminal to test its webhook callback URL",
-  security: [{ sessionCookie: [] }],
-  request: { params: IdParam },
-  responses: {
-    200: { description: "Webhook test result", content: jsonContent(z.object({ success: z.boolean(), result: z.any() })) },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/api/terminals/{id}/webhook-subscribe",
-  tags: ["Terminals"],
-  summary: "Subscribe a terminal to Hikvision event notifications",
-  security: [{ sessionCookie: [] }],
-  request: {
-    params: IdParam,
-    body: { content: jsonContent(webhookSubscribeSchema) },
-  },
-  responses: {
-    200: {
-      description: "Webhook subscription enabled",
-      content: jsonContent(z.object({
-        success: z.boolean(),
-        subscription_id: z.string().optional(),
-        result: z.any(),
-        terminal: Terminal.optional(),
-      }).passthrough()),
-    },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/api/terminals/{id}/webhook-unsubscribe",
-  tags: ["Terminals"],
-  summary: "Unsubscribe a terminal from Hikvision event notifications",
-  security: [{ sessionCookie: [] }],
-  request: {
-    params: IdParam,
-    body: { content: jsonContent(webhookUnsubscribeSchema) },
-  },
-  responses: {
-    200: {
-      description: "Webhook subscription disabled",
-      content: jsonContent(z.object({
-        success: z.boolean(),
-        subscription_id: z.string().optional(),
-        result: z.any(),
-        terminal: Terminal.optional(),
-      }).passthrough()),
-    },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/api/terminals/{id}/webhook-reset",
-  tags: ["Terminals"],
-  summary: "Clear all Hikvision HTTP webhook hosts on the device",
+  summary: "Read terminal-side access-control event history from Hikvision AcsEvent",
   security: [{ sessionCookie: [] }],
   request: { params: IdParam },
   responses: {
     200: {
-      description: "Device webhook hosts reset",
-      content: jsonContent(z.object({
-        success: z.boolean(),
-        webhook_hosts: z.array(z.any()).optional(),
-        terminal: Terminal.optional(),
-      }).passthrough()),
+      description: "Terminal-side access-control event history",
+      content: jsonContent(terminalEventHistoryResponseSchema),
     },
   },
 });
 
 registry.registerPath({
   method: "get",
-  path: "/api/terminals/{id}/webhook-upload-control",
+  path: "/api/terminals/{id}/events/alert-stream",
   tags: ["Terminals"],
-  summary: "Inspect Hikvision webhook upload control for a terminal",
+  summary: "Capture a bounded diagnostic sample from the Hikvision alert stream",
   security: [{ sessionCookie: [] }],
   request: { params: IdParam },
   responses: {
     200: {
-      description: "Webhook upload control state",
-      content: jsonContent(z.object({
-        success: z.boolean(),
-        upload_ctrl: z.record(z.any()),
-        terminal: Terminal.optional(),
-      }).passthrough()),
+      description: "Bounded alert-stream diagnostic sample",
+      content: jsonContent(terminalAlertStreamResponseSchema),
     },
   },
 });
 
 registry.registerPath({
   method: "get",
-  path: "/api/terminals/{id}/webhook-hosts",
+  path: "/api/terminals/{id}/events/compare",
   tags: ["Terminals"],
-  summary: "Inspect live Hikvision HTTP webhook hosts for a terminal",
+  summary: "Compare terminal-side events and stored clocking events",
   security: [{ sessionCookie: [] }],
   request: { params: IdParam },
   responses: {
     200: {
-      description: "Configured webhook hosts on the device",
-      content: jsonContent(z.object({
-        success: z.boolean(),
-        webhook_hosts: z.array(z.any()),
-        terminal: Terminal.optional(),
-      }).passthrough()),
+      description: "Terminal event diagnostics comparison",
+      content: jsonContent(terminalEventDiagnosticsResponseSchema),
     },
   },
 });
 
 registry.registerPath({
-  method: "delete",
-  path: "/api/terminals/{id}/webhook-hosts/{hostId}",
+  method: "post",
+  path: "/api/terminals/{id}/events/poll",
   tags: ["Terminals"],
-  summary: "Delete a Hikvision HTTP webhook host from the device",
+  summary: "Poll the terminal event history and ingest newly discovered clocking events",
   security: [{ sessionCookie: [] }],
   request: {
-    params: z.object({
-      id: z.string(),
-      hostId: z.string(),
+    params: IdParam,
+    body: { content: jsonContent(terminalEventPollSchema) },
+  },
+  responses: {
+    200: {
+      description: "Terminal events polled and deduplicated into clocking events",
+      content: jsonContent(
+        z.object({
+          success: z.boolean(),
+          source: z.string(),
+          all_events: z.boolean().optional(),
+          poll_filters: z.object({
+            all_events: z.boolean().optional(),
+            major: z.number().optional(),
+            minors: z.array(z.number()).optional(),
+            maxResults: z.number(),
+            startTime: z.string(),
+            endTime: z.string(),
+            plans: z.array(
+              z.object({
+                major: z.number(),
+                minors: z.array(z.number()),
+              })
+            ),
+          }),
+          fetched_count: z.number(),
+          inserted_count: z.number(),
+          duplicate_count: z.number(),
+          supported_minors: z.array(z.number()).optional(),
+          filtered_out_minors: z.array(z.number()).optional(),
+          supported_minors_by_major: z
+            .array(
+              z.object({
+                major: z.number(),
+                minors: z.array(z.number()),
+              })
+            )
+            .optional(),
+          filtered_out_minors_by_major: z
+            .array(
+              z.object({
+                major: z.number(),
+                minors: z.array(z.number()),
+              })
+            )
+            .optional(),
+          search_errors: z
+            .array(
+              z.object({
+                major: z.number(),
+                minor: z.number(),
+                error: z.string(),
+              })
+            )
+            .optional(),
+          terminal_events: z.array(terminalDiagnosticEventSchema),
+          ingested_events: z.array(
+            z.object({
+              event_id: z.string(),
+              created: z.boolean(),
+              event_key: z.string(),
+              event_type: z.string(),
+              clocking_outcome: z.enum(["valid", "invalid", "unauthorized", "unknown"]).optional(),
+              attendance_status: z.string().optional(),
+              employee_no: z.string().optional(),
+              event_time: z.string(),
+            })
+          ),
+          raw_responses: z
+            .array(
+              z.object({
+                searchResultPosition: z.number(),
+                totalMatches: z.number(),
+                body: z.record(z.any()),
+              })
+            )
+            .optional(),
+        })
+      ),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/events",
+  tags: ["Events"],
+  summary: "List recent clocking events with joined guard, terminal, and site details",
+  security: [{ sessionCookie: [] }],
+  request: {
+    query: z.object({
+      limit: z.number().int().min(1).max(250).optional(),
     }),
   },
   responses: {
     200: {
-      description: "Webhook host deleted",
-      content: jsonContent(z.object({
-        success: z.boolean(),
-        webhook_hosts: z.array(z.any()).optional(),
-        terminal: Terminal.optional(),
-      }).passthrough()),
+      description: "Clocking event list",
+      content: jsonContent(
+        z.array(
+          ClockingEvent.extend({
+            guard: Guard.optional(),
+            terminal: Terminal.optional(),
+            site: Site.optional(),
+          })
+        )
+      ),
     },
+    401: { description: "Unauthorized", content: jsonContent(ErrorResponse) },
   },
 });
 
@@ -664,14 +832,16 @@ registry.registerPath({
 });
 
 registry.registerPath({
-  method: "post",
-  path: "/api/events/hikvision/{token}",
+  method: "get",
+  path: "/api/events/{id}/snapshot",
   tags: ["Events"],
-  summary: "Receive Hikvision webhook event callbacks",
-  request: { params: TokenParam },
+  summary: "Stream the stored snapshot image for a clocking event",
+  security: [{ sessionCookie: [] }],
+  request: { params: IdParam },
   responses: {
-    200: { description: "Webhook accepted", content: jsonContent(z.object({ success: z.boolean() }).passthrough()) },
-    404: { description: "Terminal not found", content: jsonContent(ErrorResponse) },
+    200: { description: "Clocking event snapshot binary" },
+    401: { description: "Unauthorized", content: jsonContent(ErrorResponse) },
+    404: { description: "Clocking event or snapshot not found", content: jsonContent(ErrorResponse) },
   },
 });
 
@@ -798,8 +968,9 @@ registry.registerPath({
 
 export function generateOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
-
-  return generator.generateDocument({
+  // The generator accepts full OpenAPI document fields at runtime, but the
+  // published TS type is narrower than the actual implementation surface.
+  const documentConfig = {
     openapi: "3.1.0",
     info: {
       title: "Guard Management Demo API",
@@ -833,5 +1004,9 @@ export function generateOpenApiDocument() {
         description: "Current app origin",
       },
     ],
-  });
+  };
+
+  return generator.generateDocument(
+    documentConfig as unknown as Parameters<OpenApiGeneratorV31["generateDocument"]>[0]
+  );
 }

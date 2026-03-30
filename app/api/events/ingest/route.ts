@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
-import { v4 as uuidv4 } from "uuid";
-import { ClockingEvent, Guard, GuardFaceEnrollment, Terminal } from "@/lib/types";
-import { resolveGuardByEmployeeNo } from "@/lib/guard-face";
+import { ingestTerminalClockingEvent } from "@/lib/clocking-event-ingest";
+import type { Terminal } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,46 +44,29 @@ export async function POST(request: NextRequest) {
     const eventType = 
       rawPayload.eventType || 
       rawPayload.event_type || 
-      "unknown";
+      "clocking";
 
-    const guards = await getCollection<Guard>("guards");
-    const enrollments = await getCollection<GuardFaceEnrollment>("guard_face_enrollments");
     const terminals = await getCollection<Terminal>("terminals");
-    const events = await getCollection<ClockingEvent>("clocking_events");
-
-    // 1. Find the guard
-    let guardProfile = null;
-    if (employeeNo) {
-      guardProfile = await resolveGuardByEmployeeNo(guards, enrollments, employeeNo, terminalId);
-    }
-
-    // 2. Find the terminal
     const terminalProfile = await terminals.findOne({ id: terminalId });
-
-    // 3. Process the event
-    const eventId = uuidv4();
-    const event: ClockingEvent = {
-      id: eventId,
-      guard_id: guardProfile?.id,
-      employee_no: employeeNo,
-      terminal_id: terminalId,
-      site_id: terminalProfile?.site_id || "unknown-site",
-      event_type: eventType as any,
-      event_time: eventTime,
-      created_at: new Date().toISOString(),
-    };
-
-    await events.insertOne({ ...event, _id: eventId });
-
-    // 4. Update terminal last seen
-    if (terminalProfile) {
-      await terminals.updateOne(
-        { id: terminalId },
-        { $set: { last_seen: eventTime, status: "online" } }
-      );
+    if (!terminalProfile) {
+      return NextResponse.json({ error: "Terminal not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, eventId });
+    const ingested = await ingestTerminalClockingEvent({
+      terminal: terminalProfile,
+      normalizedEvent: {
+        event_type: eventType as any,
+        clocking_outcome: rawPayload.clocking_outcome,
+        attendance_status: rawPayload.attendance_status,
+        employee_no: employeeNo,
+        event_time: eventTime,
+        raw_event_type: rawPayload.eventType || rawPayload.event_type,
+        normalized_event: rawPayload,
+      },
+      source: "shared_ingest",
+    });
+
+    return NextResponse.json({ success: true, eventId: ingested.eventId, created: ingested.created });
   } catch (error) {
     console.error("Event ingestion failed:", error);
     return NextResponse.json({ error: "Ingestion failed" }, { status: 500 });

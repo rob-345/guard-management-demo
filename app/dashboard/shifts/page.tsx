@@ -1,14 +1,30 @@
+import { reconcileShiftAttendance } from "@/lib/attendance";
 import { getCollection } from "@/lib/mongodb";
+import { listSiteShiftSchedules } from "@/lib/site-shifts";
 import { ShiftsClient } from "./components/ShiftsClient";
-import type { Shift } from "@/lib/types";
+import type { Site, SiteShiftSchedule } from "@/lib/types";
 
-async function getShifts() {
-  const collection = await getCollection<Shift>("shifts");
+async function getSites() {
+  const collection = await getCollection<Site>("sites");
   return collection.find({}).sort({ name: 1 }).toArray();
 }
 
-export default async function ShiftsPage() {
-  const shifts = await getShifts();
+async function getSchedules() {
+  return listSiteShiftSchedules({ hydrate: true }) as Promise<SiteShiftSchedule[]>;
+}
 
-  return <ShiftsClient shifts={JSON.parse(JSON.stringify(shifts))} />;
+export default async function ShiftsPage() {
+  const [sites, schedules, attendance] = await Promise.all([
+    getSites(),
+    getSchedules(),
+    reconcileShiftAttendance({ persistAlerts: true }),
+  ]);
+
+  return (
+    <ShiftsClient
+      sites={JSON.parse(JSON.stringify(sites))}
+      schedules={JSON.parse(JSON.stringify(schedules))}
+      initialAttendance={JSON.parse(JSON.stringify(attendance))}
+    />
+  );
 }

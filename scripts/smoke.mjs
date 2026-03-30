@@ -134,23 +134,6 @@ async function startFakeHikvisionServer() {
       });
     }
 
-    if (method === "GET" && url.pathname === "/ISAPI/Event/notification/subscribeEventCap") {
-      return sendJson(200, {
-        SubscribeEventCap: {
-          support: true
-        }
-      });
-    }
-
-    if (method === "GET" && url.pathname === "/ISAPI/Event/notification/httpHosts/capabilities") {
-      return sendJson(200, {
-        HttpHostNotificationCap: {
-          support: true,
-          httpAuthenticationMethod: ["none", "basic", "digest"]
-        }
-      });
-    }
-
     if (method === "GET" && url.pathname === "/ISAPI/AccessControl/AcsWorkStatus") {
       return sendJson(200, {
         AcsWorkStatus: {
@@ -173,27 +156,59 @@ async function startFakeHikvisionServer() {
       });
     }
 
-    if (
-      method === "PUT" &&
-      (url.pathname === "/ISAPI/Event/notification/httpHosts" ||
-        /^\/ISAPI\/Event\/notification\/httpHosts\/[^/]+$/.test(url.pathname))
-    ) {
+    if (method === "GET" && url.pathname === "/ISAPI/AccessControl/AcsEvent/capabilities") {
       return sendJson(200, {
-        HttpHostNotification: jsonBody.HttpHostNotification || jsonBody
+        AcsEvent: {
+          AcsEventCond: {
+            minorAlarm: { "@opt": "1,2,3" },
+            minorException: { "@opt": "21,22" },
+            minorOperation: { "@opt": "121,122" },
+            minorEvent: { "@opt": "75,76,80,94,104" }
+          }
+        }
       });
     }
 
-    if (method === "POST" && url.pathname === "/ISAPI/Event/notification/httpHosts") {
+    if (method === "POST" && url.pathname === "/ISAPI/AccessControl/AcsEvent") {
+      const major = Number(jsonBody?.AcsEventCond?.major ?? 5);
+      const minor = Number(jsonBody?.AcsEventCond?.minor ?? 75);
+      const eventTime = new Date().toISOString();
+
       return sendJson(200, {
-        HttpHostNotification: jsonBody.HttpHostNotification || jsonBody
+        totalMatches: 1,
+        numOfMatches: 1,
+        searchResultPosition: Number(jsonBody?.AcsEventCond?.searchResultPosition ?? 0),
+        maxResults: Number(jsonBody?.AcsEventCond?.maxResults ?? 1),
+        AcsEventInfoList: {
+          AcsEventInfo: [
+            {
+              serialNo: 1,
+              major,
+              minor,
+              employeeNoString: "SMOKE-001",
+              name: "Smoke Guard",
+              eventTime,
+              eventType: "AccessControllerEvent",
+              eventDescription: minor === 75 ? "Face Authentication Completed" : "Face Authentication Failed",
+              deviceID: "FAKE-DEVICE-ID-001",
+              terminalId: "FAKE-TERMINAL-001",
+            }
+          ]
+        }
       });
     }
 
-    if (
-      (method === "GET" || method === "POST") &&
-      /^\/ISAPI\/Event\/notification\/httpHosts\/[^/]+\/test$/.test(url.pathname)
-    ) {
-      return sendText(200, "OK");
+    if (method === "GET" && url.pathname === "/ISAPI/Event/notification/alertStream") {
+      const boundary = "MIME_boundary";
+      const eventTime = new Date().toISOString();
+      const payload = `--${boundary}\r
+Content-Disposition: form-data; name="AccessControllerEvent"\r
+Content-Type: application/json; charset="UTF-8"\r
+\r
+{"eventType":"AccessControllerEvent","AccessControllerEvent":{"majorEventType":5,"subEventType":75,"employeeNoString":"SMOKE-001","name":"Smoke Guard","dateTime":"${eventTime}","deviceID":"FAKE-DEVICE-ID-001","terminalId":"FAKE-TERMINAL-001","eventDescription":"Face Authentication Completed"}}\r
+--${boundary}--\r
+`;
+      return sendText(200, payload, `multipart/mixed; boundary=${boundary}`);
     }
 
     if (method === "PUT" && url.pathname === "/ISAPI/AccessControl/UserInfo/SetUp") {
@@ -465,7 +480,7 @@ async function main() {
     }
     pass("protected API returns data for authenticated sessions");
 
-    log("creating site, shift, guard, and terminal");
+    log("creating site, shift schedule, guard, and terminal");
     const site = await requestJson(
       "/api/sites",
       {
@@ -489,12 +504,20 @@ async function main() {
       {
         method: "POST",
         body: {
-          name: `Smoke Shift ${runId}`,
-          start_time: "08:00",
-          end_time: "16:00"
+          site_id: site.id,
+          day_shift: {
+            start_time: "08:00",
+            end_time: "16:00",
+            attendance_interval_minutes: 15
+          },
+          night_shift: {
+            start_time: "16:00",
+            end_time: "08:00",
+            attendance_interval_minutes: 20
+          }
         }
       },
-      "create shift"
+      "create shift schedule"
     );
     cleanupTargets.push({ path: `/api/shifts/${shift.id}`, label: "shift" });
 
@@ -532,16 +555,32 @@ async function main() {
     if (site.name !== `Smoke Site ${runId}` || site.latitude !== 5.6037 || site.longitude !== -0.187) {
       fail("create site", "site data was not persisted");
     }
-    if (shift.name !== `Smoke Shift ${runId}`) {
-      fail("create shift", "shift name was not persisted");
+    if (shift.site_id !== site.id || shift.day_shift?.end_time !== "16:00") {
+      fail("create shift schedule", "site shift schedule was not persisted");
     }
     if (guard.employee_number !== `SM-${runId.toUpperCase()}` || !guard.photo_file_id) {
       fail("create guard", "guard photo upload or employee number was not persisted");
     }
-    if (terminal.site_id !== site.id || !terminal.webhook_token) {
+    if (terminal.site_id !== site.id) {
       fail("create terminal", "terminal registration data was not persisted");
     }
     pass("create endpoints persist records");
+
+    const assignment = await requestJson(
+      `/api/guards/${guard.id}/assignment`,
+      {
+        method: "PUT",
+        body: {
+          site_id: site.id,
+          shift_slot: "day"
+        }
+      },
+      "assign guard"
+    );
+    if (assignment.assignment?.site_id !== site.id || assignment.assignment?.shift_slot !== "day") {
+      fail("assign guard", "guard assignment was not persisted");
+    }
+    pass("guard assignments link a guard to the site day shift");
 
     log("capturing a face from the terminal");
     const captureFaceResponse = await request(`/api/terminals/${terminal.id}/capture-face`, {
@@ -572,7 +611,7 @@ async function main() {
     }
     pass("guard photos are stored and streamed from GridFS");
 
-    log("updating site, shift, guard, and terminal");
+    log("updating site, shift schedule, guard, and terminal");
     const updatedSite = await requestJson(
       `/api/sites/${site.id}`,
       {
@@ -601,14 +640,20 @@ async function main() {
       {
         method: "PATCH",
         body: {
-          name: `Smoke Shift ${runId} Updated`,
-          end_time: "17:00"
+          day_shift: {
+            start_time: "08:00",
+            end_time: "17:00",
+            attendance_interval_minutes: 10
+          }
         }
       },
-      "update shift"
+      "update shift schedule"
     );
-    if (updatedShift.name !== `Smoke Shift ${runId} Updated` || updatedShift.end_time !== "17:00") {
-      fail("update shift", "shift updates were not persisted");
+    if (
+      updatedShift.day_shift?.end_time !== "17:00" ||
+      updatedShift.day_shift?.attendance_interval_minutes !== 10
+    ) {
+      fail("update shift schedule", "shift schedule updates were not persisted");
     }
 
     const guardUpdateForm = new FormData();
@@ -677,70 +722,66 @@ async function main() {
       { method: "POST" },
       "probe terminal"
     );
-    if (probedTerminal.device_uid !== "FAKE-SERIAL-001" || probedTerminal.status !== "online") {
+    if (
+      probedTerminal.device_uid !== "FAKE-SERIAL-001" ||
+      probedTerminal.status !== "online" ||
+      probedTerminal.heartbeat_status !== "online"
+    ) {
       fail("probe terminal", "terminal probe snapshot was not refreshed");
     }
-    pass("terminal probe persists the current device snapshot");
+    pass("terminal probe persists the current device snapshot and heartbeat");
 
-    log("configuring webhook");
-    const webhookConfig = await requestJson(
-      `/api/terminals/${terminal.id}/webhook-configure`,
-      {
-        method: "POST",
-        body: {}
-      },
-      "configure webhook"
+    log("reading terminal event history");
+    const terminalHistory = await requestJson(
+      `/api/terminals/${terminal.id}/events/history?major=5&minor=75&maxResults=5`,
+      { method: "GET" },
+      "terminal history"
     );
-    if (!webhookConfig.callback_url || webhookConfig.terminal?.webhook_status !== "configured") {
-      fail("configure webhook", "webhook was not configured");
+    if (!terminalHistory.success || !terminalHistory.terminal_events?.length) {
+      fail("terminal history", "terminal event history did not return any events");
     }
-    const callbackHost = new URL(webhookConfig.callback_url).hostname;
-    if (["localhost", "127.0.0.1", "::1"].includes(callbackHost)) {
-      fail("configure webhook", `callback URL is still local-only (${webhookConfig.callback_url})`);
-    }
-    pass("webhook configuration persists the callback URL");
+    pass("terminal event history is readable");
 
-    log("testing webhook");
-    const webhookTest = await requestJson(
-      `/api/terminals/${terminal.id}/webhook-test`,
-      { method: "POST" },
-      "test webhook"
+    log("sampling terminal alert stream");
+    const alertStreamSample = await requestJson(
+      `/api/terminals/${terminal.id}/events/alert-stream?timeoutMs=2000&maxBytes=2048`,
+      { method: "GET" },
+      "alert stream sample"
     );
-    if (!webhookTest.success) {
-      fail("test webhook", "webhook test did not report success");
+    if (!alertStreamSample.success || !alertStreamSample.sample_text) {
+      fail("alert stream sample", "alert stream sample did not return any raw payload");
     }
-    pass("webhook test succeeds");
+    pass("alert stream sampling works");
 
-    log("sending callback event");
-    const callbackEvent = await requestJson(
-      `/api/events/hikvision/${terminal.webhook_token}`,
+    log("polling terminal events");
+    const pollResult = await requestJson(
+      `/api/terminals/${terminal.id}/events/poll`,
       {
         method: "POST",
         body: {
-          employeeNo: guard.employee_number,
-          eventType: "clock_in",
-          dateTime: new Date().toISOString()
+          major: 5,
+          minors: "75,76,80,94,104",
+          maxResults: 5,
         }
       },
-      "hikvision callback"
+      "poll terminal events"
     );
-    if (!callbackEvent.success) {
-      fail("hikvision callback", "callback ingest did not report success");
+    if (!pollResult.success || (pollResult.inserted_count ?? 0) < 1) {
+      fail("poll terminal events", "terminal poll did not ingest any events");
     }
-    pass("tokenized Hikvision callbacks are ingested");
+    pass("terminal polling ingests clocking events");
 
-    log("checking terminal details for webhook activity");
+    log("checking terminal details for stored event activity");
     const terminalDetailsResponse = await request(`/dashboard/terminals/${terminal.id}`);
     await expectStatus("terminal details", terminalDetailsResponse, 200);
     const terminalDetailsHtml = await terminalDetailsResponse.text();
     if (
-      !terminalDetailsHtml.includes("Webhook test") ||
-      !terminalDetailsHtml.includes("clock_in") ||
-      !terminalDetailsHtml.includes(guard.employee_number)
+      !terminalDetailsHtml.includes("Stored Terminal Events") ||
+      !terminalDetailsHtml.includes("SMOKE-001")
     ) {
-      fail("terminal details webhook activity", "webhook deliveries are not visible on the terminal details page");
+      fail("terminal details stored events", "polled terminal events are not visible on the terminal details page");
     }
-    pass("terminal details surface webhook delivery activity");
+    pass("terminal details surface stored terminal events");
 
     log("syncing guard face to terminal");
     const faceSync = await requestJson(

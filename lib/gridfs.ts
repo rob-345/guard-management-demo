@@ -5,9 +5,10 @@ import { getGridFSBucket } from "./mongodb";
 export async function uploadBufferToGridFS(
   buffer: Buffer,
   filename: string,
-  contentType: string
+  contentType: string,
+  bucketName?: string
 ) {
-  const bucket = await getGridFSBucket();
+  const bucket = await getGridFSBucket(bucketName);
 
   return await new Promise<string>((resolve, reject) => {
     const uploadStream = bucket.openUploadStream(filename, {
@@ -20,8 +21,8 @@ export async function uploadBufferToGridFS(
   });
 }
 
-export async function downloadBufferFromGridFS(fileId: string) {
-  const bucket = await getGridFSBucket();
+export async function downloadBufferFromGridFS(fileId: string, bucketName?: string) {
+  const bucket = await getGridFSBucket(bucketName);
   const chunks: Buffer[] = [];
 
   return await new Promise<Buffer>((resolve, reject) => {
@@ -37,7 +38,7 @@ export async function downloadBufferFromGridFS(fileId: string) {
   });
 }
 
-export async function deleteBufferFromGridFS(fileId: string) {
-  const bucket = await getGridFSBucket();
+export async function deleteBufferFromGridFS(fileId: string, bucketName?: string) {
+  const bucket = await getGridFSBucket(bucketName);
   await bucket.delete(new ObjectId(fileId));
 }

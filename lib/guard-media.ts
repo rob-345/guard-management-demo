@@ -1,4 +1,5 @@
 import type { Guard } from "./types";
+import { MAX_GUARD_FACE_BYTES, formatGuardPhotoLimit } from "./guard-photo";
 import { deleteBufferFromGridFS, downloadBufferFromGridFS, uploadBufferToGridFS } from "./gridfs";
 
 export type GuardMutationPhoto = {
@@ -13,11 +14,21 @@ export type ParsedGuardSubmission = {
   full_name?: string;
   phone_number?: string;
   email?: string;
+  person_type?: string;
+  person_role?: string;
+  gender?: string;
   status?: string;
   photo_url?: string;
   photo_file?: File | null;
   remove_photo?: boolean;
 };
+
+export class GuardPhotoValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GuardPhotoValidationError";
+  }
+}
 
 function toOptionalString(value: FormDataEntryValue | null) {
   if (typeof value !== "string") return undefined;
@@ -41,6 +52,9 @@ export async function parseGuardSubmission(request: Request): Promise<ParsedGuar
       full_name: toOptionalString(form.get("full_name")),
       phone_number: toOptionalString(form.get("phone_number")),
       email: toOptionalString(form.get("email")),
+      person_type: toOptionalString(form.get("person_type")),
+      person_role: toOptionalString(form.get("person_role")),
+      gender: toOptionalString(form.get("gender")),
       status: toOptionalString(form.get("status")),
       photo_url: toOptionalString(form.get("photo_url")),
       photo_file: file instanceof File ? file : null,
@@ -54,6 +68,9 @@ export async function parseGuardSubmission(request: Request): Promise<ParsedGuar
     full_name: typeof body.full_name === "string" ? body.full_name.trim() : undefined,
     phone_number: typeof body.phone_number === "string" ? body.phone_number.trim() : undefined,
     email: typeof body.email === "string" ? body.email.trim() : undefined,
+    person_type: typeof body.person_type === "string" ? body.person_type.trim() : undefined,
+    person_role: typeof body.person_role === "string" ? body.person_role.trim() : undefined,
+    gender: typeof body.gender === "string" ? body.gender.trim() : undefined,
     status: typeof body.status === "string" ? body.status.trim() : undefined,
     photo_url: typeof body.photo_url === "string" ? body.photo_url.trim() : undefined,
     remove_photo: Boolean(body.remove_photo)
@@ -61,6 +78,10 @@ export async function parseGuardSubmission(request: Request): Promise<ParsedGuar
 }
 
 export async function storeGuardPhoto(file: File): Promise<GuardMutationPhoto> {
+  if (file.size > MAX_GUARD_FACE_BYTES) {
+    throw new GuardPhotoValidationError(`Guard face image must be ${formatGuardPhotoLimit()} or smaller.`);
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const photoFileId = await uploadBufferToGridFS(
     buffer,

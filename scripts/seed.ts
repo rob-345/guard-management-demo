@@ -21,24 +21,53 @@ async function seed() {
       db.collection("guards").deleteMany({}),
       db.collection("sites").deleteMany({}),
       db.collection("shifts").deleteMany({}),
+      db.collection("site_shift_schedules").deleteMany({}),
+      db.collection("guard_assignments").deleteMany({}),
+      db.collection("guard_face_enrollments").deleteMany({}),
+      db.collection("alerts").deleteMany({}),
       db.collection("terminals").deleteMany({}),
       db.collection("clocking_events").deleteMany({})
     ]);
 
-    // 2. Insert Shifts
-    const shiftData = [
-      { id: uuidv4(), name: "Morning Shift", start_time: "06:00", end_time: "14:00", created_at: now },
-      { id: uuidv4(), name: "Afternoon Shift", start_time: "14:00", end_time: "22:00", created_at: now },
-      { id: uuidv4(), name: "Night Shift", start_time: "22:00", end_time: "06:00", created_at: now }
-    ];
-    await db.collection("shifts").insertMany(shiftData.map(s => ({ ...s, _id: s.id } as any)));
-
-    // 3. Insert Sites
+    // 2. Insert Sites
     const siteData = [
       { id: uuidv4(), name: "Harare Main Office", address: "123 Samora Machel Ave, Harare", region: "Harare Central", contact_person: "Tendai Moyo", contact_phone: "+263 77 300 1000", created_at: now },
       { id: uuidv4(), name: "Bulawayo Depot", address: "45 Fife St, Bulawayo", region: "Bulawayo Metro", contact_person: "Nandi Dube", contact_phone: "+263 77 300 2000", created_at: now }
     ];
     await db.collection("sites").insertMany(siteData.map(s => ({ ...s, _id: s.id } as any)));
+
+    // 3. Insert Site Shift Schedules
+    const siteShiftSchedules = [
+      {
+        id: uuidv4(),
+        site_id: siteData[0].id,
+        day_shift: {
+          start_time: "06:00",
+          end_time: "18:00",
+          attendance_interval_minutes: 15
+        },
+        night_shift: {
+          start_time: "18:00",
+          end_time: "06:00",
+          attendance_interval_minutes: 20
+        },
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: uuidv4(),
+        site_id: siteData[1].id,
+        day_shift: {
+          start_time: "07:00",
+          end_time: "19:00",
+          attendance_interval_minutes: 15
+        },
+        night_shift: null,
+        created_at: now,
+        updated_at: now
+      }
+    ];
+    await db.collection("site_shift_schedules").insertMany(siteShiftSchedules.map(s => ({ ...s, _id: s.id } as any)));
 
     // 4. Insert Guards
     const guardData = [
@@ -67,7 +96,52 @@ async function seed() {
     ];
     await db.collection("guards").insertMany(guardData.map(g => ({ ...g, _id: g.id } as any)));
 
-    // 5. Insert Terminals
+    // 5. Insert Guard Assignments
+    const guardAssignments = [
+      {
+        id: uuidv4(),
+        guard_id: guardData[0].id,
+        site_id: siteData[0].id,
+        shift_slot: "day",
+        effective_date: now,
+        status: "active",
+        terminal_sync: {
+          status: "not_required",
+          previous_terminal_count: 0,
+          target_terminal_count: 0,
+          removed_count: 0,
+          removal_failed_count: 0,
+          synced_count: 0,
+          sync_failed_count: 0,
+          updated_at: now
+        },
+        created_at: now,
+        updated_at: now
+      },
+      {
+        id: uuidv4(),
+        guard_id: guardData[1].id,
+        site_id: siteData[1].id,
+        shift_slot: "day",
+        effective_date: now,
+        status: "active",
+        terminal_sync: {
+          status: "not_required",
+          previous_terminal_count: 0,
+          target_terminal_count: 0,
+          removed_count: 0,
+          removal_failed_count: 0,
+          synced_count: 0,
+          sync_failed_count: 0,
+          updated_at: now
+        },
+        created_at: now,
+        updated_at: now
+      }
+    ];
+    await db.collection("guard_assignments").insertMany(guardAssignments.map(a => ({ ...a, _id: a.id } as any)));
+
+    // 6. Insert Terminals
     const terminalData = [
       {
         id: uuidv4(),
@@ -75,6 +149,16 @@ async function seed() {
         name: "Main Entrance FR",
         site_id: siteData[0].id,
         ip_address: "192.168.1.50",
+        status: "online",
+        activation_status: "activated",
+        created_at: now
+      },
+      {
+        id: uuidv4(),
+        edge_terminal_id: "TERM-02",
+        name: "Bulawayo Dispatch Desk",
+        site_id: siteData[1].id,
+        ip_address: "192.168.1.60",
         status: "online",
         activation_status: "activated",
         created_at: now

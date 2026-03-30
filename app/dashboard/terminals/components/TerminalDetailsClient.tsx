@@ -1,79 +1,209 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
   ArrowLeft,
-  Clock,
   FileCode2,
   Fingerprint,
-  Globe,
   MoreHorizontal,
   PencilLine,
   PlugZap,
   RefreshCw,
   Server,
   ShieldCheck,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { ClockingEventList } from "@/components/clocking-events/ClockingEventList";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { HydratedClockingEvent } from "@/lib/clocking-events";
 import { getApiErrorMessage } from "@/lib/http";
-import type { ClockingEvent, Guard, Site, Terminal, TerminalWebhookDelivery } from "@/lib/types";
+import type {
+  NormalizedHikvisionTerminalEvent,
+  TerminalEventCompareSummary,
+} from "@/lib/hikvision-event-diagnostics";
+import {
+  getClockingAttendanceLabel as formatClockingAttendanceLabel,
+  getClockingDisplayLabel as formatClockingDisplayLabel,
+  getClockingEventOutcomeLabel as formatClockingOutcomeLabel,
+} from "@/lib/hikvision-event-diagnostics";
+import type { ClockingEvent, Site, Terminal } from "@/lib/types";
 
 import { TerminalAddDialog } from "./TerminalAddDialog";
+import { TerminalEventTable } from "./TerminalEventTable";
 import { TerminalSnapshotCard } from "./TerminalSnapshotCard";
-
-type HydratedTerminalEvent = ClockingEvent & {
-  guard?: Guard;
-  terminal?: Terminal;
-  site?: Site;
-};
-
-type DeviceWebhookHost = {
-  id?: string;
-  url?: string;
-  protocolType?: string;
-  parameterFormatType?: string;
-  addressingFormatType?: string;
-  hostName?: string;
-  ipAddress?: string;
-  portNo?: number;
-  httpAuthenticationMethod?: string;
-  subscribeEvent?: {
-    heartbeat?: string;
-    eventMode?: string;
-    channelMode?: string;
-    eventTypes: string[];
-    pictureURLType?: string;
-  };
-  rawXml?: string;
-};
 
 interface Props {
   terminal: Terminal;
   site: Site | null;
   sites: Site[];
-  deliveries: TerminalWebhookDelivery[];
-  events: HydratedTerminalEvent[];
+  events: HydratedClockingEvent[];
 }
+
+type TerminalEventHistoryResponse = {
+  success?: boolean;
+  source?: "acsEvent" | "alertStream";
+  warning?: string;
+  terminal_events?: NormalizedHikvisionTerminalEvent[];
+  total_matches?: number;
+  poll_filters?: {
+    all_events?: boolean;
+    major?: number;
+    minors?: number[];
+    searchResultPosition?: number;
+    maxResults?: number;
+    startTime?: string;
+    endTime?: string;
+    plans?: Array<{
+      major: number;
+      minors: number[];
+    }>;
+  };
+  supported_minors_by_major?: Array<{
+    major: number;
+    minors: number[];
+  }>;
+  filtered_out_minors_by_major?: Array<{
+    major: number;
+    minors: number[];
+  }>;
+  search_errors?: Array<{
+    major: number;
+    minor: number;
+    error: string;
+  }>;
+  raw_response?: Record<string, unknown>;
+  capabilities?: Record<string, unknown>;
+};
+
+type TerminalAlertStreamResponse = {
+  success?: boolean;
+  content_type?: string;
+  sample_text?: string;
+  sample_bytes?: number;
+  truncated?: boolean;
+  events?: NormalizedHikvisionTerminalEvent[];
+  raw_headers?: Record<string, string>;
+};
+
+type TerminalEventDiagnosticsResponse = {
+  success?: boolean;
+  runtime_database?: {
+    database_name?: string;
+    mongo_host?: string;
+    terminal_record_found?: boolean;
+    terminal_collection_count?: number;
+    clocking_event_collection_count?: number;
+    warning?: string;
+  };
+  terminal_history_error?: string;
+  terminal_history_source?: "acsEvent" | "alertStream";
+  capabilities?: Record<string, unknown>;
+  recent_terminal_events?: NormalizedHikvisionTerminalEvent[];
+  recent_clocking_events?: ClockingEvent[];
+  summary?: TerminalEventCompareSummary;
+  raw_terminal_response?: Record<string, unknown>;
+};
+
+type TerminalEventPollResponse = {
+  success?: boolean;
+  source?: string;
+  all_events?: boolean;
+  total_matches?: number;
+  poll_filters?: {
+    all_events?: boolean;
+    major?: number;
+    minors?: number[];
+    searchResultPosition?: number;
+    maxResults?: number;
+    startTime?: string;
+    endTime?: string;
+    plans?: Array<{
+      major: number;
+      minors: number[];
+    }>;
+  };
+  fetched_count?: number;
+  inserted_count?: number;
+  duplicate_count?: number;
+  supported_minors?: number[];
+  filtered_out_minors?: number[];
+  supported_minors_by_major?: Array<{
+    major: number;
+    minors: number[];
+  }>;
+  filtered_out_minors_by_major?: Array<{
+    major: number;
+    minors: number[];
+  }>;
+  search_errors?: Array<{
+    major: number;
+    minor: number;
+    error: string;
+  }>;
+  terminal_events?: NormalizedHikvisionTerminalEvent[];
+  ingested_events?: Array<{
+    event_id: string;
+    created: boolean;
+    event_key: string;
+    event_type: string;
+    clocking_outcome?: string;
+    attendance_status?: string;
+    employee_no?: string;
+    event_time: string;
+  }>;
+  raw_responses?: Array<{
+    searchResultPosition: number;
+    totalMatches: number;
+    body: Record<string, unknown>;
+  }>;
+};
 
 function detailValue(value: unknown) {
   if (value === undefined || value === null || value === "") return "—";
   if (Array.isArray(value)) return value.join(", ");
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+}
+
+function heartbeatVariant(status?: Terminal["heartbeat_status"]) {
+  if (status === "online") return "secondary" as const;
+  if (status === "error") return "destructive" as const;
+  return "outline" as const;
+}
+
+function formatEventPlanSummary(plans?: Array<{ major: number; minors: number[] }>) {
+  if (!plans?.length) return "No event-family filters used";
+  return plans
+    .map((plan) => `major ${plan.major} (${plan.minors.length} minors)`)
+    .join(" | ");
 }
 
 function JsonBlock({ value }: { value: unknown }) {
@@ -84,69 +214,49 @@ function JsonBlock({ value }: { value: unknown }) {
   );
 }
 
-function EventRow({ event }: { event: HydratedTerminalEvent }) {
-  const badgeColor =
-    event.event_type === "clock_in"
-      ? "bg-emerald-500"
-      : event.event_type === "clock_out"
-        ? "bg-blue-500"
-        : event.event_type === "stranger"
-          ? "bg-destructive"
-          : "bg-muted";
-
+function EventSummaryBadges({
+  event,
+}: {
+  event: {
+    event_type?: string;
+    clocking_outcome?: string;
+    attendance_status?: string;
+  };
+}) {
   return (
-    <div className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
-      <div className="flex items-center gap-4">
-        <div className={`h-2 w-2 rounded-full ${badgeColor}`} />
-        <div>
-          <p className="font-medium">
-            {event.guard?.full_name || (event.employee_no ? `Employee #${event.employee_no}` : "Unknown Face Detected")}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            <span className="capitalize">{event.event_type.replace("_", " ")}</span> •{" "}
-            {event.site?.name || `Site ID: ${event.site_id}`} •{" "}
-            {event.terminal?.name || `Terminal ID: ${event.terminal_id}`}
-          </p>
-        </div>
-      </div>
-      <div className="text-right text-sm">
-        <div className="flex items-center justify-end gap-1.5 text-foreground">
-          <Clock className="h-3 w-3" />
-          <span className="font-mono">{new Date(event.event_time).toLocaleTimeString()}</span>
-        </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">{new Date(event.event_time).toLocaleDateString()}</p>
-      </div>
-    </div>
+    <>
+      <Badge variant="outline">{formatClockingDisplayLabel(event)}</Badge>
+      {formatClockingOutcomeLabel(event) ? (
+        <Badge variant="outline">{formatClockingOutcomeLabel(event)}</Badge>
+      ) : null}
+      {formatClockingAttendanceLabel(event) ? (
+        <Badge variant="outline">{formatClockingAttendanceLabel(event)}</Badge>
+      ) : null}
+    </>
   );
 }
 
-export function TerminalDetailsClient({ terminal, site, sites, deliveries, events }: Props) {
+export function TerminalDetailsClient({ terminal, site, sites, events }: Props) {
   const router = useRouter();
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [uploadCtrlSnapshot, setUploadCtrlSnapshot] = useState<Record<string, unknown> | null>(
-    (terminal.webhook_upload_ctrl as Record<string, unknown> | undefined) || null
-  );
-  const [deviceWebhookHosts, setDeviceWebhookHosts] = useState<DeviceWebhookHost[] | null>(null);
-  const [subscribeAllEventModes, setSubscribeAllEventModes] = useState(true);
-  const [subscribeAllChannels, setSubscribeAllChannels] = useState(true);
+  const [terminalEventHistory, setTerminalEventHistory] = useState<TerminalEventHistoryResponse | null>(null);
+  const [eventDiagnostics, setEventDiagnostics] = useState<TerminalEventDiagnosticsResponse | null>(null);
+  const [alertStreamSample, setAlertStreamSample] = useState<TerminalAlertStreamResponse | null>(null);
+  const [pollResult, setPollResult] = useState<TerminalEventPollResponse | null>(null);
+  const [pollMaxResults, setPollMaxResults] = useState("20");
 
   const deviceInfo = terminal.device_info || {};
   const workStatus = terminal.acs_work_status || {};
-  const recentEvents = useMemo(() => events, [events]);
-
-  useEffect(() => {
-    setUploadCtrlSnapshot((terminal.webhook_upload_ctrl as Record<string, unknown> | undefined) || null);
-  }, [terminal.webhook_upload_ctrl]);
 
   async function runAction(
     action: string,
     endpoint: string,
     body?: unknown,
     options?: {
-      method?: "GET" | "POST" | "PUT" | "DELETE";
+      method?: "GET" | "POST" | "PATCH" | "DELETE";
       successMessage?: string;
       onSuccess?: (data: unknown) => void;
     }
@@ -156,7 +266,7 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
       const res = await fetch(endpoint, {
         method: options?.method || "POST",
         headers: body ? { "Content-Type": "application/json" } : undefined,
-        body: body ? JSON.stringify(body) : undefined
+        body: body ? JSON.stringify(body) : undefined,
       });
 
       if (!res.ok) {
@@ -171,92 +281,96 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
     } catch (error) {
       toast.error(`Terminal action failed: ${error instanceof Error ? error.message : String(error)}`);
       router.refresh();
+      return null;
     } finally {
       setBusyAction(null);
     }
   }
 
-  async function handleSubscribeEvents() {
+  async function inspectTerminalEventHistory() {
     await runAction(
-      "webhook-subscribe",
-      `/api/terminals/${terminal.id}/webhook-subscribe`,
-      {
-        eventMode: subscribeAllEventModes ? "all" : "all",
-        channelMode: subscribeAllChannels ? "all" : "all"
-      },
-      {
-        successMessage: "Event subscription enabled"
-      }
-    );
-  }
-
-  async function handleUnsubscribeEvents() {
-    await runAction(
-      "webhook-unsubscribe",
-      `/api/terminals/${terminal.id}/webhook-unsubscribe`,
-      {},
-      {
-        successMessage: "Event subscription cleared"
-      }
-    );
-  }
-
-  async function handleResetDeviceWebhooks() {
-    if (
-      !window.confirm(
-        "Reset all device webhook hosts? This clears the terminal's current callback destinations and embedded event subscription so we can start from a clean state."
-      )
-    ) {
-      return;
-    }
-
-    await runAction(
-      "webhook-reset",
-      `/api/terminals/${terminal.id}/webhook-reset`,
-      {},
-      {
-        successMessage: "Device webhook hosts reset"
-      }
-    );
-    setDeviceWebhookHosts([]);
-  }
-
-  async function inspectDeviceWebhookHosts() {
-    await runAction(
-      "webhook-hosts",
-      `/api/terminals/${terminal.id}/webhook-hosts`,
+      "terminal-event-history",
+      `/api/terminals/${terminal.id}/events/history?allEvents=true&maxResults=20`,
       undefined,
       {
         method: "GET",
-        successMessage: "Device webhook hosts refreshed",
+        successMessage: "Terminal event history refreshed",
         onSuccess: (data) => {
-          const payload = data as { webhook_hosts?: DeviceWebhookHost[] } | null;
-          setDeviceWebhookHosts(payload?.webhook_hosts || []);
-        }
+          setTerminalEventHistory((data as TerminalEventHistoryResponse) || null);
+        },
       }
     );
   }
 
-  async function deleteDeviceWebhookHost(hostId: string) {
-    if (
-      !window.confirm(
-        `Delete device webhook host ${hostId}? This will clear the current terminal push target on the Hikvision device.`
-      )
-    ) {
-      return;
-    }
-
+  async function runEventDiagnostics() {
     await runAction(
-      `webhook-host-delete-${hostId}`,
-      `/api/terminals/${terminal.id}/webhook-hosts/${hostId}`,
+      "terminal-event-diagnostics",
+      `/api/terminals/${terminal.id}/events/compare`,
       undefined,
       {
-        method: "DELETE",
-        successMessage: `Device webhook host ${hostId} deleted`,
+        method: "GET",
+        successMessage: "Event diagnostics refreshed",
         onSuccess: (data) => {
-          const payload = data as { webhook_hosts?: DeviceWebhookHost[] } | null;
-          setDeviceWebhookHosts(payload?.webhook_hosts || []);
-        }
+          const payload = (data as TerminalEventDiagnosticsResponse) || null;
+          setEventDiagnostics(payload);
+          if (payload?.recent_terminal_events) {
+            setTerminalEventHistory({
+              success: true,
+              source: payload.terminal_history_source,
+              terminal_events: payload.recent_terminal_events,
+              raw_response: payload.raw_terminal_response,
+              capabilities: payload.capabilities,
+            });
+          }
+        },
+      }
+    );
+  }
+
+  async function sampleAlertStream() {
+    await runAction(
+      "terminal-alert-stream",
+      `/api/terminals/${terminal.id}/events/alert-stream?timeoutMs=5000&maxBytes=4096`,
+      undefined,
+      {
+        method: "GET",
+        successMessage: "Alert stream sample captured",
+        onSuccess: (data) => {
+          setAlertStreamSample((data as TerminalAlertStreamResponse) || null);
+        },
+      }
+    );
+  }
+
+  async function pollClockingEvents() {
+    await runAction(
+      "terminal-event-poll",
+      `/api/terminals/${terminal.id}/events/poll`,
+      {
+        allEvents: true,
+        maxResults: pollMaxResults.trim(),
+      },
+      {
+        successMessage: "All terminal events polled",
+        onSuccess: (data) => {
+          const payload = (data as TerminalEventPollResponse) || null;
+          setPollResult(payload);
+          if (payload) {
+            setTerminalEventHistory({
+              success: true,
+              source: payload.source === "acsEvent" ? "acsEvent" : "alertStream",
+              terminal_events: payload.terminal_events ?? [],
+              total_matches: payload.total_matches ?? payload.fetched_count,
+              poll_filters: payload.poll_filters,
+              supported_minors_by_major: payload.supported_minors_by_major,
+              filtered_out_minors_by_major: payload.filtered_out_minors_by_major,
+              search_errors: payload.search_errors,
+              raw_response: payload.raw_responses?.length
+                ? { responses: payload.raw_responses }
+                : undefined,
+            });
+          }
+        },
       }
     );
   }
@@ -264,9 +378,7 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
   async function handleDelete() {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/terminals/${terminal.id}`, {
-        method: "DELETE"
-      });
+      const res = await fetch(`/api/terminals/${terminal.id}`, { method: "DELETE" });
 
       if (!res.ok) {
         throw new Error(await getApiErrorMessage(res, "Failed to delete terminal"));
@@ -303,8 +415,9 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline">{terminal.status}</Badge>
           <Badge variant="outline">{terminal.activation_status || "unknown"}</Badge>
-          <Badge variant="outline">{terminal.webhook_status || "unset"}</Badge>
-          <Badge variant="outline">{terminal.webhook_subscription_status || "unset"}</Badge>
+          <Badge variant={heartbeatVariant(terminal.heartbeat_status)}>
+            Heartbeat {terminal.heartbeat_status || "unknown"}
+          </Badge>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" aria-label="Terminal actions">
@@ -336,7 +449,9 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Device UID</CardTitle>
             </CardHeader>
-            <CardContent className="text-2xl font-bold">{terminal.device_uid || "—"}</CardContent>
+            <CardContent className="min-w-0 break-all text-xl font-bold leading-tight sm:text-2xl">
+              {terminal.device_uid || "—"}
+            </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
@@ -344,6 +459,23 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
               {terminal.last_seen ? new Date(terminal.last_seen).toLocaleString() : "Never"}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Heartbeat</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">{terminal.heartbeat_status || "unknown"}</p>
+              <p>{formatDateTime(terminal.heartbeat_checked_at)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Registered Faces</CardTitle>
+            </CardHeader>
+            <CardContent className="text-2xl font-bold">
+              {terminal.registered_face_count ?? "—"}
             </CardContent>
           </Card>
           <Card>
@@ -360,28 +492,26 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">{site?.name || "Unassigned"}</CardContent>
           </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Registered Faces</CardTitle>
-            </CardHeader>
-            <CardContent className="text-2xl font-bold">
-              {terminal.registered_face_count ?? "—"}
-            </CardContent>
-          </Card>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
             onClick={() => runAction("probe", `/api/terminals/${terminal.id}/probe`)}
-            disabled={busyAction !== null}>
-            {busyAction === "probe" ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
+            disabled={busyAction !== null}
+          >
+            {busyAction === "probe" ? (
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Activity className="mr-2 h-4 w-4" />
+            )}
             Probe Now
           </Button>
           <Button
             variant="outline"
             onClick={() => runAction("activation", `/api/terminals/${terminal.id}/activate`)}
-            disabled={busyAction !== null}>
+            disabled={busyAction !== null}
+          >
             {busyAction === "activation" ? (
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -389,43 +519,86 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
             )}
             Refresh Activation
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => runAction("webhook-configure", `/api/terminals/${terminal.id}/webhook-configure`, {})}
-            disabled={busyAction !== null}>
-            {busyAction === "webhook-configure" ? (
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Globe className="mr-2 h-4 w-4" />
-            )}
-            Configure Webhook
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => runAction("webhook-test", `/api/terminals/${terminal.id}/webhook-test`)}
-            disabled={busyAction !== null}>
-            {busyAction === "webhook-test" ? (
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <PlugZap className="mr-2 h-4 w-4" />
-            )}
-            Test Webhook
+          <Button asChild variant="outline">
+            <Link href="/dashboard/docs">
+              <FileCode2 className="mr-2 h-4 w-4" />
+              Open SDK Docs
+            </Link>
           </Button>
         </div>
 
-        <TerminalSnapshotCard
-          terminal={terminal}
-          title="Camera Snapshot"
-          description={`Live snapshot feed proxied from the terminal's configured stream${terminal.snapshot_stream_id ? ` (${terminal.snapshot_stream_id})` : ""}.`}
-          actions={
-            <Button asChild variant="secondary">
-              <Link href={`/dashboard/guards?register=1&source_terminal=${terminal.id}`}>
-                <Fingerprint className="mr-2 h-4 w-4" />
-                Register Guard
-              </Link>
-            </Button>
-          }
-        />
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+          <TerminalSnapshotCard
+            terminal={terminal}
+            title="Camera Snapshot"
+            description={`Live snapshot feed proxied from the terminal's configured stream${terminal.snapshot_stream_id ? ` (${terminal.snapshot_stream_id})` : ""}.`}
+            className="h-fit"
+            mediaViewportClassName="aspect-[4/5] min-h-0"
+            imageClassName="object-cover"
+            actions={
+              <Button asChild variant="secondary">
+                <Link href={`/dashboard/guards?register=1&source_terminal=${terminal.id}`}>
+                  <Fingerprint className="mr-2 h-4 w-4" />
+                  Register Guard
+                </Link>
+              </Button>
+            }
+          />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Snapshot Context</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Site</p>
+                  <p className="font-medium">{site?.name || "Unassigned"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Snapshot Stream</p>
+                  <p className="font-medium">{terminal.snapshot_stream_id || "101"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Face Mode</p>
+                  <p className="font-medium">{terminal.face_recognize_mode || "Unknown"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Edge Terminal ID</p>
+                  <p className="font-medium break-all">{terminal.edge_terminal_id}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Live Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Terminal Status</p>
+                  <p className="font-medium capitalize">{terminal.status}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Activation</p>
+                  <p className="font-medium">{terminal.activation_status || "unknown"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Heartbeat</p>
+                  <p className="font-medium">{terminal.heartbeat_status || "unknown"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Last Seen</p>
+                  <p className="font-medium">{formatDateTime(terminal.last_seen)}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Registered Faces</p>
+                  <p className="font-medium">{terminal.registered_face_count ?? "—"}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         <TerminalAddDialog
           open={editOpen}
@@ -560,8 +733,8 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Available capability snapshots captured from the device. These are stored so the UI can
-                reflect what the terminal supports without probing every time.
+                Stored device capability snapshots. These are useful for confirming whether `AcsEvent`,
+                `alertStream`, face capture, and other ISAPI surfaces are supported without reprobe on every page load.
               </p>
               <JsonBlock value={terminal.capability_snapshot} />
             </CardContent>
@@ -569,104 +742,21 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Webhook</CardTitle>
+              <CardTitle className="text-base">Event Collection Strategy</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Callback Token</p>
-                  <p className="font-mono text-sm">{terminal.webhook_token || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Host ID</p>
-                  <p className="font-mono text-sm">{terminal.webhook_host_id || "—"}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Callback URL</p>
-                <p className="break-all font-mono text-xs text-muted-foreground">
-                  {terminal.webhook_url || (terminal.webhook_token ? `/api/events/hikvision/${terminal.webhook_token}` : "Not configured")}
-                </p>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Subscription Status</p>
-                  <p className="font-medium">{terminal.webhook_subscription_status || "unset"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Subscription ID</p>
-                  <p className="font-mono text-sm">{terminal.webhook_subscription_id || "—"}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">HTTP Host Snapshot</p>
-                <JsonBlock value={terminal.capability_snapshot?.httpHosts} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Advanced Hikvision</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Use the guide-backed SDK routes for host upload diagnostics. Face search and the full capture-and-sync workflow are exposed in the Swagger docs and the SDK admin routes.
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+              <p>
+                This terminal now uses polling and streaming diagnostics only. Stored clocking events come from
+                `AcsEvent` polling and shared ingest, while `alertStream` is used as a live diagnostic surface.
               </p>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    runAction(
-                      "webhook-upload-control",
-                      `/api/terminals/${terminal.id}/webhook-upload-control`,
-                      undefined,
-                      {
-                        method: "GET",
-                        successMessage: "Upload control refreshed",
-                        onSuccess: (data) => {
-                          const payload = data as { upload_ctrl?: Record<string, unknown> } | null;
-                          setUploadCtrlSnapshot(payload?.upload_ctrl || null);
-                        }
-                      }
-                    )
-                  }
-                  disabled={busyAction !== null}>
-                  {busyAction === "webhook-upload-control" ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Globe className="mr-2 h-4 w-4" />
-                  )}
-                  Inspect Upload Control
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/dashboard/docs">
-                    <FileCode2 className="mr-2 h-4 w-4" />
-                    Open SDK Docs
-                  </Link>
-                </Button>
-              </div>
-
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Upload Control Snapshot</p>
-                  {uploadCtrlSnapshot ? (
-                    <JsonBlock value={uploadCtrlSnapshot} />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No upload control snapshot has been loaded yet.
-                    </p>
-                  )}
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Heartbeat Source</p>
+                  <p className="font-medium text-foreground">`/ISAPI/AccessControl/AcsWorkStatus`</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Guide-backed SDK Surfaces</p>
-                  <p className="text-sm text-muted-foreground">
-                    Face search, face record upsert, and the full capture-and-sync workflow live in the SDK admin routes and the Swagger docs.
-                  </p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Clocking Source</p>
+                  <p className="font-medium text-foreground">`/ISAPI/AccessControl/AcsEvent?format=json`</p>
                 </div>
               </div>
             </CardContent>
@@ -675,236 +765,358 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
       </TabsContent>
 
       <TabsContent value="events" className="space-y-6">
-        <div className="grid gap-4 xl:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Event Subscription</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                This terminal firmware stores event push settings inside the configured HTTP host. We apply the callback URL plus a guide-backed `SubscribeEvent` payload there when you subscribe.
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Event Diagnostics</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Use these controls to compare the terminal&apos;s own event history with what the app has stored.
+              This helps us narrow failures to generation, polling, or persistence.
+            </p>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="flex items-start gap-3 rounded-lg border p-3">
-                  <Checkbox
-                    checked={subscribeAllEventModes}
-                    onCheckedChange={(checked) => setSubscribeAllEventModes(Boolean(checked))}
-                  />
-                  <div className="space-y-1">
-                    <Label>All event modes</Label>
-                    <p className="text-xs text-muted-foreground">Matches the documented `eventMode=all` body.</p>
-                  </div>
-                </label>
-                <label className="flex items-start gap-3 rounded-lg border p-3">
-                  <Checkbox
-                    checked={subscribeAllChannels}
-                    onCheckedChange={(checked) => setSubscribeAllChannels(Boolean(checked))}
-                  />
-                  <div className="space-y-1">
-                    <Label>All channels</Label>
-                    <p className="text-xs text-muted-foreground">Matches the documented `channelMode=all` body.</p>
-                  </div>
-                </label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                onClick={runEventDiagnostics}
+                disabled={busyAction !== null}
+              >
+                {busyAction === "terminal-event-diagnostics" ? (
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Activity className="mr-2 h-4 w-4" />
+                )}
+                Run Event Diagnostics
+              </Button>
+              <Button
+                variant="outline"
+                onClick={inspectTerminalEventHistory}
+                disabled={busyAction !== null}
+              >
+                {busyAction === "terminal-event-history" ? (
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Server className="mr-2 h-4 w-4" />
+                )}
+                Refresh Terminal History
+              </Button>
+              <Button
+                variant="outline"
+                onClick={sampleAlertStream}
+                disabled={busyAction !== null}
+              >
+                {busyAction === "terminal-alert-stream" ? (
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <PlugZap className="mr-2 h-4 w-4" />
+                )}
+                Sample Alert Stream
+              </Button>
+            </div>
+
+            {eventDiagnostics?.summary ? (
+              <div className="rounded-lg border bg-muted/20 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline">{eventDiagnostics.summary.status}</Badge>
+                  {eventDiagnostics.terminal_history_source ? (
+                    <Badge variant="outline">Source {eventDiagnostics.terminal_history_source}</Badge>
+                  ) : null}
+                  <Badge variant="secondary">
+                    Terminal {eventDiagnostics.summary.terminal_generated_count}
+                  </Badge>
+                  <Badge variant="secondary">
+                    Stored {eventDiagnostics.summary.stored_clocking_count}
+                  </Badge>
+                </div>
+                <p className="mt-3 text-sm">{eventDiagnostics.summary.message}</p>
+                <div className="mt-3 grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
+                  <p>
+                    Matched terminal → stored:{" "}
+                    <span className="font-mono">{eventDiagnostics.summary.matched_terminal_to_clocking}</span>
+                  </p>
+                  <p>
+                    Latest stored events:{" "}
+                    <span className="font-mono">{eventDiagnostics.recent_clocking_events?.length ?? events.length}</span>
+                  </p>
+                </div>
               </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                No diagnostic comparison has been run yet.
+              </div>
+            )}
 
-              <div className="flex flex-wrap gap-2">
+            {eventDiagnostics?.runtime_database ? (
+              <div className="rounded-lg border bg-muted/20 p-4 text-sm">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Runtime Database</p>
+                <div className="mt-2 grid gap-2 md:grid-cols-2">
+                  <p>
+                    <span className="text-muted-foreground">Database:</span>{" "}
+                    <span className="font-mono">{eventDiagnostics.runtime_database.database_name || "—"}</span>
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">Mongo host:</span>{" "}
+                    <span className="font-mono">{eventDiagnostics.runtime_database.mongo_host || "—"}</span>
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">Terminal records:</span>{" "}
+                    <span className="font-mono">{eventDiagnostics.runtime_database.terminal_collection_count ?? "—"}</span>
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground">Stored clocking events:</span>{" "}
+                    <span className="font-mono">{eventDiagnostics.runtime_database.clocking_event_collection_count ?? "—"}</span>
+                  </p>
+                </div>
+                {eventDiagnostics.runtime_database.warning ? (
+                  <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-amber-800">
+                    {eventDiagnostics.runtime_database.warning}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {eventDiagnostics?.terminal_history_error ? (
+              <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm text-amber-800">
+                {eventDiagnostics.terminal_history_error}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Poll All Terminal Events</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              This polls the terminal&apos;s recent `AcsEvent` history across all supported event families, not just the
+              clocking-focused minors. We still ingest only business-relevant clocking events into the app, but the
+              terminal-page result shows the wider raw event picture so we can see whether anything was filtered out.
+            </p>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="poll-max-results">Max Results</Label>
+                <Input
+                  id="poll-max-results"
+                  value={pollMaxResults}
+                  onChange={(event) => setPollMaxResults(event.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
                 <Button
                   variant="secondary"
-                  onClick={handleSubscribeEvents}
-                  disabled={busyAction !== null || !subscribeAllEventModes || !subscribeAllChannels}>
-                  {busyAction === "webhook-subscribe" ? (
+                  onClick={pollClockingEvents}
+                  disabled={busyAction !== null}
+                >
+                  {busyAction === "terminal-event-poll" ? (
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Activity className="mr-2 h-4 w-4" />
                   )}
-                  Subscribe Events
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleUnsubscribeEvents}
-                  disabled={
-                    busyAction !== null ||
-                    (terminal.webhook_subscription_status !== "subscribed" &&
-                      terminal.webhook_status !== "active" &&
-                      terminal.webhook_status !== "configured")
-                  }>
-                  {busyAction === "webhook-unsubscribe" ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="mr-2 h-4 w-4" />
-                  )}
-                  Unsubscribe Events
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => runAction("webhook-test", `/api/terminals/${terminal.id}/webhook-test`)}
-                  disabled={busyAction !== null}>
-                  {busyAction === "webhook-test" ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <PlugZap className="mr-2 h-4 w-4" />
-                  )}
-                  Test Webhook
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={inspectDeviceWebhookHosts}
-                  disabled={busyAction !== null}>
-                  {busyAction === "webhook-hosts" ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Globe className="mr-2 h-4 w-4" />
-                  )}
-                  Inspect Device Webhooks
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleResetDeviceWebhooks}
-                  disabled={busyAction !== null}>
-                  {busyAction === "webhook-reset" ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="mr-2 h-4 w-4" />
-                  )}
-                  Reset Device Webhooks
+                  Poll All Events
                 </Button>
               </div>
+            </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Subscription Status</p>
-                  <p className="font-medium">{terminal.webhook_subscription_status || "unset"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Subscription ID</p>
-                  <p className="font-mono text-sm">{terminal.webhook_subscription_id || "—"}</p>
-                </div>
-              </div>
+            <p className="text-xs text-muted-foreground">
+              The route now asks the SDK for the terminal&apos;s latest broad `AcsEvent` page without sending
+              major/minor filters to the terminal. We still classify the results on the frontend, but the request
+              itself stays broad so we can see the newest raw event slice first.
+            </p>
 
-              {terminal.webhook_subscription_error ? (
-                <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-                  {terminal.webhook_subscription_error}
+            {pollResult ? (
+              <div className="rounded-lg border bg-muted/20 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline">{pollResult.source || "acsEvent"}</Badge>
+                  {pollResult.all_events ? <Badge variant="outline">All events</Badge> : null}
+                  <Badge variant="secondary">Fetched {pollResult.fetched_count ?? 0}</Badge>
+                  <Badge variant="secondary">Inserted {pollResult.inserted_count ?? 0}</Badge>
+                  <Badge variant="outline">Duplicates {pollResult.duplicate_count ?? 0}</Badge>
                 </div>
-              ) : null}
-
-              {terminal.webhook_subscription_status === "subscribed" && !terminal.webhook_subscription_id ? (
-                <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
-                  This firmware stores the event push subscription inside the terminal's HTTP host configuration and may not expose a standalone subscription ID. Use `Unsubscribe Events` or `Reset Device Webhooks` if we need to clear the deployed host subscription and start fresh.
-                </div>
-              ) : null}
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Device Webhook Hosts</p>
-                  <p className="text-sm text-muted-foreground">
-                    This inspects the terminal&apos;s live `httpHosts` configuration so we can see which callback URLs and subscribed event pushes are already deployed on the device.
+                {pollResult.poll_filters ? (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Query plans used: {formatEventPlanSummary(pollResult.poll_filters.plans)}
+                    {typeof pollResult.poll_filters.searchResultPosition === "number"
+                      ? ` • Latest page position ${pollResult.poll_filters.searchResultPosition}`
+                      : ""}
                   </p>
-                </div>
-
-                {deviceWebhookHosts === null ? (
-                  <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                    Click `Inspect Device Webhooks` to load the terminal&apos;s active HTTP host and subscription configuration.
+                ) : null}
+                {pollResult.supported_minors_by_major?.length ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Supported minors by major:{" "}
+                    {pollResult.supported_minors_by_major
+                      .map((entry) => `major ${entry.major}: ${entry.minors.join(", ")}`)
+                      .join(" | ")}
+                  </p>
+                ) : null}
+                {pollResult.filtered_out_minors_by_major?.length ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Ignored unsupported minors:{" "}
+                    {pollResult.filtered_out_minors_by_major
+                      .map((entry) => `major ${entry.major}: ${entry.minors.join(", ")}`)
+                      .join(" | ")}
+                  </p>
+                ) : null}
+                {pollResult.search_errors?.length ? (
+                  <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-800">
+                    Some terminal event pages were rejected by the terminal:{" "}
+                    {pollResult.search_errors
+                      .map((entry) => `page ${entry.minor} (${entry.error})`)
+                      .join(", ")}
                   </div>
-                ) : deviceWebhookHosts.length === 0 ? (
-                  <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                    No HTTP webhook hosts are configured on the device right now.
+                ) : null}
+                {pollResult.ingested_events?.length ? (
+                  <div className="mt-3 overflow-x-auto rounded-lg border bg-background">
+                    <table className="w-full min-w-[720px] text-sm">
+                      <thead className="border-b bg-muted/30 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <tr>
+                          <th className="px-3 py-2">Inserted</th>
+                          <th className="px-3 py-2">Event</th>
+                          <th className="px-3 py-2">Employee</th>
+                          <th className="px-3 py-2">Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pollResult.ingested_events.slice(0, 10).map((event) => (
+                          <tr key={event.event_id} className="border-b last:border-0">
+                            <td className="px-3 py-3">
+                              <Badge variant={event.created ? "secondary" : "outline"}>
+                                {event.created ? "Inserted" : "Duplicate"}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-3">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <EventSummaryBadges event={event} />
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 font-mono text-xs">{event.employee_no || "—"}</td>
+                            <td className="px-3 py-3 font-mono text-xs text-muted-foreground">{event.event_time}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {deviceWebhookHosts.map((host, index) => (
-                      <div key={host.id || host.url || String(index)} className="rounded-lg border bg-muted/20 p-3">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <Badge variant="outline">Host {host.id || "—"}</Badge>
-                              {host.subscribeEvent ? (
-                                <Badge variant="secondary">Subscribed</Badge>
-                              ) : (
-                                <Badge variant="outline">No subscription</Badge>
-                              )}
-                              {host.protocolType ? <Badge variant="outline">{host.protocolType}</Badge> : null}
-                            </div>
-                            <p className="break-all font-mono text-xs text-muted-foreground">
-                              {host.url || "No URL configured"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Addressing: {host.addressingFormatType || "—"} · Auth: {host.httpAuthenticationMethod || "none"}
-                            </p>
-                            {host.subscribeEvent ? (
-                              <p className="text-xs text-muted-foreground">
-                                Event mode: {host.subscribeEvent.eventMode || "—"} · Types:{" "}
-                                {host.subscribeEvent.eventTypes.length > 0
-                                  ? host.subscribeEvent.eventTypes.join(", ")
-                                  : "all/default"}{" "}
-                                · Heartbeat: {host.subscribeEvent.heartbeat || "—"}
-                              </p>
-                            ) : null}
-                          </div>
-
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => host.id && deleteDeviceWebhookHost(host.id)}
-                            disabled={busyAction !== null || !host.id}>
-                            {busyAction === `webhook-host-delete-${host.id}` ? (
-                              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="mr-2 h-4 w-4" />
-                            )}
-                            Delete Host
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                ) : null}
+                {pollResult.terminal_events?.length ? (
+                  <div className="mt-4">
+                    <TerminalEventTable
+                      title="Observed Terminal Events"
+                      description="The terminal's raw event rows captured during the latest poll."
+                      events={pollResult.terminal_events.slice(0, 20)}
+                      emptyMessage="No terminal events captured during the latest poll."
+                      showHeading={false}
+                    />
                   </div>
-                )}
+                ) : null}
               </div>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Terminal-Side Event History</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                This is the terminal&apos;s own recent `AcsEvent` history fetched without event-family filters. Use it
+                to confirm whether the device generated your action even if it never became a stored clocking event.
+              </p>
+
+              {!terminalEventHistory?.terminal_events?.length ? (
+                <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                  No terminal-side event history loaded yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {terminalEventHistory.source ? (
+                      <Badge variant="outline">Source {terminalEventHistory.source}</Badge>
+                    ) : null}
+                    {terminalEventHistory.poll_filters?.all_events ? (
+                      <Badge variant="outline">All events</Badge>
+                    ) : null}
+                    {typeof terminalEventHistory.poll_filters?.searchResultPosition === "number" ? (
+                      <Badge variant="secondary">
+                        Latest page {terminalEventHistory.poll_filters.searchResultPosition}
+                      </Badge>
+                    ) : null}
+                    {typeof terminalEventHistory.total_matches === "number" ? (
+                      <Badge variant="secondary">{terminalEventHistory.total_matches} events</Badge>
+                    ) : null}
+                  </div>
+                  {terminalEventHistory.poll_filters ? (
+                    <p className="text-xs text-muted-foreground">
+                      Query plans used: {formatEventPlanSummary(terminalEventHistory.poll_filters.plans)}
+                      {typeof terminalEventHistory.poll_filters.searchResultPosition === "number"
+                        ? ` • Latest page position ${terminalEventHistory.poll_filters.searchResultPosition}`
+                        : ""}
+                    </p>
+                  ) : null}
+                  {terminalEventHistory.warning ? (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-800">
+                      {terminalEventHistory.warning}
+                    </div>
+                  ) : null}
+                  <TerminalEventTable
+                    title="Last 20 terminal events"
+                    description="Use the filters to narrow the raw terminal history by code pair, label, person, reader, or door."
+                    events={terminalEventHistory.terminal_events.slice(0, 20)}
+                    emptyMessage="No terminal-side event history loaded yet."
+                    showHeading={false}
+                  />
+                </div>
+              )}
+
+              {terminalEventHistory?.raw_response ? (
+                <div>
+                  <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">
+                    Raw Terminal Response
+                  </p>
+                  <JsonBlock value={terminalEventHistory.raw_response} />
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Recent Deliveries</CardTitle>
+              <CardTitle className="text-base">Alert Stream Sample</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                This shows whether the terminal is actually pushing callback traffic back to the app.
+                This is a bounded diagnostic read from the terminal&apos;s `alertStream`. It is read-only and does not
+                create stored clocking events.
               </p>
 
-              {deliveries.length === 0 ? (
+              {!alertStreamSample ? (
                 <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  No webhook deliveries recorded yet. Configure the webhook, subscribe the terminal, run a test, or trigger a real event on the device.
+                  No alert-stream sample captured yet.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {deliveries.map((delivery) => (
-                    <div key={delivery.id} className="rounded-lg border bg-muted/20 p-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={delivery.success ? "secondary" : "destructive"}>
-                          {delivery.success ? "Success" : "Failed"}
-                        </Badge>
-                        <Badge variant="outline">{delivery.source === "device_test" ? "Webhook test" : "Device push"}</Badge>
-                        {delivery.event_type ? <Badge variant="outline">{delivery.event_type}</Badge> : null}
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(delivery.created_at).toLocaleString()}
-                        </span>
-                      </div>
-                      {delivery.employee_no ? (
-                        <p className="mt-2 text-sm">
-                          Employee No: <span className="font-mono">{delivery.employee_no}</span>
-                        </p>
-                      ) : null}
-                      {delivery.error ? (
-                        <p className="mt-2 text-sm text-destructive">{delivery.error}</p>
-                      ) : null}
-                      {delivery.payload_preview ? (
-                        <pre className="mt-2 overflow-x-auto rounded-md bg-background p-2 text-[11px] leading-5 text-muted-foreground">
-                          {delivery.payload_preview}
-                        </pre>
-                      ) : null}
-                    </div>
-                  ))}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">{alertStreamSample.content_type || "unknown content type"}</Badge>
+                    <Badge variant="secondary">{alertStreamSample.sample_bytes || 0} bytes</Badge>
+                    {alertStreamSample.truncated ? <Badge variant="outline">truncated</Badge> : null}
+                  </div>
+                  {alertStreamSample.events?.length ? (
+                    <TerminalEventTable
+                      title="Raw stream events"
+                      description="The raw multipart alert stream decoded into readable rows."
+                      events={alertStreamSample.events.slice(0, 20)}
+                      emptyMessage="No events were decoded from the alert-stream sample."
+                      showClockingOnlyToggle={false}
+                      showHeading={false}
+                    />
+                  ) : null}
+                  {alertStreamSample.sample_text ? (
+                    <pre className="overflow-x-auto rounded-md bg-background p-3 text-[11px] leading-5 text-muted-foreground">
+                      {alertStreamSample.sample_text}
+                    </pre>
+                  ) : null}
                 </div>
               )}
             </CardContent>
@@ -913,24 +1125,20 @@ export function TerminalDetailsClient({ terminal, site, sites, deliveries, event
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Terminal Events</CardTitle>
+            <CardTitle className="text-base">Stored Terminal Events</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              These are the clocking events produced by this terminal after real webhook pushes are received.
+              These are the stored business events currently recorded for this terminal from polling and shared ingest.
             </p>
 
-            {recentEvents.length === 0 ? (
+            {events.length === 0 ? (
               <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                 <Server className="mx-auto mb-3 h-8 w-8 opacity-20" />
                 No terminal events recorded yet.
               </div>
             ) : (
-              <div className="space-y-4">
-                {recentEvents.map((event) => (
-                  <EventRow key={event.id} event={event} />
-                ))}
-              </div>
+              <ClockingEventList events={events} />
             )}
           </CardContent>
         </Card>

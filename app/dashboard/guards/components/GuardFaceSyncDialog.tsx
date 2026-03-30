@@ -31,9 +31,23 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const allowedTerminals = useMemo(() => {
+    if (!guard?.current_assignment?.site_id) {
+      return [];
+    }
+
+    return terminals.filter(
+      (terminal) => terminal.site_id === guard.current_assignment?.site_id
+    );
+  }, [guard, terminals]);
+
   const selectableTerminals = useMemo(
-    () => terminals.filter((terminal) => terminal.status === "online" && terminal.activation_status === "activated"),
-    [terminals]
+    () =>
+      allowedTerminals.filter(
+        (terminal) =>
+          terminal.status === "online" && terminal.activation_status === "activated"
+      ),
+    [allowedTerminals]
   );
 
   function terminalSyncReason(terminal: Terminal) {
@@ -52,12 +66,17 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
   }, [open, selectableTerminals]);
 
   const selectedTerminals = useMemo(
-    () => terminals.filter((terminal) => selectedIds.includes(terminal.id)),
-    [selectedIds, terminals]
+    () => allowedTerminals.filter((terminal) => selectedIds.includes(terminal.id)),
+    [selectedIds, allowedTerminals]
   );
 
   async function handleSync() {
     if (!guard) {
+      return;
+    }
+
+    if (!guard.current_assignment) {
+      toast.error("Assign the guard to a site before syncing terminals");
       return;
     }
 
@@ -81,15 +100,33 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
       const data = await res.json();
       const results = Array.isArray(data?.results) ? data.results : [];
       const summary = data?.summary || {};
-      const syncedCount = results.filter((result: { status: string }) => result.status === "synced").length;
+      const terminalValidation = data?.terminal_validation || {};
+      const syncedCount = results.filter(
+        (result: { status: string }) => result.status === "verified" || result.status === "synced"
+      ).length;
       const alreadyPresentCount = results.filter(
         (result: { already_present?: boolean }) => result.already_present
       ).length;
-      const failedResults = results.filter((result: { status: string }) => result.status === "failed");
+      const failedResults = results.filter(
+        (result: { status: string }) =>
+          result.status !== "verified" && result.status !== "synced"
+      );
       const failedCount = failedResults.length;
       const firstError =
         failedResults.find((result: { error?: string }) => typeof result.error === "string" && result.error.trim())?.error || null;
-      const overallSynced = Boolean(data?.facial_imprint_synced || summary?.facial_imprint_synced);
+      const totalTerminals =
+        typeof terminalValidation?.total_terminals === "number"
+          ? terminalValidation.total_terminals
+          : typeof summary?.total_terminals === "number"
+            ? summary.total_terminals
+            : results.length;
+      const verifiedCount =
+        typeof terminalValidation?.verified_count === "number"
+          ? terminalValidation.verified_count
+          : typeof summary?.synced_count === "number"
+            ? summary.synced_count
+            : syncedCount;
+      const overallSynced = totalTerminals > 0 && verifiedCount === totalTerminals;
 
       if (overallSynced && syncedCount === selectedIds.length && failedCount === 0) {
         toast.success(
@@ -123,8 +160,8 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
         <DialogHeader>
           <DialogTitle>Sync Guard Face</DialogTitle>
           <DialogDescription>
-            Choose one or more terminals. The uploaded guard photo will be pushed to each selected
-            device using Hikvision ISAPI.
+            Choose one or more terminals from the guard&apos;s assigned site. The uploaded guard
+            photo will be pushed to each selected device using Hikvision ISAPI.
           </DialogDescription>
         </DialogHeader>
 
@@ -134,6 +171,43 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
               <Badge variant="outline">{guard.employee_number}</Badge>
               <span className="font-medium">{guard.full_name}</span>
               <span className="text-sm text-muted-foreground">{guard.phone_number}</span>
+              {guard.current_assignment ? (
+                <Badge variant="secondary">
+                  {guard.current_assignment.site?.name || guard.current_assignment.site_id}
+                </Badge>
+              ) : (
+                <Badge variant="outline">Unassigned</Badge>
+              )}
+            </div>
+          ) : null}
+
+          {!guard?.current_assignment ? (
+            <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-4 text-sm text-amber-800">
+              Assign the guard to a site before syncing face data to terminals.
+            </div>
+          ) : null}
+
+          {guard?.terminal_validation?.total_terminals ? (
+            <div className="space-y-2 rounded-lg border p-3">
+              <p className="text-sm font-medium">Current Live Terminal Validation</p>
+              <div className="grid gap-2 md:grid-cols-2">
+                {guard.terminal_validation.validations.map((validation) => (
+                  <div key={validation.terminal_id} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium">{validation.terminal_name || validation.terminal_id}</p>
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        {validation.status.replaceAll("_", " ")}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      user: {validation.user_present ? "present" : "missing"} · face: {validation.face_present ? "present" : "missing"} · access: {validation.access_ready ? "ready" : "not ready"}
+                    </p>
+                    {validation.error ? (
+                      <p className="mt-1 text-xs text-amber-700">{validation.error}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
             </div>
           ) : null}
 
@@ -154,12 +228,12 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
             </div>
 
             <div className="grid gap-2 md:grid-cols-2">
-              {terminals.length === 0 ? (
+              {allowedTerminals.length === 0 ? (
                 <div className="col-span-full rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  No terminals registered yet.
+                  No terminals are available for the assigned site yet.
                 </div>
               ) : (
-                terminals.map((terminal) => {
+                allowedTerminals.map((terminal) => {
                   const checked = selectedIds.includes(terminal.id);
                   const reason = terminalSyncReason(terminal);
                   const selectable = !reason;
@@ -217,7 +291,13 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button type="button" onClick={handleSync} disabled={loading || !guard || selectedIds.length === 0}>
+          <Button
+            type="button"
+            onClick={handleSync}
+            disabled={
+              loading || !guard || !guard.current_assignment || selectedIds.length === 0
+            }
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <ShieldCheck className="mr-2 h-4 w-4" />
             Sync Face
