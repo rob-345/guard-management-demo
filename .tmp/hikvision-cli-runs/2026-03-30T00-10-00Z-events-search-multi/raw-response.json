@@ -1,0 +1,344 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T00:10:00.318Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400316\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":75,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"YzY3OTVkZWU2YzQwNTM3MDMxMjlkYmMxN2U5ODVhNWU=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.378Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400316\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":75,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "133",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 133,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774829400316\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.425Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400425\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":76,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=98",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"ZGFlMWFmZDA0ZTU4OTcyMTU1NzlkNTMzMmJmNDM0ZTU=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.436Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400425\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":76,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "133",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=98",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 133,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774829400425\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.472Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400472\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":80,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=97",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"MWQzNzk0ZDkxYmNlYmMxNDRkZjg3NGIxMDY4NjY1ZDQ=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.521Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400472\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":80,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "133",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=97",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 133,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774829400472\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.548Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400548\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":94,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=96",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"ODM5NjFkNzEyMGZhMTYwMmMyZjRkZTg0NTE0ZjJiNDk=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.569Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400548\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":94,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 179
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "133",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=96",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 133,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774829400548\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.596Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400595\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":104,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 180
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=95",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"NjhkMzY5YTc3N2E4ZDE3MjFjYzRkYWQyYzViMDhhYjk=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:00.618Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774829400595\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":104,\"startTime\":\"2026-03-29T23:54:59Z\",\"endTime\":\"2026-03-30T00:09:59Z\"}}",
+        "bodyBytes": 180
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "133",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 00:21:48 GMT",
+          "keep-alive": "timeout=5, max=95",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 133,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774829400595\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+      }
+    }
+  ]
+}

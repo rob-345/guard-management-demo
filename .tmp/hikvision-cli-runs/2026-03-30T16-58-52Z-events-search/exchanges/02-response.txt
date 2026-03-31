@@ -1,0 +1,7 @@
+{
+	"statusCode":	6,
+	"statusString":	"Invalid Content",
+	"subStatusCode":	"badJsonContent",
+	"errorCode":	1610612759,
+	"errorMsg":	"startTime"
+}

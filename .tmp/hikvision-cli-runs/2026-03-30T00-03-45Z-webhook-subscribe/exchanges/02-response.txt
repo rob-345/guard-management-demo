@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HttpHostNotification version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">
+<id>1</id>
+<url>http://192.168.0.194:3000/api/events/hikvision/e1c614...fb07</url>
+<protocolType>HTTP</protocolType>
+<parameterFormatType>JSON</parameterFormatType>
+<addressingFormatType>ipaddress</addressingFormatType>
+<ipAddress>192.168.0.194</ipAddress>
+<portNo>3000</portNo>
+<httpAuthenticationMethod>none</httpAuthenticationMethod>
+<SubscribeEvent><heartbeat>30</heartbeat><eventMode>all</eventMode><EventList><Event><type>AccessControllerEvent</type><minorAlarm></minorAlarm><minorException></minorException><minorOperation></minorOperation><minorEvent></minorEvent><pictureURLType>binary</pictureURLType></Event></EventList></SubscribeEvent>
+</HttpHostNotification>

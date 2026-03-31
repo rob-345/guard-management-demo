@@ -1,0 +1,26 @@
+{
+  "command": {
+    "group": "device",
+    "action": "info",
+    "displayName": "device info"
+  },
+  "flags": {
+    "host": [
+      "192.168.0.160"
+    ],
+    "username": [
+      "admin"
+    ],
+    "password": [
+      "***redacted***"
+    ],
+    "protocol": [
+      "http"
+    ],
+    "output": [
+      "json"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "json"
+}

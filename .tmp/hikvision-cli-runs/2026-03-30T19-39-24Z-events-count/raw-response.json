@@ -1,0 +1,70 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T19:39:24.109Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventTotalNumCond\":{\"major\":0,\"minor\":0}}",
+        "bodyBytes": 46
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:39:22 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"Yjc2MjE3ZTNlNDJjYzE4YzZiM2VhZWNmNTY5ODVkYWI=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:39:24.170Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventTotalNumCond\":{\"major\":0,\"minor\":0}}",
+        "bodyBytes": 46
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "46",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:39:22 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 46,
+        "bodyText": "{\n\t\"AcsEventTotalNum\":\t{\n\t\t\"totalNum\":\t56\n\t}\n}"
+      }
+    }
+  ]
+}

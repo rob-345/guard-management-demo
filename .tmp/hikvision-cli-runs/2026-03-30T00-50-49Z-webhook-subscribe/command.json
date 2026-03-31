@@ -1,0 +1,34 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "subscribe",
+    "displayName": "webhook subscribe"
+  },
+  "flags": {
+    "host-id": [
+      "1"
+    ],
+    "callback-url": [
+      "http://192.168.0.194:3000/api/events/hikvision/e1c61431f1b545f59aff08673013fb07"
+    ],
+    "port-no": [
+      "3000"
+    ],
+    "parameter-format-type": [
+      "JSON"
+    ],
+    "event-type": [
+      "AccessControllerEvent"
+    ],
+    "heartbeat": [
+      "30"
+    ],
+    "picture-url-type": [
+      "binary"
+    ]
+  },
+  "booleans": {
+    "show-tokens": true
+  },
+  "outputMode": "dual"
+}

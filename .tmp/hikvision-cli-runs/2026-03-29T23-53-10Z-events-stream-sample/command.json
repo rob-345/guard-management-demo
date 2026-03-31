@@ -1,0 +1,17 @@
+{
+  "command": {
+    "group": "events",
+    "action": "stream-sample",
+    "displayName": "events stream-sample"
+  },
+  "flags": {
+    "timeout-ms": [
+      "5000"
+    ],
+    "max-bytes": [
+      "8192"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "dual"
+}

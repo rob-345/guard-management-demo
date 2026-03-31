@@ -1,0 +1,35 @@
+info:
+  name: "UserInfo SetUp"
+  type: http
+  seq: 22
+
+http:
+  method: PUT
+  url: "http://{{device_host}}/ISAPI/AccessControl/UserInfo/SetUp"
+  params:
+    - name: "format"
+      value: "json"
+      type: query
+  headers:
+    - name: "Content-Type"
+      value: "application/json"
+  body:
+    type: json
+    data: |-
+      {
+          "UserInfo": {
+            "employeeNo": "{{employee_no}}",
+            "userType": "normal",
+            "name": "{{person_name}}"
+          }
+        }
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,4 @@
+{
+  "ok": false,
+  "error": "Hikvision request failed for /ISAPI/Event/notification/alertStream: 404 Not Found"
+}

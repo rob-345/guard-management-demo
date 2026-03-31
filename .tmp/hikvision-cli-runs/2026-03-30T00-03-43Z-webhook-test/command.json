@@ -1,0 +1,14 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "test",
+    "displayName": "webhook test"
+  },
+  "flags": {
+    "host-id": [
+      "1"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "dual"
+}

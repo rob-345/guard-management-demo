@@ -1,0 +1,584 @@
+{
+  "success": true,
+  "contentType": "multipart/mixed; boundary=MIME_boundary",
+  "sampleText": "--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 558\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:09:53Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t2,\n\t\t\"subEventType\":\t1031,\n\t\t\"serialNo\":\t209,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t208,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 556\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:09:58Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t2,\n\t\t\"subEventType\":\t39,\n\t\t\"serialNo\":\t210,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t209,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 558\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:10:15Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t2,\n\t\t\"subEventType\":\t1031,\n\t\t\"serialNo\":\t211,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t210,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 727\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:08Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t212,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t211,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.342,\n\t\t\t\"width\":\t0.194,\n\t\t\t\"x\":\t0.381,\n\t\t\t\"y\":\t0.249\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 727\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:13Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t213,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t212,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.345,\n\t\t\t\"width\":\t0.195,\n\t\t\t\"x\":\t0.465,\n\t\t\t\"y\":\t0.225\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 726\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:18Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t214,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t213,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.349,\n\t\t\t\"width\":\t0.197,\n\t\t\t\"x\":\t0.373,\n\t\t\t\"y\":\t0.23\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 727\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:21Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t215,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t214,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.339,\n\t\t\t\"width\":\t0.192,\n\t\t\t\"x\":\t0.397,\n\t\t\t\"y\":\t0.312\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 726\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:25Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t216,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t215,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.34,\n\t\t\t\"width\":\t0.193,\n\t\t\t\"x\":\t0.397,\n\t\t\t\"y\":\t0.312\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 727\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:36Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t217,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t216,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.336,\n\t\t\t\"width\":\t0.189,\n\t\t\t\"x\":\t0.399,\n\t\t\t\"y\":\t0.286\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\nContent-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 726\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:41Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t218,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t217,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttru",
+  "sampleBytes": 8192,
+  "truncated": true,
+  "events": [
+    {
+      "serialNo": "209",
+      "major": 2,
+      "minor": 1031,
+      "eventTime": "2026-03-29T22:09:53Z",
+      "dateTime": "2026-03-29T22:09:53Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:09:53Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 2,
+          "subEventType": 1031,
+          "serialNo": 209,
+          "currentEvent": false,
+          "frontSerialNo": 208,
+          "label": "",
+          "purePwdVerifyEnable": true
+        }
+      }
+    },
+    {
+      "serialNo": "209",
+      "major": 2,
+      "minor": 1031,
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 2,
+        "subEventType": 1031,
+        "serialNo": 209,
+        "currentEvent": false,
+        "frontSerialNo": 208,
+        "label": "",
+        "purePwdVerifyEnable": true
+      }
+    },
+    {
+      "serialNo": "210",
+      "major": 2,
+      "minor": 39,
+      "eventTime": "2026-03-29T22:09:58Z",
+      "dateTime": "2026-03-29T22:09:58Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:09:58Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 2,
+          "subEventType": 39,
+          "serialNo": 210,
+          "currentEvent": false,
+          "frontSerialNo": 209,
+          "label": "",
+          "purePwdVerifyEnable": true
+        }
+      }
+    },
+    {
+      "serialNo": "210",
+      "major": 2,
+      "minor": 39,
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 2,
+        "subEventType": 39,
+        "serialNo": 210,
+        "currentEvent": false,
+        "frontSerialNo": 209,
+        "label": "",
+        "purePwdVerifyEnable": true
+      }
+    },
+    {
+      "serialNo": "211",
+      "major": 2,
+      "minor": 1031,
+      "eventTime": "2026-03-29T22:10:15Z",
+      "dateTime": "2026-03-29T22:10:15Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:10:15Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 2,
+          "subEventType": 1031,
+          "serialNo": 211,
+          "currentEvent": false,
+          "frontSerialNo": 210,
+          "label": "",
+          "purePwdVerifyEnable": true
+        }
+      }
+    },
+    {
+      "serialNo": "211",
+      "major": 2,
+      "minor": 1031,
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 2,
+        "subEventType": 1031,
+        "serialNo": 211,
+        "currentEvent": false,
+        "frontSerialNo": 210,
+        "label": "",
+        "purePwdVerifyEnable": true
+      }
+    },
+    {
+      "serialNo": "212",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-29T22:12:08Z",
+      "dateTime": "2026-03-29T22:12:08Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:12:08Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 5,
+          "subEventType": 76,
+          "cardReaderNo": 1,
+          "serialNo": 212,
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "currentEvent": false,
+          "frontSerialNo": 211,
+          "label": "",
+          "mask": "no",
+          "purePwdVerifyEnable": true,
+          "FaceRect": {
+            "height": 0.342,
+            "width": 0.194,
+            "x": 0.381,
+            "y": 0.249
+          }
+        }
+      }
+    },
+    {
+      "serialNo": "212",
+      "major": 5,
+      "minor": 76,
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 5,
+        "subEventType": 76,
+        "cardReaderNo": 1,
+        "serialNo": 212,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "currentEvent": false,
+        "frontSerialNo": 211,
+        "label": "",
+        "mask": "no",
+        "purePwdVerifyEnable": true,
+        "FaceRect": {
+          "height": 0.342,
+          "width": 0.194,
+          "x": 0.381,
+          "y": 0.249
+        }
+      }
+    },
+    {
+      "serialNo": "213",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-29T22:12:13Z",
+      "dateTime": "2026-03-29T22:12:13Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:12:13Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 5,
+          "subEventType": 76,
+          "cardReaderNo": 1,
+          "serialNo": 213,
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "currentEvent": false,
+          "frontSerialNo": 212,
+          "label": "",
+          "mask": "no",
+          "purePwdVerifyEnable": true,
+          "FaceRect": {
+            "height": 0.345,
+            "width": 0.195,
+            "x": 0.465,
+            "y": 0.225
+          }
+        }
+      }
+    },
+    {
+      "serialNo": "213",
+      "major": 5,
+      "minor": 76,
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 5,
+        "subEventType": 76,
+        "cardReaderNo": 1,
+        "serialNo": 213,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "currentEvent": false,
+        "frontSerialNo": 212,
+        "label": "",
+        "mask": "no",
+        "purePwdVerifyEnable": true,
+        "FaceRect": {
+          "height": 0.345,
+          "width": 0.195,
+          "x": 0.465,
+          "y": 0.225
+        }
+      }
+    },
+    {
+      "serialNo": "214",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-29T22:12:18Z",
+      "dateTime": "2026-03-29T22:12:18Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:12:18Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 5,
+          "subEventType": 76,
+          "cardReaderNo": 1,
+          "serialNo": 214,
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "currentEvent": false,
+          "frontSerialNo": 213,
+          "label": "",
+          "mask": "no",
+          "purePwdVerifyEnable": true,
+          "FaceRect": {
+            "height": 0.349,
+            "width": 0.197,
+            "x": 0.373,
+            "y": 0.23
+          }
+        }
+      }
+    },
+    {
+      "serialNo": "214",
+      "major": 5,
+      "minor": 76,
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 5,
+        "subEventType": 76,
+        "cardReaderNo": 1,
+        "serialNo": 214,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "currentEvent": false,
+        "frontSerialNo": 213,
+        "label": "",
+        "mask": "no",
+        "purePwdVerifyEnable": true,
+        "FaceRect": {
+          "height": 0.349,
+          "width": 0.197,
+          "x": 0.373,
+          "y": 0.23
+        }
+      }
+    },
+    {
+      "serialNo": "215",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-29T22:12:21Z",
+      "dateTime": "2026-03-29T22:12:21Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:12:21Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 5,
+          "subEventType": 76,
+          "cardReaderNo": 1,
+          "serialNo": 215,
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "currentEvent": false,
+          "frontSerialNo": 214,
+          "label": "",
+          "mask": "no",
+          "purePwdVerifyEnable": true,
+          "FaceRect": {
+            "height": 0.339,
+            "width": 0.192,
+            "x": 0.397,
+            "y": 0.312
+          }
+        }
+      }
+    },
+    {
+      "serialNo": "215",
+      "major": 5,
+      "minor": 76,
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 5,
+        "subEventType": 76,
+        "cardReaderNo": 1,
+        "serialNo": 215,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "currentEvent": false,
+        "frontSerialNo": 214,
+        "label": "",
+        "mask": "no",
+        "purePwdVerifyEnable": true,
+        "FaceRect": {
+          "height": 0.339,
+          "width": 0.192,
+          "x": 0.397,
+          "y": 0.312
+        }
+      }
+    },
+    {
+      "serialNo": "216",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-29T22:12:25Z",
+      "dateTime": "2026-03-29T22:12:25Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:12:25Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 5,
+          "subEventType": 76,
+          "cardReaderNo": 1,
+          "serialNo": 216,
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "currentEvent": false,
+          "frontSerialNo": 215,
+          "label": "",
+          "mask": "no",
+          "purePwdVerifyEnable": true,
+          "FaceRect": {
+            "height": 0.34,
+            "width": 0.193,
+            "x": 0.397,
+            "y": 0.312
+          }
+        }
+      }
+    },
+    {
+      "serialNo": "216",
+      "major": 5,
+      "minor": 76,
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 5,
+        "subEventType": 76,
+        "cardReaderNo": 1,
+        "serialNo": 216,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "currentEvent": false,
+        "frontSerialNo": 215,
+        "label": "",
+        "mask": "no",
+        "purePwdVerifyEnable": true,
+        "FaceRect": {
+          "height": 0.34,
+          "width": 0.193,
+          "x": 0.397,
+          "y": 0.312
+        }
+      }
+    },
+    {
+      "serialNo": "217",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-29T22:12:36Z",
+      "dateTime": "2026-03-29T22:12:36Z",
+      "eventType": "AccessControllerEvent",
+      "eventState": "active",
+      "eventDescription": "Access Controller Event",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "ipAddress": "192.168.0.179",
+      "macAddress": "88:de:39:38:04:0f",
+      "raw": {
+        "ipAddress": "192.168.0.179",
+        "portNo": 80,
+        "protocol": "HTTP",
+        "macAddress": "88:de:39:38:04:0f",
+        "channelID": 1,
+        "dateTime": "2026-03-29T22:12:36Z",
+        "activePostCount": 1,
+        "eventType": "AccessControllerEvent",
+        "eventState": "active",
+        "eventDescription": "Access Controller Event",
+        "shortSerialNumber": "GF8169846",
+        "AccessControllerEvent": {
+          "deviceName": "Access Controller",
+          "majorEventType": 5,
+          "subEventType": 76,
+          "cardReaderNo": 1,
+          "serialNo": 217,
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "currentEvent": false,
+          "frontSerialNo": 216,
+          "label": "",
+          "mask": "no",
+          "purePwdVerifyEnable": true,
+          "FaceRect": {
+            "height": 0.336,
+            "width": 0.189,
+            "x": 0.399,
+            "y": 0.286
+          }
+        }
+      }
+    },
+    {
+      "serialNo": "217",
+      "major": 5,
+      "minor": 76,
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "deviceName": "Access Controller",
+        "majorEventType": 5,
+        "subEventType": 76,
+        "cardReaderNo": 1,
+        "serialNo": 217,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "currentEvent": false,
+        "frontSerialNo": 216,
+        "label": "",
+        "mask": "no",
+        "purePwdVerifyEnable": true,
+        "FaceRect": {
+          "height": 0.336,
+          "width": 0.189,
+          "x": 0.399,
+          "y": 0.286
+        }
+      }
+    }
+  ],
+  "rawHeaders": {
+    "connection": "keep-alive",
+    "content-type": "multipart/mixed; boundary=MIME_boundary",
+    "mime-version": "1.0"
+  }
+}

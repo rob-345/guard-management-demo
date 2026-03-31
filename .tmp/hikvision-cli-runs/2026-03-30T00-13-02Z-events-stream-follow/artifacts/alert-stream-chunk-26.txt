@@ -1,0 +1,16 @@
+Content-Type: application/json; charset="UTF-8"
+Content-Length: 276
+
+{
+	"ipAddress":	"192.168.0.179",
+	"portNo":	80,
+	"protocol":	"HTTP",
+	"macAddress":	"88:de:39:38:04:0f",
+	"channelID":	1,
+	"dateTime":	"2026-03-30T00:26:10Z",
+	"activePostCount":	1,
+	"eventType":	"videoloss",
+	"eventState":	"inactive",
+	"eventDescription":	"videoloss alarm"
+}
+--MIME_boundary

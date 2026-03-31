@@ -1,0 +1,326 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T19:40:54.738Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:52 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"YmU0MzcxMGVlNjA3YjA5MDgzODk4YjNhZThmNTE1OWQ=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:54.742Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventTotalNumCond\":{\"major\":0,\"minor\":0}}",
+        "bodyBytes": 46
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:52 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"ZGFkMWY4YTA2OTliYWFkMTcyNjVlZTQ0NzA1MTExYWM=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:54.772Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "46",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:52 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 46,
+        "bodyText": "{\n\t\"EventStorageCfg\":\t{\n\t\t\"mode\":\t\"cycle\"\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:54.774Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventTotalNumCond\":{\"major\":0,\"minor\":0}}",
+        "bodyBytes": 46
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "46",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:52 GMT",
+          "keep-alive": "timeout=5, max=98",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 46,
+        "bodyText": "{\n\t\"AcsEventTotalNum\":\t{\n\t\t\"totalNum\":\t56\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:54.809Z",
+      "request": {
+        "method": "PUT",
+        "path": "/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"EventStorageCfg\":{\"mode\":\"time\",\"checkTime\":\"2026-03-31 03:39:30\"}}",
+        "bodyBytes": 69
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:52 GMT",
+          "keep-alive": "timeout=5, max=98",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"YzExY2Y1ZjUyNzA1ZTBmZGQ1MzU2YzZkMDM3NDU3NDk=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:54.823Z",
+      "request": {
+        "method": "PUT",
+        "path": "/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"EventStorageCfg\":{\"mode\":\"time\",\"checkTime\":\"2026-03-31 03:39:30\"}}",
+        "bodyBytes": 69
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "67",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:52 GMT",
+          "keep-alive": "timeout=5, max=97",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 67,
+        "bodyText": "{\n\t\"statusCode\":\t1,\n\t\"statusString\":\t\"OK\",\n\t\"subStatusCode\":\t\"ok\"\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:55.713Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventTotalNumCond\":{\"major\":0,\"minor\":0}}",
+        "bodyBytes": 46
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:53 GMT",
+          "keep-alive": "timeout=5, max=96",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"NmJiNzY5ZWJhZDk2NDRkNzdjNDI4NDJhN2UzMjczNjY=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:55.725Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEventTotalNum?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventTotalNumCond\":{\"major\":0,\"minor\":0}}",
+        "bodyBytes": 46
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "45",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:53 GMT",
+          "keep-alive": "timeout=5, max=97",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 45,
+        "bodyText": "{\n\t\"AcsEventTotalNum\":\t{\n\t\t\"totalNum\":\t0\n\t}\n}"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:55.750Z",
+      "request": {
+        "method": "PUT",
+        "path": "/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"EventStorageCfg\":{\"mode\":\"cycle\"}}",
+        "bodyBytes": 36
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:53 GMT",
+          "keep-alive": "timeout=5, max=95",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"OWIwMDNjMmE4OTk3MWRkNmY0YzY0YzNlYjkwMjdjMTM=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T19:40:55.766Z",
+      "request": {
+        "method": "PUT",
+        "path": "/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent/StorageCfg?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"EventStorageCfg\":{\"mode\":\"cycle\"}}",
+        "bodyBytes": 36
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "67",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 03:40:53 GMT",
+          "keep-alive": "timeout=5, max=96",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 67,
+        "bodyText": "{\n\t\"statusCode\":\t1,\n\t\"statusString\":\t\"OK\",\n\t\"subStatusCode\":\t\"ok\"\n}"
+      }
+    }
+  ]
+}

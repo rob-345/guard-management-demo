@@ -1,0 +1,24 @@
+{
+  "command": {
+    "group": "events",
+    "action": "search",
+    "displayName": "events search"
+  },
+  "flags": {
+    "profile": [
+      "office"
+    ],
+    "max-results": [
+      "1"
+    ],
+    "search-result-position": [
+      "283"
+    ],
+    "output": [
+      "json"
+    ]
+  },
+  "booleans": {},
+  "profile": "office",
+  "outputMode": "json"
+}

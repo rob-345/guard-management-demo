@@ -1,0 +1,25 @@
+info:
+  name: "HttpHosts host inspect"
+  type: http
+  seq: 30
+
+http:
+  method: GET
+  url: "http://{{device_host}}/ISAPI/Event/notification/httpHosts/{{host_id}}"
+  params:
+    - name: "security"
+      value: "{{security}}"
+      type: query
+    - name: "iv"
+      value: "{{iv}}"
+      type: query
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

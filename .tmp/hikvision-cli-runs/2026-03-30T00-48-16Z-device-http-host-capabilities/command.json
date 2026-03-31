@@ -1,0 +1,10 @@
+{
+  "command": {
+    "group": "device",
+    "action": "http-host-capabilities",
+    "displayName": "device http-host-capabilities"
+  },
+  "flags": {},
+  "booleans": {},
+  "outputMode": "dual"
+}

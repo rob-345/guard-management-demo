@@ -1,0 +1,16 @@
+meta {
+  name: System capabilities
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/System/capabilities
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

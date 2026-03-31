@@ -1,0 +1,7 @@
+{
+  "listenHost": "0.0.0.0",
+  "port": 3101,
+  "path": "/api/events/hikvision/cli...cli-monitor",
+  "captures": 0,
+  "parserAvailable": true
+}

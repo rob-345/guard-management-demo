@@ -1,0 +1,20 @@
+meta {
+  name: FDLib list
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Intelligent/FDLib
+  body: none
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

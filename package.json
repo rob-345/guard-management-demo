@@ -11,6 +11,7 @@
     "smoke": "node scripts/smoke.mjs",
     "seed:admin": "tsx scripts/create-admin.ts",
     "hikvision:cli": "tsx packages/hikvision-isapi-sdk/src/cli.ts",
+    "test:unit": "tsx --test lib/*.test.ts",
     "test:hikvision:contracts": "tsx --test packages/hikvision-isapi-sdk/test/*.test.ts",
     "test:hikvision:live": "tsx --test packages/hikvision-isapi-sdk/test/live.integration.test.ts"
   },

@@ -1,0 +1,1 @@
+{"EventStorageCfg":{"mode":"cycle"}}

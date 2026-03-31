@@ -1,0 +1,4 @@
+{
+  "ok": false,
+  "error": "Hikvision request failed for /ISAPI/AccessControl/AcsEvent/StorageCfg?format=json: 400 Bad Request"
+}

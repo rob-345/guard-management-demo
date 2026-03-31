@@ -1,0 +1,98 @@
+{
+  "success": true,
+  "checkedAt": "2026-03-30T16:47:52.161Z",
+  "workStatus": {
+    "doorLockStatus": [
+      0
+    ],
+    "doorStatus": [
+      4
+    ],
+    "magneticStatus": [
+      0
+    ],
+    "antiSneakStatus": "close",
+    "hostAntiDismantleStatus": "open",
+    "cardReaderOnlineStatus": [
+      1
+    ],
+    "cardReaderAntiDismantleStatus": [
+      1
+    ],
+    "cardReaderVerifyMode": [
+      10,
+      10
+    ],
+    "cardNum": 0,
+    "netStatus": "connect",
+    "InterfaceStatusList": [
+      {
+        "id": 1,
+        "netType": 1,
+        "netStatus": "connect"
+      },
+      {
+        "id": 2,
+        "netType": 2,
+        "netStatus": "disconnect"
+      }
+    ],
+    "ezvizStatus": "unregistered",
+    "wifiStatus": "disconnect"
+  },
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "539",
+      "content-type": "application/json",
+      "date": "Tue, 31 Mar 2026 00:56:06 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "doorLockStatus": [
+        0
+      ],
+      "doorStatus": [
+        4
+      ],
+      "magneticStatus": [
+        0
+      ],
+      "antiSneakStatus": "close",
+      "hostAntiDismantleStatus": "open",
+      "cardReaderOnlineStatus": [
+        1
+      ],
+      "cardReaderAntiDismantleStatus": [
+        1
+      ],
+      "cardReaderVerifyMode": [
+        10,
+        10
+      ],
+      "cardNum": 0,
+      "netStatus": "connect",
+      "InterfaceStatusList": [
+        {
+          "id": 1,
+          "netType": 1,
+          "netStatus": "connect"
+        },
+        {
+          "id": 2,
+          "netType": 2,
+          "netStatus": "disconnect"
+        }
+      ],
+      "ezvizStatus": "unregistered",
+      "wifiStatus": "disconnect"
+    },
+    "rawText": "{\n\t\"AcsWorkStatus\":\t{\n\t\t\"doorLockStatus\":\t[0],\n\t\t\"doorStatus\":\t[4],\n\t\t\"magneticStatus\":\t[0],\n\t\t\"antiSneakStatus\":\t\"close\",\n\t\t\"hostAntiDismantleStatus\":\t\"open\",\n\t\t\"cardReaderOnlineStatus\":\t[1],\n\t\t\"cardReaderAntiDismantleStatus\":\t[1],\n\t\t\"cardReaderVerifyMode\":\t[10, 10],\n\t\t\"cardNum\":\t0,\n\t\t\"netStatus\":\t\"connect\",\n\t\t\"InterfaceStatusList\":\t[{\n\t\t\t\t\"id\":\t1,\n\t\t\t\t\"netType\":\t1,\n\t\t\t\t\"netStatus\":\t\"connect\"\n\t\t\t}, {\n\t\t\t\t\"id\":\t2,\n\t\t\t\t\"netType\":\t2,\n\t\t\t\t\"netStatus\":\t\"disconnect\"\n\t\t\t}],\n\t\t\"ezvizStatus\":\t\"unregistered\",\n\t\t\"wifiStatus\":\t\"disconnect\"\n\t}\n}"
+  }
+}

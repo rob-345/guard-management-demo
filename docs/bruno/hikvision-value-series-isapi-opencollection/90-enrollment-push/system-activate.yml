@@ -1,0 +1,27 @@
+info:
+  name: "System activate"
+  type: http
+  seq: 34
+
+http:
+  method: PUT
+  url: "http://{{device_host}}/ISAPI/System/activate"
+  headers:
+    - name: "Content-Type"
+      value: "application/xml"
+  body:
+    type: xml
+    data: |-
+      <ActivateInfo xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">
+          <password>{{activation_password_payload}}</password>
+        </ActivateInfo>
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

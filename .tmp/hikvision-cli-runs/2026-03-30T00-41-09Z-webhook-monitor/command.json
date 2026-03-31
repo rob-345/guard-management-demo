@@ -1,0 +1,23 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "monitor",
+    "displayName": "webhook monitor"
+  },
+  "flags": {
+    "listen-host": [
+      "0.0.0.0"
+    ],
+    "port": [
+      "3101"
+    ],
+    "path": [
+      "/api/events/hikvision/cli...cli-monitor"
+    ],
+    "duration-seconds": [
+      "120"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "dual"
+}

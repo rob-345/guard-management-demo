@@ -1,0 +1,16 @@
+meta {
+  name: Alert stream
+  type: http
+  seq: 17
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Event/notification/alertStream
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

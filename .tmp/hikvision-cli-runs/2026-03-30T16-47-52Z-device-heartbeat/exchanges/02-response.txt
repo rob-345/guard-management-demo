@@ -1,0 +1,25 @@
+{
+	"AcsWorkStatus":	{
+		"doorLockStatus":	[0],
+		"doorStatus":	[4],
+		"magneticStatus":	[0],
+		"antiSneakStatus":	"close",
+		"hostAntiDismantleStatus":	"open",
+		"cardReaderOnlineStatus":	[1],
+		"cardReaderAntiDismantleStatus":	[1],
+		"cardReaderVerifyMode":	[10, 10],
+		"cardNum":	0,
+		"netStatus":	"connect",
+		"InterfaceStatusList":	[{
+				"id":	1,
+				"netType":	1,
+				"netStatus":	"connect"
+			}, {
+				"id":	2,
+				"netType":	2,
+				"netStatus":	"disconnect"
+			}],
+		"ezvizStatus":	"unregistered",
+		"wifiStatus":	"disconnect"
+	}
+}

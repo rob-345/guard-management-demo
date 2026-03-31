@@ -1,0 +1,10 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "list",
+    "displayName": "webhook list"
+  },
+  "flags": {},
+  "booleans": {},
+  "outputMode": "dual"
+}

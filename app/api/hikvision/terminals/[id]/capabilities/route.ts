@@ -9,22 +9,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return authorized.response;
   }
 
-  const [deviceInfo, accessControl, fdLib, httpHosts, subscribeEvent] = await Promise.allSettled([
+  const [heartbeat, deviceInfo, accessControl, fdLib, acsEvents] = await Promise.allSettled([
+    authorized.client.getHeartbeat(),
     authorized.client.getDeviceInfo(),
     authorized.client.getAccessControlCapabilities(),
     authorized.client.getFdLibCapabilities(),
-    authorized.client.getHttpHostCapabilities(),
-    authorized.client.getSubscribeEventCapabilities(),
+    authorized.client.getAcsEventCapabilities(),
   ]);
 
   return NextResponse.json({
     terminal_id: authorized.terminal.id,
     capabilities: {
+      heartbeat: heartbeat.status === "fulfilled" ? heartbeat.value : undefined,
       deviceInfo: deviceInfo.status === "fulfilled" ? deviceInfo.value : undefined,
       accessControl: accessControl.status === "fulfilled" ? accessControl.value : undefined,
       fdLib: fdLib.status === "fulfilled" ? fdLib.value : undefined,
-      httpHosts: httpHosts.status === "fulfilled" ? httpHosts.value : undefined,
-      subscribeEvent: subscribeEvent.status === "fulfilled" ? subscribeEvent.value : undefined,
+      acsEvents: acsEvents.status === "fulfilled" ? acsEvents.value : undefined,
     },
   });
 }

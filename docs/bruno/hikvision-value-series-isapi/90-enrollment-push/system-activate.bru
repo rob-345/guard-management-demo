@@ -1,0 +1,26 @@
+meta {
+  name: System activate
+  type: http
+  seq: 34
+}
+
+put {
+  url: http://{{device_host}}/ISAPI/System/activate
+  body: xml
+  auth: digest
+}
+
+headers {
+  Content-Type: application/xml
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:xml {
+  <ActivateInfo xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">
+    <password>{{activation_password_payload}}</password>
+  </ActivateInfo>
+}

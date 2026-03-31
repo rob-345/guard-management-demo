@@ -1,0 +1,16 @@
+meta {
+  name: HttpHosts capabilities
+  type: http
+  seq: 13
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Event/notification/httpHosts/capabilities
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

@@ -1,0 +1,20 @@
+meta {
+  name: FaceRecognizeMode capabilities
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/AccessControl/FaceRecognizeMode/capabilities
+  body: none
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

@@ -1,0 +1,16 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "inspect",
+    "displayName": "webhook inspect"
+  },
+  "flags": {
+    "host-id": [
+      "1"
+    ]
+  },
+  "booleans": {
+    "show-tokens": true
+  },
+  "outputMode": "dual"
+}

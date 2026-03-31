@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Hikvision Value Series ISAPI",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

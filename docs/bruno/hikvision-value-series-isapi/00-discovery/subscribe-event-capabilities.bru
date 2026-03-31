@@ -1,0 +1,16 @@
+meta {
+  name: SubscribeEvent capabilities
+  type: http
+  seq: 12
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Event/notification/subscribeEventCap
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

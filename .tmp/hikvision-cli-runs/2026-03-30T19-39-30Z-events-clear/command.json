@@ -1,0 +1,26 @@
+{
+  "command": {
+    "group": "events",
+    "action": "clear",
+    "displayName": "events clear"
+  },
+  "flags": {
+    "host": [
+      "192.168.0.160"
+    ],
+    "username": [
+      "admin"
+    ],
+    "password": [
+      "***redacted***"
+    ],
+    "protocol": [
+      "http"
+    ],
+    "output": [
+      "summary"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "summary"
+}

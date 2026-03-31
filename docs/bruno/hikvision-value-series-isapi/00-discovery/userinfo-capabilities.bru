@@ -1,0 +1,20 @@
+meta {
+  name: UserInfo capabilities
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/AccessControl/UserInfo/capabilities
+  body: none
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

@@ -91,11 +91,31 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (unauthorized) return unauthorized;
 
   const { id } = await params;
-  const terminals = await getCollection("terminals");
-  const terminalCount = await terminals.countDocuments({ site_id: id });
+  const [terminals, schedules, assignments] = await Promise.all([
+    getCollection("terminals"),
+    getCollection("site_shift_schedules"),
+    getCollection("guard_assignments"),
+  ]);
+  const [terminalCount, scheduleCount, activeAssignmentCount] = await Promise.all([
+    terminals.countDocuments({ site_id: id }),
+    schedules.countDocuments({ site_id: id }),
+    assignments.countDocuments({ site_id: id, status: "active" }),
+  ]);
   if (terminalCount > 0) {
     return NextResponse.json(
       { error: "Site has terminals assigned. Reassign them before deleting the site." },
+      { status: 409 }
+    );
+  }
+  if (activeAssignmentCount > 0) {
+    return NextResponse.json(
+      { error: "Site has active guard assignments. Reassign guards before deleting the site." },
+      { status: 409 }
+    );
+  }
+  if (scheduleCount > 0) {
+    return NextResponse.json(
+      { error: "Site has a shift schedule configured. Delete the schedule before deleting the site." },
       { status: 409 }
     );
   }

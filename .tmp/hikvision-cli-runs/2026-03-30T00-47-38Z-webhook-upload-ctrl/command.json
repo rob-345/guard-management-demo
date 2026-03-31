@@ -1,0 +1,16 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "upload-ctrl",
+    "displayName": "webhook upload-ctrl"
+  },
+  "flags": {
+    "host-id": [
+      "1"
+    ]
+  },
+  "booleans": {
+    "show-tokens": true
+  },
+  "outputMode": "dual"
+}

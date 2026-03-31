@@ -1,0 +1,35 @@
+{
+  "command": {
+    "group": "events",
+    "action": "search-multi",
+    "displayName": "events search-multi"
+  },
+  "flags": {
+    "host": [
+      "192.168.0.160"
+    ],
+    "username": [
+      "admin"
+    ],
+    "password": [
+      "***redacted***"
+    ],
+    "protocol": [
+      "http"
+    ],
+    "output": [
+      "summary"
+    ],
+    "major": [
+      "5"
+    ],
+    "minors": [
+      "75,76,80,104"
+    ],
+    "max-results": [
+      "10"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "summary"
+}

@@ -1,0 +1,74 @@
+{
+  "error": {
+    "name": "HikvisionInvalidResponseError",
+    "message": "Hikvision request failed for /ISAPI/AccessControl/AcsEvent?format=json: 400 Bad Request"
+  },
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T16:51:52.272Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774889512262\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":75,\"startTime\":\"2026-03-29T16:51:32Z\"}}",
+        "bodyBytes": 146
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 01:00:06 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"OWM0ZDA1MjFmZTdkNjM4ZjEwOTJhYjZkMmVkYjYwNTk=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T16:51:52.307Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774889512262\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":75,\"startTime\":\"2026-03-29T16:51:32Z\"}}",
+        "bodyBytes": 146
+      },
+      "response": {
+        "status": 400,
+        "statusText": "Bad Request",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "144",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 01:00:06 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 144,
+        "bodyText": "{\n\t\"statusCode\":\t6,\n\t\"statusString\":\t\"Invalid Content\",\n\t\"subStatusCode\":\t\"badJsonContent\",\n\t\"errorCode\":\t1610612759,\n\t\"errorMsg\":\t\"startTime\"\n}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T00:10:21.466Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/httpHosts/1",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/1",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:22:09 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"MjkyMmQxMTdjZWUxMWQ3Njc4NDY5Mjc4ZjYzNDFlYjE=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 235,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:21.496Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/httpHosts/1",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/1",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "803",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:22:09 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 803,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<HttpHostNotification version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<id>1</id>\r\n<url>http://192.168.0.194:3101/api/events/hikvision/cli-monitor</url>\r\n<protocolType>HTTP</protocolType>\r\n<parameterFormatType>JSON</parameterFormatType>\r\n<addressingFormatType>ipaddress</addressingFormatType>\r\n<ipAddress>192.168.0.194</ipAddress>\r\n<portNo>3101</portNo>\r\n<httpAuthenticationMethod>none</httpAuthenticationMethod>\r\n<SubscribeEvent><heartbeat>30</heartbeat><eventMode>all</eventMode><EventList><Event><type>AccessControllerEvent</type><minorAlarm></minorAlarm><minorException></minorException><minorOperation></minorOperation><minorEvent></minorEvent><pictureURLType>binary</pictureURLType></Event></EventList></SubscribeEvent>\n</HttpHostNotification>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:21.522Z",
+      "request": {
+        "method": "PUT",
+        "path": "/ISAPI/Event/notification/httpHosts/1",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/1",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/xml; charset=UTF-8"
+        },
+        "contentType": "application/xml; charset=UTF-8",
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<HttpHostNotification xmlns=\"http://www.isapi.org/ver20/XMLSchema\" version=\"2.0\">\n  <id>1</id>\n  <url>http://192.168.0.194:3000/api/events/hikvision/e1c61431f1b545f59aff08673013fb07</url>\n  <protocolType>HTTP</protocolType>\n  <parameterFormatType>JSON</parameterFormatType>\n  <addressingFormatType>ipaddress</addressingFormatType>\n  <ipAddress>192.168.0.194</ipAddress>\n  <portNo>3000</portNo>\n  <httpAuthenticationMethod>none</httpAuthenticationMethod>\n  <checkResponseEnabled>true</checkResponseEnabled>\n  <SubscribeEvent>\n    <heartbeat>30</heartbeat>\n    <eventMode>all</eventMode>\n    <EventList>\n    <Event>\n      <type>AccessControllerEvent</type>\n      <pictureURLType>binary</pictureURLType>\n    </Event>\n    </EventList>\n  </SubscribeEvent>\n</HttpHostNotification>",
+        "bodyBytes": 813
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:22:09 GMT",
+          "keep-alive": "timeout=5, max=98",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"M2Q5OWUxMTFjM2M1MWNlN2RjMTNlNDdmOTA5OTc1ZDg=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 235,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:21.538Z",
+      "request": {
+        "method": "PUT",
+        "path": "/ISAPI/Event/notification/httpHosts/1",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/1",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/xml; charset=UTF-8"
+        },
+        "contentType": "application/xml; charset=UTF-8",
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<HttpHostNotification xmlns=\"http://www.isapi.org/ver20/XMLSchema\" version=\"2.0\">\n  <id>1</id>\n  <url>http://192.168.0.194:3000/api/events/hikvision/e1c61431f1b545f59aff08673013fb07</url>\n  <protocolType>HTTP</protocolType>\n  <parameterFormatType>JSON</parameterFormatType>\n  <addressingFormatType>ipaddress</addressingFormatType>\n  <ipAddress>192.168.0.194</ipAddress>\n  <portNo>3000</portNo>\n  <httpAuthenticationMethod>none</httpAuthenticationMethod>\n  <checkResponseEnabled>true</checkResponseEnabled>\n  <SubscribeEvent>\n    <heartbeat>30</heartbeat>\n    <eventMode>all</eventMode>\n    <EventList>\n    <Event>\n      <type>AccessControllerEvent</type>\n      <pictureURLType>binary</pictureURLType>\n    </Event>\n    </EventList>\n  </SubscribeEvent>\n</HttpHostNotification>",
+        "bodyBytes": 813
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "257",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:22:09 GMT",
+          "keep-alive": "timeout=5, max=98",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 257,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<ResponseStatus version=\"1.0\" xmlns=\"http://www.hikvision.com/ver10/XMLSchema\">\n<requestURL></requestURL>\n<statusCode>1</statusCode>\n<statusString>OK</statusString>\n<subStatusCode>ok</subStatusCode>\n</ResponseStatus>\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:21.673Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/httpHosts/1",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/1",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:22:09 GMT",
+          "keep-alive": "timeout=5, max=97",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"NzlkOGY3YmMyNWVmOTEyOGFkNGU1MzEzMTIzOTBkMzU=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 235,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:10:21.690Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/httpHosts/1",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/1",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "824",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:22:09 GMT",
+          "keep-alive": "timeout=5, max=97",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 824,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<HttpHostNotification version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<id>1</id>\r\n<url>http://192.168.0.194:3000/api/events/hikvision/e1c61431f1b545f59aff08673013fb07</url>\r\n<protocolType>HTTP</protocolType>\r\n<parameterFormatType>JSON</parameterFormatType>\r\n<addressingFormatType>ipaddress</addressingFormatType>\r\n<ipAddress>192.168.0.194</ipAddress>\r\n<portNo>3000</portNo>\r\n<httpAuthenticationMethod>none</httpAuthenticationMethod>\r\n<SubscribeEvent><heartbeat>30</heartbeat><eventMode>all</eventMode><EventList><Event><type>AccessControllerEvent</type><minorAlarm></minorAlarm><minorException></minorException><minorOperation></minorOperation><minorEvent></minorEvent><pictureURLType>binary</pictureURLType></Event></EventList></SubscribeEvent>\n</HttpHostNotification>\r\n"
+      }
+    }
+  ]
+}

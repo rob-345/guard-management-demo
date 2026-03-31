@@ -1,0 +1,31 @@
+info:
+  name: "FaceDataRecord fallback"
+  type: http
+  seq: 24
+
+http:
+  method: POST
+  url: "http://{{device_host}}/ISAPI/Intelligent/FDLib/FaceDataRecord"
+  headers:
+    - name: "Content-Type"
+      value: "application/xml"
+  body:
+    type: xml
+    data: |-
+      <FaceDataRecord>
+          <employeeNo>{{employee_no}}</employeeNo>
+          <name>{{person_name}}</name>
+          <faceData>
+            <faceURL>{{face_url}}</faceURL>
+          </faceData>
+        </FaceDataRecord>
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

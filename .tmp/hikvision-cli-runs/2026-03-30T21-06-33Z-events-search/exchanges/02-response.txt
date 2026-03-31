@@ -1,0 +1,47 @@
+{
+	"AcsEvent":	{
+		"searchID":	"acs-1774904793748",
+		"totalMatches":	2,
+		"responseStatusStrg":	"OK",
+		"numOfMatches":	2,
+		"InfoList":	[{
+				"major":	5,
+				"minor":	75,
+				"time":	"2026-03-30T21:04:56-00:00",
+				"cardType":	1,
+				"name":	"Robert",
+				"cardReaderNo":	1,
+				"doorNo":	1,
+				"employeeNoString":	"WS001",
+				"serialNo":	62,
+				"userType":	"normal",
+				"currentVerifyMode":	"faceOrFpOrCardOrPw",
+				"mask":	"no",
+				"FaceRect":	{
+					"height":	0.595,
+					"width":	0.337,
+					"x":	0.353,
+					"y":	0.043
+				}
+			}, {
+				"major":	5,
+				"minor":	75,
+				"time":	"2026-03-31T05:02:51-00:00",
+				"cardType":	1,
+				"name":	"Robert",
+				"cardReaderNo":	1,
+				"doorNo":	1,
+				"employeeNoString":	"WS001",
+				"serialNo":	57,
+				"userType":	"normal",
+				"currentVerifyMode":	"faceOrFpOrCardOrPw",
+				"mask":	"no",
+				"FaceRect":	{
+					"height":	0.513,
+					"width":	0.291,
+					"x":	0.37,
+					"y":	0.344
+				}
+			}]
+	}
+}

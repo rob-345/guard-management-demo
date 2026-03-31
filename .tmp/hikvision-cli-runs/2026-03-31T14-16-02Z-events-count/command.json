@@ -1,0 +1,29 @@
+{
+  "command": {
+    "group": "events",
+    "action": "count",
+    "displayName": "events count"
+  },
+  "flags": {
+    "host": [
+      "192.168.0.160"
+    ],
+    "username": [
+      "admin"
+    ],
+    "password": [
+      "***redacted***"
+    ],
+    "major": [
+      "5"
+    ],
+    "minor": [
+      "75"
+    ],
+    "output": [
+      "summary"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "summary"
+}

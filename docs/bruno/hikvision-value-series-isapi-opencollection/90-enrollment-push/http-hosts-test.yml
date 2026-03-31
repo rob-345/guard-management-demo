@@ -1,0 +1,18 @@
+info:
+  name: "HttpHosts test"
+  type: http
+  seq: 31
+
+http:
+  method: POST
+  url: "http://{{device_host}}/ISAPI/Event/notification/httpHosts/{{host_id}}/test"
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

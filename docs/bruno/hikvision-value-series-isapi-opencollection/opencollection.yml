@@ -1,0 +1,17 @@
+opencollection: 1.0.0
+
+info:
+  name: "Hikvision Value Series ISAPI"
+  summary: "Direct Hikvision terminal ISAPI and webhook testing collection"
+
+config: {}
+
+request:
+  scripts: []
+
+bundled: false
+
+extensions:
+  ignore:
+    - node_modules
+    - .git

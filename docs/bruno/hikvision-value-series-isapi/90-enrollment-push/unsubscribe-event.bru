@@ -1,0 +1,20 @@
+meta {
+  name: UnsubscribeEvent
+  type: http
+  seq: 27
+}
+
+put {
+  url: http://{{device_host}}/ISAPI/Event/notification/unSubscribeEvent
+  body: none
+  auth: digest
+}
+
+params:query {
+  ID: {{subscribe_event_id}}
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

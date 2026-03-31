@@ -1,0 +1,753 @@
+{
+  "totalMatches": 284,
+  "searchResultPosition": 0,
+  "maxResults": 20,
+  "records": [
+    {
+      "serialNo": "1",
+      "major": 2,
+      "minor": 1024,
+      "eventTime": "2026-03-26T22:32:11Z",
+      "dateTime": "2026-03-26T22:32:11Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.656,
+        "width": 0.373,
+        "x": 0.282,
+        "y": 0.274
+      },
+      "raw": {
+        "AcsEvent": {
+          "searchID": "acs-1774861980664",
+          "totalMatches": 284,
+          "responseStatusStrg": "MORE",
+          "numOfMatches": 20,
+          "InfoList": [
+            {
+              "major": 2,
+              "minor": 1024,
+              "time": "2026-03-26T22:32:11Z",
+              "serialNo": 1
+            },
+            {
+              "major": 5,
+              "minor": 22,
+              "time": "2026-03-26T22:32:11Z",
+              "doorNo": 1,
+              "serialNo": 2
+            },
+            {
+              "major": 2,
+              "minor": 39,
+              "time": "2026-03-26T22:32:16Z",
+              "serialNo": 3
+            },
+            {
+              "major": 1,
+              "minor": 1028,
+              "time": "2026-03-26T22:32:26Z",
+              "serialNo": 4
+            },
+            {
+              "major": 3,
+              "minor": 240,
+              "time": "2026-03-26T22:33:42Z",
+              "serialNo": 5
+            },
+            {
+              "major": 5,
+              "minor": 76,
+              "time": "2026-03-26T22:35:08Z",
+              "cardType": 1,
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "serialNo": 6,
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.656,
+                "width": 0.373,
+                "x": 0.282,
+                "y": 0.274
+              }
+            },
+            {
+              "major": 5,
+              "minor": 76,
+              "time": "2026-03-26T22:35:18Z",
+              "cardType": 1,
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "serialNo": 7,
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.505,
+                "width": 0.286,
+                "x": 0.359,
+                "y": 0.267
+              }
+            },
+            {
+              "major": 5,
+              "minor": 76,
+              "time": "2026-03-26T22:35:22Z",
+              "cardType": 1,
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "serialNo": 8,
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.415,
+                "width": 0.236,
+                "x": 0.416,
+                "y": 0.347
+              }
+            },
+            {
+              "major": 5,
+              "minor": 39,
+              "time": "2026-03-26T22:35:36Z",
+              "cardType": 1,
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "serialNo": 9,
+              "currentVerifyMode": "faceOrFpOrCardOrPw"
+            },
+            {
+              "major": 1,
+              "minor": 1029,
+              "time": "2026-03-26T22:40:14Z",
+              "serialNo": 10
+            },
+            {
+              "major": 1,
+              "minor": 1028,
+              "time": "2026-03-26T22:40:17Z",
+              "serialNo": 11
+            },
+            {
+              "major": 5,
+              "minor": 76,
+              "time": "2026-03-26T22:40:26Z",
+              "cardType": 1,
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "serialNo": 12,
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.468,
+                "width": 0.267,
+                "x": 0.366,
+                "y": 0.252
+              }
+            },
+            {
+              "major": 2,
+              "minor": 1024,
+              "time": "2026-03-26T22:47:07Z",
+              "serialNo": 13
+            },
+            {
+              "major": 5,
+              "minor": 22,
+              "time": "2026-03-26T22:47:07Z",
+              "doorNo": 1,
+              "serialNo": 14
+            },
+            {
+              "major": 2,
+              "minor": 39,
+              "time": "2026-03-26T22:47:23Z",
+              "serialNo": 15
+            },
+            {
+              "major": 1,
+              "minor": 1028,
+              "time": "2026-03-26T22:47:27Z",
+              "serialNo": 16
+            },
+            {
+              "major": 2,
+              "minor": 1024,
+              "time": "2026-03-26T23:20:18Z",
+              "serialNo": 17
+            },
+            {
+              "major": 5,
+              "minor": 22,
+              "time": "2026-03-26T23:20:18Z",
+              "doorNo": 1,
+              "serialNo": 18
+            },
+            {
+              "major": 2,
+              "minor": 39,
+              "time": "2026-03-26T23:20:26Z",
+              "serialNo": 19
+            },
+            {
+              "major": 1,
+              "minor": 1028,
+              "time": "2026-03-26T23:20:30Z",
+              "serialNo": 20
+            }
+          ]
+        }
+      }
+    },
+    {
+      "serialNo": "2",
+      "major": 5,
+      "minor": 22,
+      "eventTime": "2026-03-26T22:32:11Z",
+      "dateTime": "2026-03-26T22:32:11Z",
+      "doorNo": 1,
+      "raw": {
+        "major": 5,
+        "minor": 22,
+        "time": "2026-03-26T22:32:11Z",
+        "doorNo": 1,
+        "serialNo": 2
+      }
+    },
+    {
+      "serialNo": "3",
+      "major": 2,
+      "minor": 39,
+      "eventTime": "2026-03-26T22:32:16Z",
+      "dateTime": "2026-03-26T22:32:16Z",
+      "raw": {
+        "major": 2,
+        "minor": 39,
+        "time": "2026-03-26T22:32:16Z",
+        "serialNo": 3
+      }
+    },
+    {
+      "serialNo": "4",
+      "major": 1,
+      "minor": 1028,
+      "eventTime": "2026-03-26T22:32:26Z",
+      "dateTime": "2026-03-26T22:32:26Z",
+      "raw": {
+        "major": 1,
+        "minor": 1028,
+        "time": "2026-03-26T22:32:26Z",
+        "serialNo": 4
+      }
+    },
+    {
+      "serialNo": "5",
+      "major": 3,
+      "minor": 240,
+      "eventTime": "2026-03-26T22:33:42Z",
+      "dateTime": "2026-03-26T22:33:42Z",
+      "raw": {
+        "major": 3,
+        "minor": 240,
+        "time": "2026-03-26T22:33:42Z",
+        "serialNo": 5
+      }
+    },
+    {
+      "serialNo": "6",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-26T22:35:08Z",
+      "dateTime": "2026-03-26T22:35:08Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.656,
+        "width": 0.373,
+        "x": 0.282,
+        "y": 0.274
+      },
+      "raw": {
+        "major": 5,
+        "minor": 76,
+        "time": "2026-03-26T22:35:08Z",
+        "cardType": 1,
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "serialNo": 6,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.656,
+          "width": 0.373,
+          "x": 0.282,
+          "y": 0.274
+        }
+      }
+    },
+    {
+      "serialNo": "7",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-26T22:35:18Z",
+      "dateTime": "2026-03-26T22:35:18Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.505,
+        "width": 0.286,
+        "x": 0.359,
+        "y": 0.267
+      },
+      "raw": {
+        "major": 5,
+        "minor": 76,
+        "time": "2026-03-26T22:35:18Z",
+        "cardType": 1,
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "serialNo": 7,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.505,
+          "width": 0.286,
+          "x": 0.359,
+          "y": 0.267
+        }
+      }
+    },
+    {
+      "serialNo": "8",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-26T22:35:22Z",
+      "dateTime": "2026-03-26T22:35:22Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.415,
+        "width": 0.236,
+        "x": 0.416,
+        "y": 0.347
+      },
+      "raw": {
+        "major": 5,
+        "minor": 76,
+        "time": "2026-03-26T22:35:22Z",
+        "cardType": 1,
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "serialNo": 8,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.415,
+          "width": 0.236,
+          "x": 0.416,
+          "y": 0.347
+        }
+      }
+    },
+    {
+      "serialNo": "9",
+      "major": 5,
+      "minor": 39,
+      "eventTime": "2026-03-26T22:35:36Z",
+      "dateTime": "2026-03-26T22:35:36Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "raw": {
+        "major": 5,
+        "minor": 39,
+        "time": "2026-03-26T22:35:36Z",
+        "cardType": 1,
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "serialNo": 9,
+        "currentVerifyMode": "faceOrFpOrCardOrPw"
+      }
+    },
+    {
+      "serialNo": "10",
+      "major": 1,
+      "minor": 1029,
+      "eventTime": "2026-03-26T22:40:14Z",
+      "dateTime": "2026-03-26T22:40:14Z",
+      "raw": {
+        "major": 1,
+        "minor": 1029,
+        "time": "2026-03-26T22:40:14Z",
+        "serialNo": 10
+      }
+    },
+    {
+      "serialNo": "11",
+      "major": 1,
+      "minor": 1028,
+      "eventTime": "2026-03-26T22:40:17Z",
+      "dateTime": "2026-03-26T22:40:17Z",
+      "raw": {
+        "major": 1,
+        "minor": 1028,
+        "time": "2026-03-26T22:40:17Z",
+        "serialNo": 11
+      }
+    },
+    {
+      "serialNo": "12",
+      "major": 5,
+      "minor": 76,
+      "eventTime": "2026-03-26T22:40:26Z",
+      "dateTime": "2026-03-26T22:40:26Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.468,
+        "width": 0.267,
+        "x": 0.366,
+        "y": 0.252
+      },
+      "raw": {
+        "major": 5,
+        "minor": 76,
+        "time": "2026-03-26T22:40:26Z",
+        "cardType": 1,
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "serialNo": 12,
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.468,
+          "width": 0.267,
+          "x": 0.366,
+          "y": 0.252
+        }
+      }
+    },
+    {
+      "serialNo": "13",
+      "major": 2,
+      "minor": 1024,
+      "eventTime": "2026-03-26T22:47:07Z",
+      "dateTime": "2026-03-26T22:47:07Z",
+      "raw": {
+        "major": 2,
+        "minor": 1024,
+        "time": "2026-03-26T22:47:07Z",
+        "serialNo": 13
+      }
+    },
+    {
+      "serialNo": "14",
+      "major": 5,
+      "minor": 22,
+      "eventTime": "2026-03-26T22:47:07Z",
+      "dateTime": "2026-03-26T22:47:07Z",
+      "doorNo": 1,
+      "raw": {
+        "major": 5,
+        "minor": 22,
+        "time": "2026-03-26T22:47:07Z",
+        "doorNo": 1,
+        "serialNo": 14
+      }
+    },
+    {
+      "serialNo": "15",
+      "major": 2,
+      "minor": 39,
+      "eventTime": "2026-03-26T22:47:23Z",
+      "dateTime": "2026-03-26T22:47:23Z",
+      "raw": {
+        "major": 2,
+        "minor": 39,
+        "time": "2026-03-26T22:47:23Z",
+        "serialNo": 15
+      }
+    },
+    {
+      "serialNo": "16",
+      "major": 1,
+      "minor": 1028,
+      "eventTime": "2026-03-26T22:47:27Z",
+      "dateTime": "2026-03-26T22:47:27Z",
+      "raw": {
+        "major": 1,
+        "minor": 1028,
+        "time": "2026-03-26T22:47:27Z",
+        "serialNo": 16
+      }
+    },
+    {
+      "serialNo": "17",
+      "major": 2,
+      "minor": 1024,
+      "eventTime": "2026-03-26T23:20:18Z",
+      "dateTime": "2026-03-26T23:20:18Z",
+      "raw": {
+        "major": 2,
+        "minor": 1024,
+        "time": "2026-03-26T23:20:18Z",
+        "serialNo": 17
+      }
+    },
+    {
+      "serialNo": "18",
+      "major": 5,
+      "minor": 22,
+      "eventTime": "2026-03-26T23:20:18Z",
+      "dateTime": "2026-03-26T23:20:18Z",
+      "doorNo": 1,
+      "raw": {
+        "major": 5,
+        "minor": 22,
+        "time": "2026-03-26T23:20:18Z",
+        "doorNo": 1,
+        "serialNo": 18
+      }
+    },
+    {
+      "serialNo": "19",
+      "major": 2,
+      "minor": 39,
+      "eventTime": "2026-03-26T23:20:26Z",
+      "dateTime": "2026-03-26T23:20:26Z",
+      "raw": {
+        "major": 2,
+        "minor": 39,
+        "time": "2026-03-26T23:20:26Z",
+        "serialNo": 19
+      }
+    },
+    {
+      "serialNo": "20",
+      "major": 1,
+      "minor": 1028,
+      "eventTime": "2026-03-26T23:20:30Z",
+      "dateTime": "2026-03-26T23:20:30Z",
+      "raw": {
+        "major": 1,
+        "minor": 1028,
+        "time": "2026-03-26T23:20:30Z",
+        "serialNo": 20
+      }
+    }
+  ],
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "3133",
+      "content-type": "application/json",
+      "date": "Mon, 30 Mar 2026 09:24:49 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "AcsEvent": {
+        "searchID": "acs-1774861980664",
+        "totalMatches": 284,
+        "responseStatusStrg": "MORE",
+        "numOfMatches": 20,
+        "InfoList": [
+          {
+            "major": 2,
+            "minor": 1024,
+            "time": "2026-03-26T22:32:11Z",
+            "serialNo": 1
+          },
+          {
+            "major": 5,
+            "minor": 22,
+            "time": "2026-03-26T22:32:11Z",
+            "doorNo": 1,
+            "serialNo": 2
+          },
+          {
+            "major": 2,
+            "minor": 39,
+            "time": "2026-03-26T22:32:16Z",
+            "serialNo": 3
+          },
+          {
+            "major": 1,
+            "minor": 1028,
+            "time": "2026-03-26T22:32:26Z",
+            "serialNo": 4
+          },
+          {
+            "major": 3,
+            "minor": 240,
+            "time": "2026-03-26T22:33:42Z",
+            "serialNo": 5
+          },
+          {
+            "major": 5,
+            "minor": 76,
+            "time": "2026-03-26T22:35:08Z",
+            "cardType": 1,
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "serialNo": 6,
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.656,
+              "width": 0.373,
+              "x": 0.282,
+              "y": 0.274
+            }
+          },
+          {
+            "major": 5,
+            "minor": 76,
+            "time": "2026-03-26T22:35:18Z",
+            "cardType": 1,
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "serialNo": 7,
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.505,
+              "width": 0.286,
+              "x": 0.359,
+              "y": 0.267
+            }
+          },
+          {
+            "major": 5,
+            "minor": 76,
+            "time": "2026-03-26T22:35:22Z",
+            "cardType": 1,
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "serialNo": 8,
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.415,
+              "width": 0.236,
+              "x": 0.416,
+              "y": 0.347
+            }
+          },
+          {
+            "major": 5,
+            "minor": 39,
+            "time": "2026-03-26T22:35:36Z",
+            "cardType": 1,
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "serialNo": 9,
+            "currentVerifyMode": "faceOrFpOrCardOrPw"
+          },
+          {
+            "major": 1,
+            "minor": 1029,
+            "time": "2026-03-26T22:40:14Z",
+            "serialNo": 10
+          },
+          {
+            "major": 1,
+            "minor": 1028,
+            "time": "2026-03-26T22:40:17Z",
+            "serialNo": 11
+          },
+          {
+            "major": 5,
+            "minor": 76,
+            "time": "2026-03-26T22:40:26Z",
+            "cardType": 1,
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "serialNo": 12,
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.468,
+              "width": 0.267,
+              "x": 0.366,
+              "y": 0.252
+            }
+          },
+          {
+            "major": 2,
+            "minor": 1024,
+            "time": "2026-03-26T22:47:07Z",
+            "serialNo": 13
+          },
+          {
+            "major": 5,
+            "minor": 22,
+            "time": "2026-03-26T22:47:07Z",
+            "doorNo": 1,
+            "serialNo": 14
+          },
+          {
+            "major": 2,
+            "minor": 39,
+            "time": "2026-03-26T22:47:23Z",
+            "serialNo": 15
+          },
+          {
+            "major": 1,
+            "minor": 1028,
+            "time": "2026-03-26T22:47:27Z",
+            "serialNo": 16
+          },
+          {
+            "major": 2,
+            "minor": 1024,
+            "time": "2026-03-26T23:20:18Z",
+            "serialNo": 17
+          },
+          {
+            "major": 5,
+            "minor": 22,
+            "time": "2026-03-26T23:20:18Z",
+            "doorNo": 1,
+            "serialNo": 18
+          },
+          {
+            "major": 2,
+            "minor": 39,
+            "time": "2026-03-26T23:20:26Z",
+            "serialNo": 19
+          },
+          {
+            "major": 1,
+            "minor": 1028,
+            "time": "2026-03-26T23:20:30Z",
+            "serialNo": 20
+          }
+        ]
+      }
+    },
+    "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774861980664\",\n\t\t\"totalMatches\":\t284,\n\t\t\"responseStatusStrg\":\t\"MORE\",\n\t\t\"numOfMatches\":\t20,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:11Z\",\n\t\t\t\t\"serialNo\":\t1\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:11Z\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t2\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:16Z\",\n\t\t\t\t\"serialNo\":\t3\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:26Z\",\n\t\t\t\t\"serialNo\":\t4\n\t\t\t}, {\n\t\t\t\t\"major\":\t3,\n\t\t\t\t\"minor\":\t240,\n\t\t\t\t\"time\":\t\"2026-03-26T22:33:42Z\",\n\t\t\t\t\"serialNo\":\t5\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:08Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t6,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.656,\n\t\t\t\t\t\"width\":\t0.373,\n\t\t\t\t\t\"x\":\t0.282,\n\t\t\t\t\t\"y\":\t0.274\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:18Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t7,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.505,\n\t\t\t\t\t\"width\":\t0.286,\n\t\t\t\t\t\"x\":\t0.359,\n\t\t\t\t\t\"y\":\t0.267\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:22Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t8,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.415,\n\t\t\t\t\t\"width\":\t0.236,\n\t\t\t\t\t\"x\":\t0.416,\n\t\t\t\t\t\"y\":\t0.347\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:36Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t9,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\"\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1029,\n\t\t\t\t\"time\":\t\"2026-03-26T22:40:14Z\",\n\t\t\t\t\"serialNo\":\t10\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T22:40:17Z\",\n\t\t\t\t\"serialNo\":\t11\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:40:26Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t12,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.468,\n\t\t\t\t\t\"width\":\t0.267,\n\t\t\t\t\t\"x\":\t0.366,\n\t\t\t\t\t\"y\":\t0.252\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:07Z\",\n\t\t\t\t\"serialNo\":\t13\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:07Z\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t14\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:23Z\",\n\t\t\t\t\"serialNo\":\t15\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:27Z\",\n\t\t\t\t\"serialNo\":\t16\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:18Z\",\n\t\t\t\t\"serialNo\":\t17\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:18Z\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t18\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:26Z\",\n\t\t\t\t\"serialNo\":\t19\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:30Z\",\n\t\t\t\t\"serialNo\":\t20\n\t\t\t}]\n\t}\n}"
+  }
+}

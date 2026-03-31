@@ -1,0 +1,30 @@
+meta {
+  name: FaceDataRecord fallback
+  type: http
+  seq: 24
+}
+
+post {
+  url: http://{{device_host}}/ISAPI/Intelligent/FDLib/FaceDataRecord
+  body: xml
+  auth: digest
+}
+
+headers {
+  Content-Type: application/xml
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:xml {
+  <FaceDataRecord>
+    <employeeNo>{{employee_no}}</employeeNo>
+    <name>{{person_name}}</name>
+    <faceData>
+      <faceURL>{{face_url}}</faceURL>
+    </faceData>
+  </FaceDataRecord>
+}

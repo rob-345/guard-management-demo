@@ -1,0 +1,22 @@
+info:
+  name: "UnsubscribeEvent"
+  type: http
+  seq: 27
+
+http:
+  method: PUT
+  url: "http://{{device_host}}/ISAPI/Event/notification/unSubscribeEvent"
+  params:
+    - name: "ID"
+      value: "{{subscribe_event_id}}"
+      type: query
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

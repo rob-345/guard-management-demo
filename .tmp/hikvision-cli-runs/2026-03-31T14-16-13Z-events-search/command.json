@@ -1,0 +1,32 @@
+{
+  "command": {
+    "group": "events",
+    "action": "search",
+    "displayName": "events search"
+  },
+  "flags": {
+    "host": [
+      "192.168.0.160"
+    ],
+    "username": [
+      "admin"
+    ],
+    "password": [
+      "***redacted***"
+    ],
+    "major": [
+      "0"
+    ],
+    "minor": [
+      "0"
+    ],
+    "max-results": [
+      "10"
+    ],
+    "output": [
+      "json"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "json"
+}

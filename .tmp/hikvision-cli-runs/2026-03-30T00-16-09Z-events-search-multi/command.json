@@ -1,0 +1,26 @@
+{
+  "command": {
+    "group": "events",
+    "action": "search-multi",
+    "displayName": "events search-multi"
+  },
+  "flags": {
+    "major": [
+      "2"
+    ],
+    "minors": [
+      "39,1031"
+    ],
+    "start-time": [
+      "2026-03-30T00:01:09Z"
+    ],
+    "end-time": [
+      "2026-03-30T00:16:09Z"
+    ],
+    "max-results": [
+      "30"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "dual"
+}

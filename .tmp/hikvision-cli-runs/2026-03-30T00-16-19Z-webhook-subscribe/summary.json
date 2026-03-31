@@ -1,0 +1,8 @@
+{
+  "hostId": "1",
+  "subscribed": true,
+  "eventTypes": [
+    "AccessControllerEvent"
+  ],
+  "minorEvent": []
+}

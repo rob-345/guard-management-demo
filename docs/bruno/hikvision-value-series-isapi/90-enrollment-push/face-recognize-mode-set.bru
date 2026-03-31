@@ -1,0 +1,32 @@
+meta {
+  name: FaceRecognizeMode set
+  type: http
+  seq: 25
+}
+
+put {
+  url: http://{{device_host}}/ISAPI/AccessControl/FaceRecognizeMode
+  body: json
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:json {
+  {
+    "FaceRecognizeMode": {
+      "mode": "{{face_mode}}"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+meta {
+  name: UserInfo SetUp
+  type: http
+  seq: 22
+}
+
+put {
+  url: http://{{device_host}}/ISAPI/AccessControl/UserInfo/SetUp
+  body: json
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:json {
+  {
+    "UserInfo": {
+      "employeeNo": "{{employee_no}}",
+      "userType": "normal",
+      "name": "{{person_name}}"
+    }
+  }
+}

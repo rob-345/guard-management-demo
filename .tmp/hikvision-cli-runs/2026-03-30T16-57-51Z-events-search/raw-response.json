@@ -1,0 +1,70 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T16:57:51.920Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774889871910\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":75}}",
+        "bodyBytes": 111
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 01:03:07 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"Mzk1MGQ0MGY1ZDlkMDhkNzE0OTllM2EzNTdiNDM4ZTE=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T16:57:51.959Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.160/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774889871910\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":5,\"minor\":75}}",
+        "bodyBytes": 111
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "3384",
+          "content-type": "application/json",
+          "date": "Tue, 31 Mar 2026 01:03:07 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 3384,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774889871910\",\n\t\t\"totalMatches\":\t8,\n\t\t\"responseStatusStrg\":\t\"OK\",\n\t\t\"numOfMatches\":\t8,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-30T16:56:36-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t41,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.328,\n\t\t\t\t\t\"width\":\t0.187,\n\t\t\t\t\t\"x\":\t0.456,\n\t\t\t\t\t\"y\":\t0\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-30T16:56:39-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t43,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.333,\n\t\t\t\t\t\"width\":\t0.189,\n\t\t\t\t\t\"x\":\t0.458,\n\t\t\t\t\t\"y\":\t0.224\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:44:03-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t14,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.377,\n\t\t\t\t\t\"width\":\t0.213,\n\t\t\t\t\t\"x\":\t0.399,\n\t\t\t\t\t\"y\":\t0.25\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:47:27-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t19,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.421,\n\t\t\t\t\t\"width\":\t0.271,\n\t\t\t\t\t\"x\":\t0.432,\n\t\t\t\t\t\"y\":\t0.575\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:17-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t24,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.137,\n\t\t\t\t\t\"width\":\t0.077,\n\t\t\t\t\t\"x\":\t0.5,\n\t\t\t\t\t\"y\":\t0.265\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:24-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t27,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.109,\n\t\t\t\t\t\"width\":\t0.062,\n\t\t\t\t\t\"x\":\t0.569,\n\t\t\t\t\t\"y\":\t0.182\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:27-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t29,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.102,\n\t\t\t\t\t\"width\":\t0.058,\n\t\t\t\t\t\"x\":\t0.518,\n\t\t\t\t\t\"y\":\t0.214\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:33-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t32,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.093,\n\t\t\t\t\t\"width\":\t0.053,\n\t\t\t\t\t\"x\":\t0.533,\n\t\t\t\t\t\"y\":\t0.208\n\t\t\t\t}\n\t\t\t}]\n\t}\n}"
+      }
+    }
+  ]
+}

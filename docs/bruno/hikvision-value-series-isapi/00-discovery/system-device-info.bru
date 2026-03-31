@@ -1,0 +1,16 @@
+meta {
+  name: System deviceInfo
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/System/deviceInfo
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

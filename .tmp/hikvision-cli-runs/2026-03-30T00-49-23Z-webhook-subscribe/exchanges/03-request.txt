@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HttpHostNotification xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">
+  <id>1</id>
+  <url>http://192.168.0.194:3102/api/events/hikvision/cli-monitor-xml</url>
+  <protocolType>HTTP</protocolType>
+  <parameterFormatType>XML</parameterFormatType>
+  <addressingFormatType>ipaddress</addressingFormatType>
+  <ipAddress>192.168.0.194</ipAddress>
+  <portNo>3102</portNo>
+  <httpAuthenticationMethod>none</httpAuthenticationMethod>
+  <checkResponseEnabled>true</checkResponseEnabled>
+  <SubscribeEvent>
+    <heartbeat>30</heartbeat>
+    <eventMode>all</eventMode>
+    <EventList>
+    <Event>
+      <type>AccessControllerEvent</type>
+      <pictureURLType>binary</pictureURLType>
+    </Event>
+    </EventList>
+  </SubscribeEvent>
+</HttpHostNotification>

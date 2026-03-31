@@ -1,0 +1,40 @@
+Content-Disposition: form-data; name="AccessControllerEvent"
+Content-Type: application/json; charset="UTF-8"
+Content-Length: 800
+
+{
+	"ipAddress":	"192.168.0.179",
+	"portNo":	80,
+	"protocol":	"HTTP",
+	"macAddress":	"88:de:39:38:04:0f",
+	"channelID":	1,
+	"dateTime":	"2026-03-29T22:12:58Z",
+	"activePostCount":	1,
+	"eventType":	"AccessControllerEvent",
+	"eventState":	"active",
+	"eventDescription":	"Access Controller Event",
+	"shortSerialNumber":	"GF8169846",
+	"AccessControllerEvent":	{
+		"deviceName":	"Access Controller",
+		"majorEventType":	5,
+		"subEventType":	75,
+		"name":	"Ekow",
+		"cardReaderNo":	1,
+		"employeeNoString":	"WS012",
+		"serialNo":	224,
+		"userType":	"normal",
+		"currentVerifyMode":	"faceOrFpOrCardOrPw",
+		"currentEvent":	false,
+		"frontSerialNo":	223,
+		"label":	"",
+		"mask":	"no",
+		"purePwdVerifyEnable":	true,
+		"FaceRect":	{
+			"height":	0.332,
+			"width":	0.188,
+			"x":	0.401,
+			"y":	0.256
+		}
+	}
+}
+--MIME_boundary

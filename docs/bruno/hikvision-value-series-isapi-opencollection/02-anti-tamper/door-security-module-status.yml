@@ -1,0 +1,18 @@
+info:
+  name: "DoorSecurityModule status"
+  type: http
+  seq: 19
+
+http:
+  method: GET
+  url: "http://{{device_host}}/ISAPI/AccessControl/DoorSecurityModule/moduleStatus"
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

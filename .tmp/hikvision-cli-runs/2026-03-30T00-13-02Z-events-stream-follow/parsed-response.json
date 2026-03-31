@@ -1,0 +1,205 @@
+{
+  "success": true,
+  "contentType": "multipart/mixed; boundary=MIME_boundary",
+  "durationMs": 180088,
+  "totalBytes": 22628,
+  "chunks": [
+    {
+      "timestamp": "2026-03-30T00:13:02.416Z",
+      "byteLength": 17,
+      "text": "--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:02.417Z",
+      "byteLength": 880,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 727\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:45Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t219,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t218,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.344,\n\t\t\t\"width\":\t0.195,\n\t\t\t\"x\":\t0.414,\n\t\t\t\"y\":\t0.305\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:02.653Z",
+      "byteLength": 880,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 727\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:49Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t76,\n\t\t\"cardReaderNo\":\t1,\n\t\t\"serialNo\":\t220,\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t219,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.341,\n\t\t\t\"width\":\t0.191,\n\t\t\t\"x\":\t0.401,\n\t\t\t\"y\":\t0.306\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:02.891Z",
+      "byteLength": 953,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 800\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:51Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Ekow\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\"serialNo\":\t221,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t220,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.335,\n\t\t\t\"width\":\t0.189,\n\t\t\t\"x\":\t0.401,\n\t\t\t\"y\":\t0.275\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:03.117Z",
+      "byteLength": 724,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 571\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:52Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t21,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t222,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t221,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:03.396Z",
+      "byteLength": 953,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 800\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:55Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Ekow\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\"serialNo\":\t223,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t222,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.346,\n\t\t\t\"width\":\t0.196,\n\t\t\t\"x\":\t0.395,\n\t\t\t\"y\":\t0.243\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:03.637Z",
+      "byteLength": 953,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 800\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:12:58Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Ekow\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\"serialNo\":\t224,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t223,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.332,\n\t\t\t\"width\":\t0.188,\n\t\t\t\"x\":\t0.401,\n\t\t\t\"y\":\t0.256\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:03.863Z",
+      "byteLength": 953,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 800\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:13:01Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Ekow\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\"serialNo\":\t225,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t224,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.338,\n\t\t\t\"width\":\t0.191,\n\t\t\t\"x\":\t0.418,\n\t\t\t\"y\":\t0.236\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:04.103Z",
+      "byteLength": 724,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 571\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:13:07Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t22,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t226,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t225,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:04.334Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:21:05Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t121,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t227,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t226,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:04.574Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T22:21:12Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t122,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t228,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t227,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:04.846Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T23:14:57Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t121,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t229,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t228,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:05.073Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T23:15:02Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t122,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t230,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t229,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:05.311Z",
+      "byteLength": 955,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 802\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T23:27:40Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Robert\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\"serialNo\":\t231,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t230,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.446,\n\t\t\t\"width\":\t0.253,\n\t\t\t\"x\":\t0.388,\n\t\t\t\"y\":\t0.203\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:05.556Z",
+      "byteLength": 724,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 571\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T23:27:40Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t21,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t232,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t231,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:05.783Z",
+      "byteLength": 955,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 802\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T23:27:43Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Robert\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\"serialNo\":\t233,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t232,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.399,\n\t\t\t\"width\":\t0.226,\n\t\t\t\"x\":\t0.409,\n\t\t\t\"y\":\t0.252\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:06.072Z",
+      "byteLength": 724,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 571\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-29T23:27:48Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t22,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t234,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t233,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:06.299Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:04:57Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t121,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t235,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t234,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:06.551Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:05:01Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t122,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t236,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t235,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:06.782Z",
+      "byteLength": 954,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 801\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:19:31Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Robert\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\"serialNo\":\t237,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t236,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.501,\n\t\t\t\"width\":\t0.285,\n\t\t\t\"x\":\t0.328,\n\t\t\t\"y\":\t0.23\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:07.020Z",
+      "byteLength": 724,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 571\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:19:31Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t21,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t238,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t237,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:07.255Z",
+      "byteLength": 724,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 571\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:19:36Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t22,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t239,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t238,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:07.497Z",
+      "byteLength": 747,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:24:50Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t121,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t240,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t239,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:32.392Z",
+      "byteLength": 367,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:25:20Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:13:57.396Z",
+      "byteLength": 367,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:25:45Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:14:22.384Z",
+      "byteLength": 367,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:26:10Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:14:47.402Z",
+      "byteLength": 367,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:26:35Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:14:56.823Z",
+      "byteLength": 954,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 801\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:26:44Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Robert\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\"serialNo\":\t241,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t240,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.461,\n\t\t\t\"width\":\t0.261,\n\t\t\t\"x\":\t0.424,\n\t\t\t\"y\":\t0.197\n\t\t}\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:14:57.362Z",
+      "byteLength": 723,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 570\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:26:44Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t21,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t242,\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t241,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:15:02.059Z",
+      "byteLength": 723,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 570\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:26:49Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t22,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t243,\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t242,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:15:26.439Z",
+      "byteLength": 367,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:27:14Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    },
+    {
+      "timestamp": "2026-03-30T00:15:51.394Z",
+      "byteLength": 367,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:27:39Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}\r\n--MIME_boundary\r\n",
+      "events": []
+    }
+  ],
+  "rawHeaders": {
+    "connection": "keep-alive",
+    "content-type": "multipart/mixed; boundary=MIME_boundary",
+    "mime-version": "1.0"
+  }
+}

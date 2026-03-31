@@ -1,0 +1,16 @@
+meta {
+  name: AccessControl capabilities
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/AccessControl/capabilities
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

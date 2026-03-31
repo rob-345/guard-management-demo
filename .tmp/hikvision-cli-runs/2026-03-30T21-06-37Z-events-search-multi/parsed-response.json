@@ -1,0 +1,408 @@
+{
+  "major": 5,
+  "minors": [
+    75,
+    76,
+    80,
+    104
+  ],
+  "records": [
+    {
+      "serialNo": "62",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-30T21:04:56-00:00",
+      "dateTime": "2026-03-30T21:04:56-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.595,
+        "width": 0.337,
+        "x": 0.353,
+        "y": 0.043
+      },
+      "raw": {
+        "AcsEvent": {
+          "searchID": "acs-1774904797907",
+          "totalMatches": 2,
+          "responseStatusStrg": "OK",
+          "numOfMatches": 2,
+          "InfoList": [
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-30T21:04:56-00:00",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 62,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.595,
+                "width": 0.337,
+                "x": 0.353,
+                "y": 0.043
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T05:02:51-00:00",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 57,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.513,
+                "width": 0.291,
+                "x": 0.37,
+                "y": 0.344
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "serialNo": "57",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T05:02:51-00:00",
+      "dateTime": "2026-03-31T05:02:51-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.513,
+        "width": 0.291,
+        "x": 0.37,
+        "y": 0.344
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T05:02:51-00:00",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 57,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.513,
+          "width": 0.291,
+          "x": 0.37,
+          "y": 0.344
+        }
+      }
+    }
+  ],
+  "perMinor": [
+    {
+      "minor": 75,
+      "result": {
+        "totalMatches": 2,
+        "searchResultPosition": 0,
+        "maxResults": 10,
+        "records": [
+          {
+            "serialNo": "62",
+            "employeeNoString": "WS001",
+            "name": "Robert",
+            "major": 5,
+            "minor": 75,
+            "eventTime": "2026-03-30T21:04:56-00:00",
+            "dateTime": "2026-03-30T21:04:56-00:00",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "cardType": 1,
+            "mask": "no",
+            "faceRect": {
+              "height": 0.595,
+              "width": 0.337,
+              "x": 0.353,
+              "y": 0.043
+            },
+            "raw": {
+              "AcsEvent": {
+                "searchID": "acs-1774904797907",
+                "totalMatches": 2,
+                "responseStatusStrg": "OK",
+                "numOfMatches": 2,
+                "InfoList": [
+                  {
+                    "major": 5,
+                    "minor": 75,
+                    "time": "2026-03-30T21:04:56-00:00",
+                    "cardType": 1,
+                    "name": "Robert",
+                    "cardReaderNo": 1,
+                    "doorNo": 1,
+                    "employeeNoString": "WS001",
+                    "serialNo": 62,
+                    "userType": "normal",
+                    "currentVerifyMode": "faceOrFpOrCardOrPw",
+                    "mask": "no",
+                    "FaceRect": {
+                      "height": 0.595,
+                      "width": 0.337,
+                      "x": 0.353,
+                      "y": 0.043
+                    }
+                  },
+                  {
+                    "major": 5,
+                    "minor": 75,
+                    "time": "2026-03-31T05:02:51-00:00",
+                    "cardType": 1,
+                    "name": "Robert",
+                    "cardReaderNo": 1,
+                    "doorNo": 1,
+                    "employeeNoString": "WS001",
+                    "serialNo": 57,
+                    "userType": "normal",
+                    "currentVerifyMode": "faceOrFpOrCardOrPw",
+                    "mask": "no",
+                    "FaceRect": {
+                      "height": 0.513,
+                      "width": 0.291,
+                      "x": 0.37,
+                      "y": 0.344
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "serialNo": "57",
+            "employeeNoString": "WS001",
+            "name": "Robert",
+            "major": 5,
+            "minor": 75,
+            "eventTime": "2026-03-31T05:02:51-00:00",
+            "dateTime": "2026-03-31T05:02:51-00:00",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "cardType": 1,
+            "mask": "no",
+            "faceRect": {
+              "height": 0.513,
+              "width": 0.291,
+              "x": 0.37,
+              "y": 0.344
+            },
+            "raw": {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T05:02:51-00:00",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 57,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.513,
+                "width": 0.291,
+                "x": 0.37,
+                "y": 0.344
+              }
+            }
+          }
+        ],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "956",
+            "content-type": "application/json",
+            "date": "Tue, 31 Mar 2026 05:04:17 GMT",
+            "keep-alive": "timeout=5, max=99",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774904797907",
+              "totalMatches": 2,
+              "responseStatusStrg": "OK",
+              "numOfMatches": 2,
+              "InfoList": [
+                {
+                  "major": 5,
+                  "minor": 75,
+                  "time": "2026-03-30T21:04:56-00:00",
+                  "cardType": 1,
+                  "name": "Robert",
+                  "cardReaderNo": 1,
+                  "doorNo": 1,
+                  "employeeNoString": "WS001",
+                  "serialNo": 62,
+                  "userType": "normal",
+                  "currentVerifyMode": "faceOrFpOrCardOrPw",
+                  "mask": "no",
+                  "FaceRect": {
+                    "height": 0.595,
+                    "width": 0.337,
+                    "x": 0.353,
+                    "y": 0.043
+                  }
+                },
+                {
+                  "major": 5,
+                  "minor": 75,
+                  "time": "2026-03-31T05:02:51-00:00",
+                  "cardType": 1,
+                  "name": "Robert",
+                  "cardReaderNo": 1,
+                  "doorNo": 1,
+                  "employeeNoString": "WS001",
+                  "serialNo": 57,
+                  "userType": "normal",
+                  "currentVerifyMode": "faceOrFpOrCardOrPw",
+                  "mask": "no",
+                  "FaceRect": {
+                    "height": 0.513,
+                    "width": 0.291,
+                    "x": 0.37,
+                    "y": 0.344
+                  }
+                }
+              ]
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774904797907\",\n\t\t\"totalMatches\":\t2,\n\t\t\"responseStatusStrg\":\t\"OK\",\n\t\t\"numOfMatches\":\t2,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-30T21:04:56-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t62,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.595,\n\t\t\t\t\t\"width\":\t0.337,\n\t\t\t\t\t\"x\":\t0.353,\n\t\t\t\t\t\"y\":\t0.043\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T05:02:51-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t57,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.513,\n\t\t\t\t\t\"width\":\t0.291,\n\t\t\t\t\t\"x\":\t0.37,\n\t\t\t\t\t\"y\":\t0.344\n\t\t\t\t}\n\t\t\t}]\n\t}\n}"
+        }
+      }
+    },
+    {
+      "minor": 76,
+      "result": {
+        "totalMatches": 0,
+        "searchResultPosition": 0,
+        "maxResults": 10,
+        "records": [],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "133",
+            "content-type": "application/json",
+            "date": "Tue, 31 Mar 2026 05:04:17 GMT",
+            "keep-alive": "timeout=5, max=98",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774904798047",
+              "totalMatches": 0,
+              "responseStatusStrg": "NO MATCH",
+              "numOfMatches": 0
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774904798047\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+        }
+      }
+    },
+    {
+      "minor": 80,
+      "result": {
+        "totalMatches": 0,
+        "searchResultPosition": 0,
+        "maxResults": 10,
+        "records": [],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "133",
+            "content-type": "application/json",
+            "date": "Tue, 31 Mar 2026 05:04:17 GMT",
+            "keep-alive": "timeout=5, max=97",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774904798149",
+              "totalMatches": 0,
+              "responseStatusStrg": "NO MATCH",
+              "numOfMatches": 0
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774904798149\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+        }
+      }
+    },
+    {
+      "minor": 104,
+      "result": {
+        "totalMatches": 0,
+        "searchResultPosition": 0,
+        "maxResults": 10,
+        "records": [],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "133",
+            "content-type": "application/json",
+            "date": "Tue, 31 Mar 2026 05:04:17 GMT",
+            "keep-alive": "timeout=5, max=96",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774904798243",
+              "totalMatches": 0,
+              "responseStatusStrg": "NO MATCH",
+              "numOfMatches": 0
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774904798243\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+        }
+      }
+    }
+  ]
+}

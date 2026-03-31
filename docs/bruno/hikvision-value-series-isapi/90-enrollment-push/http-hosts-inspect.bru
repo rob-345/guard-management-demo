@@ -1,0 +1,21 @@
+meta {
+  name: HttpHosts inspect
+  type: http
+  seq: 28
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Event/notification/httpHosts
+  body: none
+  auth: digest
+}
+
+params:query {
+  security: {{security}}
+  iv: {{iv}}
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

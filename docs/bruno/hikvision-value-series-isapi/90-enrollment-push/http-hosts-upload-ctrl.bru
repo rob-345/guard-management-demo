@@ -1,0 +1,16 @@
+meta {
+  name: HttpHosts uploadCtrl
+  type: http
+  seq: 32
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Event/notification/httpHosts/{{host_id}}/uploadCtrl
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

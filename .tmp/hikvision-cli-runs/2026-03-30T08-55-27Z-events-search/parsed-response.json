@@ -1,0 +1,63 @@
+{
+  "totalMatches": 1,
+  "searchResultPosition": 0,
+  "maxResults": 1,
+  "records": [
+    {
+      "serialNo": "1",
+      "major": 2,
+      "minor": 1024,
+      "eventTime": "2026-03-26T22:32:11Z",
+      "dateTime": "2026-03-26T22:32:11Z",
+      "raw": {
+        "AcsEvent": {
+          "searchID": "acs-1774860927586",
+          "totalMatches": 275,
+          "responseStatusStrg": "MORE",
+          "numOfMatches": 1,
+          "InfoList": [
+            {
+              "major": 2,
+              "minor": 1024,
+              "time": "2026-03-26T22:32:11Z",
+              "serialNo": 1
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "244",
+      "content-type": "application/json",
+      "date": "Mon, 30 Mar 2026 09:07:16 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "AcsEvent": {
+        "searchID": "acs-1774860927586",
+        "totalMatches": 275,
+        "responseStatusStrg": "MORE",
+        "numOfMatches": 1,
+        "InfoList": [
+          {
+            "major": 2,
+            "minor": 1024,
+            "time": "2026-03-26T22:32:11Z",
+            "serialNo": 1
+          }
+        ]
+      }
+    },
+    "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774860927586\",\n\t\t\"totalMatches\":\t275,\n\t\t\"responseStatusStrg\":\t\"MORE\",\n\t\t\"numOfMatches\":\t1,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:11Z\",\n\t\t\t\t\"serialNo\":\t1\n\t\t\t}]\n\t}\n}"
+  }
+}

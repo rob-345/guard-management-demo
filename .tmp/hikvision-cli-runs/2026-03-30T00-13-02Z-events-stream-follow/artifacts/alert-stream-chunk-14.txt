@@ -1,0 +1,40 @@
+Content-Disposition: form-data; name="AccessControllerEvent"
+Content-Type: application/json; charset="UTF-8"
+Content-Length: 802
+
+{
+	"ipAddress":	"192.168.0.179",
+	"portNo":	80,
+	"protocol":	"HTTP",
+	"macAddress":	"88:de:39:38:04:0f",
+	"channelID":	1,
+	"dateTime":	"2026-03-29T23:27:40Z",
+	"activePostCount":	1,
+	"eventType":	"AccessControllerEvent",
+	"eventState":	"active",
+	"eventDescription":	"Access Controller Event",
+	"shortSerialNumber":	"GF8169846",
+	"AccessControllerEvent":	{
+		"deviceName":	"Access Controller",
+		"majorEventType":	5,
+		"subEventType":	75,
+		"name":	"Robert",
+		"cardReaderNo":	1,
+		"employeeNoString":	"WS001",
+		"serialNo":	231,
+		"userType":	"normal",
+		"currentVerifyMode":	"faceOrFpOrCardOrPw",
+		"currentEvent":	false,
+		"frontSerialNo":	230,
+		"label":	"",
+		"mask":	"no",
+		"purePwdVerifyEnable":	true,
+		"FaceRect":	{
+			"height":	0.446,
+			"width":	0.253,
+			"x":	0.388,
+			"y":	0.203
+		}
+	}
+}
+--MIME_boundary

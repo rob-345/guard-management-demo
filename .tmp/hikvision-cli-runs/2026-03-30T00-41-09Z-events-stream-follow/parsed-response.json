@@ -1,0 +1,354 @@
+{
+  "success": true,
+  "contentType": "multipart/mixed; boundary=MIME_boundary",
+  "durationMs": 120003,
+  "totalBytes": 5375,
+  "chunks": [
+    {
+      "timestamp": "2026-03-30T00:41:10.077Z",
+      "byteLength": 728,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:52:46Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t122,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t246,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t245,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}",
+      "events": [
+        {
+          "serialNo": "246",
+          "major": 3,
+          "minor": 122,
+          "eventTime": "2026-03-30T00:52:46Z",
+          "dateTime": "2026-03-30T00:52:46Z",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "eventDescription": "Access Controller Event",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:52:46Z",
+            "activePostCount": 1,
+            "eventType": "AccessControllerEvent",
+            "eventState": "active",
+            "eventDescription": "Access Controller Event",
+            "shortSerialNumber": "GF8169846",
+            "AccessControllerEvent": {
+              "deviceName": "Access Controller",
+              "majorEventType": 3,
+              "subEventType": 122,
+              "remoteHostAddr": "192.168.0.194",
+              "serialNo": 246,
+              "currentEvent": false,
+              "frontSerialNo": 245,
+              "label": "",
+              "purePwdVerifyEnable": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:41:10.303Z",
+      "byteLength": 728,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:52:57Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t121,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t247,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t246,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}",
+      "events": [
+        {
+          "serialNo": "247",
+          "major": 3,
+          "minor": 121,
+          "eventTime": "2026-03-30T00:52:57Z",
+          "dateTime": "2026-03-30T00:52:57Z",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "eventDescription": "Access Controller Event",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:52:57Z",
+            "activePostCount": 1,
+            "eventType": "AccessControllerEvent",
+            "eventState": "active",
+            "eventDescription": "Access Controller Event",
+            "shortSerialNumber": "GF8169846",
+            "AccessControllerEvent": {
+              "deviceName": "Access Controller",
+              "majorEventType": 3,
+              "subEventType": 121,
+              "remoteHostAddr": "192.168.0.194",
+              "serialNo": 247,
+              "currentEvent": false,
+              "frontSerialNo": 246,
+              "label": "",
+              "purePwdVerifyEnable": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:41:34.360Z",
+      "byteLength": 348,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:22Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}",
+      "events": [
+        {
+          "eventTime": "2026-03-30T00:53:22Z",
+          "dateTime": "2026-03-30T00:53:22Z",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "eventDescription": "videoloss alarm",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:53:22Z",
+            "activePostCount": 1,
+            "eventType": "videoloss",
+            "eventState": "inactive",
+            "eventDescription": "videoloss alarm"
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:41:42.017Z",
+      "byteLength": 931,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 797\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:29Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Robert\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\"serialNo\":\t248,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t247,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.502,\n\t\t\t\"width\":\t0.288,\n\t\t\t\"x\":\t0.391,\n\t\t\t\"y\":\t0\n\t\t}\n\t}\n}",
+      "events": [
+        {
+          "serialNo": "248",
+          "employeeNoString": "WS001",
+          "name": "Robert",
+          "major": 5,
+          "minor": 75,
+          "eventTime": "2026-03-30T00:53:29Z",
+          "dateTime": "2026-03-30T00:53:29Z",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "eventDescription": "Access Controller Event",
+          "currentVerifyMode": "faceOrFpOrCardOrPw",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:53:29Z",
+            "activePostCount": 1,
+            "eventType": "AccessControllerEvent",
+            "eventState": "active",
+            "eventDescription": "Access Controller Event",
+            "shortSerialNumber": "GF8169846",
+            "AccessControllerEvent": {
+              "deviceName": "Access Controller",
+              "majorEventType": 5,
+              "subEventType": 75,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 248,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "currentEvent": true,
+              "frontSerialNo": 247,
+              "label": "",
+              "mask": "no",
+              "purePwdVerifyEnable": true,
+              "FaceRect": {
+                "height": 0.502,
+                "width": 0.288,
+                "x": 0.391,
+                "y": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:41:42.372Z",
+      "byteLength": 704,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 570\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:29Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t21,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t249,\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t248,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}",
+      "events": [
+        {
+          "serialNo": "249",
+          "major": 5,
+          "minor": 21,
+          "eventTime": "2026-03-30T00:53:29Z",
+          "dateTime": "2026-03-30T00:53:29Z",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "eventDescription": "Access Controller Event",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:53:29Z",
+            "activePostCount": 1,
+            "eventType": "AccessControllerEvent",
+            "eventState": "active",
+            "eventDescription": "Access Controller Event",
+            "shortSerialNumber": "GF8169846",
+            "AccessControllerEvent": {
+              "deviceName": "Access Controller",
+              "majorEventType": 5,
+              "subEventType": 21,
+              "doorNo": 1,
+              "serialNo": 249,
+              "currentEvent": true,
+              "frontSerialNo": 248,
+              "label": "",
+              "purePwdVerifyEnable": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:41:46.880Z",
+      "byteLength": 704,
+      "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 570\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:34Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t22,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t250,\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t249,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}",
+      "events": [
+        {
+          "serialNo": "250",
+          "major": 5,
+          "minor": 22,
+          "eventTime": "2026-03-30T00:53:34Z",
+          "dateTime": "2026-03-30T00:53:34Z",
+          "eventType": "AccessControllerEvent",
+          "eventState": "active",
+          "eventDescription": "Access Controller Event",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:53:34Z",
+            "activePostCount": 1,
+            "eventType": "AccessControllerEvent",
+            "eventState": "active",
+            "eventDescription": "Access Controller Event",
+            "shortSerialNumber": "GF8169846",
+            "AccessControllerEvent": {
+              "deviceName": "Access Controller",
+              "majorEventType": 5,
+              "subEventType": 22,
+              "doorNo": 1,
+              "serialNo": 250,
+              "currentEvent": true,
+              "frontSerialNo": 249,
+              "label": "",
+              "purePwdVerifyEnable": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:42:11.389Z",
+      "byteLength": 348,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:59Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}",
+      "events": [
+        {
+          "eventTime": "2026-03-30T00:53:59Z",
+          "dateTime": "2026-03-30T00:53:59Z",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "eventDescription": "videoloss alarm",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:53:59Z",
+            "activePostCount": 1,
+            "eventType": "videoloss",
+            "eventState": "inactive",
+            "eventDescription": "videoloss alarm"
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:42:36.417Z",
+      "byteLength": 348,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:54:24Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}",
+      "events": [
+        {
+          "eventTime": "2026-03-30T00:54:24Z",
+          "dateTime": "2026-03-30T00:54:24Z",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "eventDescription": "videoloss alarm",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:54:24Z",
+            "activePostCount": 1,
+            "eventType": "videoloss",
+            "eventState": "inactive",
+            "eventDescription": "videoloss alarm"
+          }
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-30T00:43:01.429Z",
+      "byteLength": 348,
+      "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:54:49Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}",
+      "events": [
+        {
+          "eventTime": "2026-03-30T00:54:49Z",
+          "dateTime": "2026-03-30T00:54:49Z",
+          "eventType": "videoloss",
+          "eventState": "inactive",
+          "eventDescription": "videoloss alarm",
+          "ipAddress": "192.168.0.179",
+          "macAddress": "88:de:39:38:04:0f",
+          "raw": {
+            "ipAddress": "192.168.0.179",
+            "portNo": 80,
+            "protocol": "HTTP",
+            "macAddress": "88:de:39:38:04:0f",
+            "channelID": 1,
+            "dateTime": "2026-03-30T00:54:49Z",
+            "activePostCount": 1,
+            "eventType": "videoloss",
+            "eventState": "inactive",
+            "eventDescription": "videoloss alarm"
+          }
+        }
+      ]
+    }
+  ],
+  "rawHeaders": {
+    "connection": "keep-alive",
+    "content-type": "multipart/mixed; boundary=MIME_boundary",
+    "mime-version": "1.0"
+  }
+}

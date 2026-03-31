@@ -1,0 +1,10 @@
+{
+  "command": {
+    "group": "device",
+    "action": "probe",
+    "displayName": "device probe"
+  },
+  "flags": {},
+  "booleans": {},
+  "outputMode": "dual"
+}

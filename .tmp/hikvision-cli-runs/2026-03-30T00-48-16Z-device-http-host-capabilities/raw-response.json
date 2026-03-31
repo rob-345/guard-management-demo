@@ -1,0 +1,64 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T00:48:16.310Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/httpHosts/capabilities",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/capabilities",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 01:00:03 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"OTMzNmVkYTU3Yzg2ZWIzNDA1YTQ1NzJiZGE3N2M1NTg=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 235,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:48:16.357Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/httpHosts/capabilities",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/httpHosts/capabilities",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "1701",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 01:00:03 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 1701,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<HttpHostNotificationCap xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\n<hostNumber>2</hostNumber>\n<urlLen min=\"0\" max=\"128\"/>\n<protocolType opt=\"HTTP,HTTPS,EHome\"/>\n<parameterFormatType opt=\"XML,JSON\"/>\n<addressingFormatType opt=\"ipaddress,hostname\"/>\n<hostName min=\"1\" max=\"64\"/>\n<ipAddress opt=\"ipv4\"/>\n<portNo min=\"0\" max=\"65535\"/>\n<userNameLen min=\"1\" max=\"32\"/>\n<passwordLen min=\"8\" max=\"16\"/>\n<httpAuthenticationMethod opt=\"MD5digest,none,basic\"/>\n<SubscribeEventCap>\n<heartbeat min=\"1\" max=\"30\"/>\n<eventMode opt=\"all,list\"/>\n<EventList>\n<Event>\n<type>AccessControllerEvent</type>\n<minorAlarm opt=\"0x40a,0x40b,0x40c,0x404,0x405\"/>\n<minorException opt=\"0x26,0x27,0x400,0x407,0x408,0x428,0x429,0x409,0x40a,0x40f,0x410,0x42a,0x42b,0x44f,0x450,0x960,0x961\"/>\n<minorOperation opt=\"0x50,0x5a,0x5d,0x5e,0x70,0x71,0x76,0x77,0x79,0x7a,0x7b,0x7e,0x86,0x87,0xf0,0xf1,0x137,0x138,0x400,0x401,0x402,0x403,0x404,0x405,0x406,0x407,0x40a,0x40b,0x40c,0x40e,0x419,0x41a,0x421,0x422,0x42f,0x430,0x431,0x432,0x433,0x2601,0x41f,0x420,0x436\"/>\n<minorEvent opt=\"0x1,0x6,0x7,0x8,0x9,0xa,0xb,0xc,0xd,0xe,0xf,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1f,0x20,0x21,0x22,0x23,0x24,0x26,0x27,0x31,0x33,0x4b,0x4c,0x50,0x5e,0x68,0x75,0x82,0x84,0x8e,0x97,0x98,0x9b,0xa4,0xa8,0xb5,0xc1,0x9f,0xa0,0x2,0x3,0x4,0x5,0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f,0x30,0x36,0x37,0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,0x40,0x41,0x42,0x43,0x44,0x99,0x9a,0xaf,0xb0,0xd0,0xd4,0x813,0xa2,0xa9,0x77,0xa3,0xaa,0xc9,0x9c,0x9d,0xd9\"/>\n<pictureURLType opt=\"binary\"/>\n</Event>\n<Event>\n<type>LocalUserChange</type>\n</Event>\n</EventList>\n</SubscribeEventCap>\n</HttpHostNotificationCap>\n"
+      }
+    }
+  ]
+}

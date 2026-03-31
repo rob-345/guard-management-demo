@@ -1,0 +1,26 @@
+meta {
+  name: Security challenge
+  type: http
+  seq: 33
+}
+
+post {
+  url: http://{{device_host}}/ISAPI/Security/challenge
+  body: xml
+  auth: digest
+}
+
+headers {
+  Content-Type: application/xml
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:xml {
+  <PublicKey xmlns="http://www.isapi.org/ver20/XMLSchema" version="2.0">
+    <key>{{challenge_modulus_b64}}</key>
+  </PublicKey>
+}

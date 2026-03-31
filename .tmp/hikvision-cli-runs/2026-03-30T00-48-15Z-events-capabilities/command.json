@@ -1,0 +1,10 @@
+{
+  "command": {
+    "group": "events",
+    "action": "capabilities",
+    "displayName": "events capabilities"
+  },
+  "flags": {},
+  "booleans": {},
+  "outputMode": "dual"
+}

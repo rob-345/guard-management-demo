@@ -1,0 +1,107 @@
+name: local
+variables:
+  - name: device_host
+    value: "192.168.0.179"
+    enabled: true
+    secret: false
+    type: text
+  - name: username
+    value: "admin"
+    enabled: true
+    secret: false
+    type: text
+  - name: password
+    value: ""
+    enabled: true
+    secret: true
+    type: text
+  - name: track_stream_id
+    value: "1"
+    enabled: true
+    secret: false
+    type: text
+  - name: host_id
+    value: "1"
+    enabled: true
+    secret: false
+    type: text
+  - name: subscribe_event_id
+    value: ""
+    enabled: true
+    secret: false
+    type: text
+  - name: security
+    value: ""
+    enabled: true
+    secret: true
+    type: text
+  - name: iv
+    value: ""
+    enabled: true
+    secret: true
+    type: text
+  - name: employee_no
+    value: "EMP-1022"
+    enabled: true
+    secret: false
+    type: text
+  - name: person_name
+    value: "Jane Doe"
+    enabled: true
+    secret: false
+    type: text
+  - name: face_url
+    value: "http://127.0.0.1:9000/faces/jane-doe.jpg"
+    enabled: true
+    secret: false
+    type: text
+  - name: fdid
+    value: "1"
+    enabled: true
+    secret: false
+    type: text
+  - name: face_mode
+    value: "normalMode"
+    enabled: true
+    secret: false
+    type: text
+  - name: event_search_id
+    value: "codex-live-check"
+    enabled: true
+    secret: false
+    type: text
+  - name: event_search_position
+    value: "0"
+    enabled: true
+    secret: false
+    type: text
+  - name: event_max_results
+    value: "1"
+    enabled: true
+    secret: false
+    type: text
+  - name: event_major
+    value: "1"
+    enabled: true
+    secret: false
+    type: text
+  - name: event_minor
+    value: "1024"
+    enabled: true
+    secret: false
+    type: text
+  - name: event_push_url
+    value: "http://127.0.0.1:9000/hikvision/events"
+    enabled: true
+    secret: false
+    type: text
+  - name: challenge_modulus_b64
+    value: ""
+    enabled: true
+    secret: true
+    type: text
+  - name: activation_password_payload
+    value: ""
+    enabled: true
+    secret: true
+    type: text

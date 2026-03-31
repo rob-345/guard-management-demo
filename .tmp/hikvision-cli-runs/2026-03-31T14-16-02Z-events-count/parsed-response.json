@@ -1,0 +1,24 @@
+{
+  "totalNum": 4,
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "45",
+      "content-type": "application/json",
+      "date": "Tue, 31 Mar 2026 14:16:04 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "AcsEventTotalNum": {
+        "totalNum": 4
+      }
+    },
+    "rawText": "{\n\t\"AcsEventTotalNum\":\t{\n\t\t\"totalNum\":\t4\n\t}\n}"
+  }
+}

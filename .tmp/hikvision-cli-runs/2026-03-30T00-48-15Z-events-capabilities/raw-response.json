@@ -1,0 +1,64 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T00:48:15.202Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/AccessControl/AcsEvent/capabilities?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent/capabilities?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 01:00:02 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"YmY2ODU4ZjU0NTllZTEzN2E3NWU3ZjE2Y2EyYzI3M2Q=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:48:15.237Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/AccessControl/AcsEvent/capabilities?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent/capabilities?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "3063",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 01:00:02 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 3063,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"AcsEventCond\":\t{\n\t\t\t\"searchID\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t64\n\t\t\t},\n\t\t\t\"searchResultPosition\":\t{\n\t\t\t\t\"@min\":\t0,\n\t\t\t\t\"@max\":\t150000\n\t\t\t},\n\t\t\t\"maxResults\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t30\n\t\t\t},\n\t\t\t\"major\":\t{\n\t\t\t\t\"@opt\":\t\"0,1,2,3,5\"\n\t\t\t},\n\t\t\t\"minorAlarm\":\t{\n\t\t\t\t\"@opt\":\t\"1034,1035,1036,1028,1029\"\n\t\t\t},\n\t\t\t\"minorException\":\t{\n\t\t\t\t\"@opt\":\t\"38,39,1024,1031,1032,1064,1065,1033,1034,1039,1040,1066,1067,1103,1104,2400,2401\"\n\t\t\t},\n\t\t\t\"minorOperation\":\t{\n\t\t\t\t\"@opt\":\t\"80,90,93,94,112,113,118,119,121,122,123,126,134,135,240,241,311,312,1024,1025,1026,1027,1028,1029,1030,1031,1034,1035,1036,1038,1049,1050,1057,1058,1071,1072,1073,1074,1075,9729,1055,1056,1078\"\n\t\t\t},\n\t\t\t\"minorEvent\":\t{\n\t\t\t\t\"@opt\":\t\"1,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,31,32,33,34,35,36,38,39,49,51,75,76,80,94,104,117,130,132,142,151,152,155,164,168,181,193,159,160,2,3,4,5,40,41,42,43,44,45,46,47,48,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,153,154,175,176,208,212,2067,162,169,119,163,170,201,156,157,217\"\n\t\t\t},\n\t\t\t\"startTime\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t32\n\t\t\t},\n\t\t\t\"endTime\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t32\n\t\t\t},\n\t\t\t\"cardNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t20\n\t\t\t},\n\t\t\t\"name\":\t{\n\t\t\t\t\"@min\":\t0,\n\t\t\t\t\"@max\":\t128\n\t\t\t},\n\t\t\t\"picEnable\":\t\"true,false\",\n\t\t\t\"beginSerialNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t3000000000\n\t\t\t},\n\t\t\t\"endSerialNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t3000000000\n\t\t\t},\n\t\t\t\"employeeNoString\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t32\n\t\t\t},\n\t\t\t\"timeReverseOrder\":\t\"true\"\n\t\t},\n\t\t\"InfoList\":\t{\n\t\t\t\"maxSize\":\t30,\n\t\t\t\"time\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t32\n\t\t\t},\n\t\t\t\"netUser\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t16\n\t\t\t},\n\t\t\t\"remoteHostAddr\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t15\n\t\t\t},\n\t\t\t\"cardNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t20\n\t\t\t},\n\t\t\t\"cardType\":\t{\n\t\t\t\t\"@opt\":\t\"1,4,5,6\"\n\t\t\t},\n\t\t\t\"cardReaderNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t2\n\t\t\t},\n\t\t\t\"doorNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t1\n\t\t\t},\n\t\t\t\"employeeNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t32\n\t\t\t},\n\t\t\t\"serialNo\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t3000000000\n\t\t\t},\n\t\t\t\"userType\":\t{\n\t\t\t\t\"@opt\":\t\"normal,visitor,blackList,administrators\"\n\t\t\t},\n\t\t\t\"currentVerifyMode\":\t{\n\t\t\t\t\"@opt\":\t\"cardAndPw,card,fp,fpAndPw,fpOrCard,fpAndCard,fpAndCardAndPw,faceOrFpOrCardOrPw,faceAndFp,faceAndPw,faceAndCard,face,fpOrPw,faceAndFpAndCard,faceAndPwAndFp,fpOrface,cardOrfaceOrPw,cardOrFace,cardOrFaceOrFp,cardOrFpOrPw,faceOrPw\"\n\t\t\t},\n\t\t\t\"mask\":\t{\n\t\t\t\t\"@opt\":\t[\"unknown\", \"yes\", \"no\"]\n\t\t\t},\n\t\t\t\"pictureURL\":\t{\n\t\t\t\t\"@min\":\t1,\n\t\t\t\t\"@max\":\t256\n\t\t\t},\n\t\t\t\"attendanceStatus\":\t{\n\t\t\t\t\"@opt\":\t\"undefined,checkIn,checkOut,breakOut,breakIn,overtimeIn,overtimeOut\"\n\t\t\t},\n\t\t\t\"label\":\t{\n\t\t\t\t\"@min\":\t0,\n\t\t\t\t\"@max\":\t64\n\t\t\t},\n\t\t\t\"statusValue\":\t{\n\t\t\t\t\"@min\":\t0,\n\t\t\t\t\"@max\":\t255\n\t\t\t},\n\t\t\t\"FaceRect\":\t{\n\t\t\t\t\"height\":\t{\n\t\t\t\t\t\"@min\":\t0,\n\t\t\t\t\t\"@max\":\t1\n\t\t\t\t},\n\t\t\t\t\"width\":\t{\n\t\t\t\t\t\"@min\":\t0,\n\t\t\t\t\t\"@max\":\t1\n\t\t\t\t},\n\t\t\t\t\"x\":\t{\n\t\t\t\t\t\"@min\":\t0,\n\t\t\t\t\t\"@max\":\t1\n\t\t\t\t},\n\t\t\t\t\"y\":\t{\n\t\t\t\t\t\"@min\":\t0,\n\t\t\t\t\t\"@max\":\t1\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"currentAuthenticationTimes\":\t{\n\t\t\t\t\"@min\":\t0,\n\t\t\t\t\"@max\":\t255\n\t\t\t},\n\t\t\t\"allowAuthenticationTimes\":\t{\n\t\t\t\t\"@min\":\t0,\n\t\t\t\t\"@max\":\t255\n\t\t\t}\n\t\t}\n\t}\n}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "command": {
+    "group": "webhook",
+    "action": "subscribe",
+    "displayName": "webhook subscribe"
+  },
+  "flags": {
+    "host-id": [
+      "1"
+    ],
+    "callback-url": [
+      "http://192.168.0.194:3101/api/events/hikvision/cli...cli-monitor"
+    ],
+    "event-type": [
+      "AccessControllerEvent"
+    ],
+    "heartbeat": [
+      "30"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "dual"
+}

@@ -1,0 +1,663 @@
+{
+  "totalMatches": 8,
+  "searchResultPosition": 0,
+  "maxResults": 20,
+  "records": [
+    {
+      "serialNo": "41",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-30T16:56:36-00:00",
+      "dateTime": "2026-03-30T16:56:36-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.328,
+        "width": 0.187,
+        "x": 0.456,
+        "y": 0
+      },
+      "raw": {
+        "AcsEvent": {
+          "searchID": "acs-1774889871910",
+          "totalMatches": 8,
+          "responseStatusStrg": "OK",
+          "numOfMatches": 8,
+          "InfoList": [
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-30T16:56:36-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 41,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.328,
+                "width": 0.187,
+                "x": 0.456,
+                "y": 0
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-30T16:56:39-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 43,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.333,
+                "width": 0.189,
+                "x": 0.458,
+                "y": 0.224
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T00:44:03-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 14,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.377,
+                "width": 0.213,
+                "x": 0.399,
+                "y": 0.25
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T00:47:27-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 19,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.421,
+                "width": 0.271,
+                "x": 0.432,
+                "y": 0.575
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T00:49:17-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 24,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.137,
+                "width": 0.077,
+                "x": 0.5,
+                "y": 0.265
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T00:49:24-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 27,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.109,
+                "width": 0.062,
+                "x": 0.569,
+                "y": 0.182
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T00:49:27-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 29,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.102,
+                "width": 0.058,
+                "x": 0.518,
+                "y": 0.214
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-31T00:49:33-00:00",
+              "cardType": 1,
+              "name": "Ohene",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS323",
+              "serialNo": 32,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.093,
+                "width": 0.053,
+                "x": 0.533,
+                "y": 0.208
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "serialNo": "43",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-30T16:56:39-00:00",
+      "dateTime": "2026-03-30T16:56:39-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.333,
+        "width": 0.189,
+        "x": 0.458,
+        "y": 0.224
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-30T16:56:39-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 43,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.333,
+          "width": 0.189,
+          "x": 0.458,
+          "y": 0.224
+        }
+      }
+    },
+    {
+      "serialNo": "14",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T00:44:03-00:00",
+      "dateTime": "2026-03-31T00:44:03-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.377,
+        "width": 0.213,
+        "x": 0.399,
+        "y": 0.25
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T00:44:03-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 14,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.377,
+          "width": 0.213,
+          "x": 0.399,
+          "y": 0.25
+        }
+      }
+    },
+    {
+      "serialNo": "19",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T00:47:27-00:00",
+      "dateTime": "2026-03-31T00:47:27-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.421,
+        "width": 0.271,
+        "x": 0.432,
+        "y": 0.575
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T00:47:27-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 19,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.421,
+          "width": 0.271,
+          "x": 0.432,
+          "y": 0.575
+        }
+      }
+    },
+    {
+      "serialNo": "24",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T00:49:17-00:00",
+      "dateTime": "2026-03-31T00:49:17-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.137,
+        "width": 0.077,
+        "x": 0.5,
+        "y": 0.265
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T00:49:17-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 24,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.137,
+          "width": 0.077,
+          "x": 0.5,
+          "y": 0.265
+        }
+      }
+    },
+    {
+      "serialNo": "27",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T00:49:24-00:00",
+      "dateTime": "2026-03-31T00:49:24-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.109,
+        "width": 0.062,
+        "x": 0.569,
+        "y": 0.182
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T00:49:24-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 27,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.109,
+          "width": 0.062,
+          "x": 0.569,
+          "y": 0.182
+        }
+      }
+    },
+    {
+      "serialNo": "29",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T00:49:27-00:00",
+      "dateTime": "2026-03-31T00:49:27-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.102,
+        "width": 0.058,
+        "x": 0.518,
+        "y": 0.214
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T00:49:27-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 29,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.102,
+          "width": 0.058,
+          "x": 0.518,
+          "y": 0.214
+        }
+      }
+    },
+    {
+      "serialNo": "32",
+      "employeeNoString": "WS323",
+      "name": "Ohene",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-31T00:49:33-00:00",
+      "dateTime": "2026-03-31T00:49:33-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.093,
+        "width": 0.053,
+        "x": 0.533,
+        "y": 0.208
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-31T00:49:33-00:00",
+        "cardType": 1,
+        "name": "Ohene",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS323",
+        "serialNo": 32,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.093,
+          "width": 0.053,
+          "x": 0.533,
+          "y": 0.208
+        }
+      }
+    }
+  ],
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "3384",
+      "content-type": "application/json",
+      "date": "Tue, 31 Mar 2026 01:03:07 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "AcsEvent": {
+        "searchID": "acs-1774889871910",
+        "totalMatches": 8,
+        "responseStatusStrg": "OK",
+        "numOfMatches": 8,
+        "InfoList": [
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-30T16:56:36-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 41,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.328,
+              "width": 0.187,
+              "x": 0.456,
+              "y": 0
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-30T16:56:39-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 43,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.333,
+              "width": 0.189,
+              "x": 0.458,
+              "y": 0.224
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-31T00:44:03-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 14,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.377,
+              "width": 0.213,
+              "x": 0.399,
+              "y": 0.25
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-31T00:47:27-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 19,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.421,
+              "width": 0.271,
+              "x": 0.432,
+              "y": 0.575
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-31T00:49:17-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 24,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.137,
+              "width": 0.077,
+              "x": 0.5,
+              "y": 0.265
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-31T00:49:24-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 27,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.109,
+              "width": 0.062,
+              "x": 0.569,
+              "y": 0.182
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-31T00:49:27-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 29,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.102,
+              "width": 0.058,
+              "x": 0.518,
+              "y": 0.214
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-31T00:49:33-00:00",
+            "cardType": 1,
+            "name": "Ohene",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS323",
+            "serialNo": 32,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.093,
+              "width": 0.053,
+              "x": 0.533,
+              "y": 0.208
+            }
+          }
+        ]
+      }
+    },
+    "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774889871910\",\n\t\t\"totalMatches\":\t8,\n\t\t\"responseStatusStrg\":\t\"OK\",\n\t\t\"numOfMatches\":\t8,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-30T16:56:36-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t41,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.328,\n\t\t\t\t\t\"width\":\t0.187,\n\t\t\t\t\t\"x\":\t0.456,\n\t\t\t\t\t\"y\":\t0\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-30T16:56:39-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t43,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.333,\n\t\t\t\t\t\"width\":\t0.189,\n\t\t\t\t\t\"x\":\t0.458,\n\t\t\t\t\t\"y\":\t0.224\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:44:03-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t14,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.377,\n\t\t\t\t\t\"width\":\t0.213,\n\t\t\t\t\t\"x\":\t0.399,\n\t\t\t\t\t\"y\":\t0.25\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:47:27-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t19,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.421,\n\t\t\t\t\t\"width\":\t0.271,\n\t\t\t\t\t\"x\":\t0.432,\n\t\t\t\t\t\"y\":\t0.575\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:17-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t24,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.137,\n\t\t\t\t\t\"width\":\t0.077,\n\t\t\t\t\t\"x\":\t0.5,\n\t\t\t\t\t\"y\":\t0.265\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:24-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t27,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.109,\n\t\t\t\t\t\"width\":\t0.062,\n\t\t\t\t\t\"x\":\t0.569,\n\t\t\t\t\t\"y\":\t0.182\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:27-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t29,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.102,\n\t\t\t\t\t\"width\":\t0.058,\n\t\t\t\t\t\"x\":\t0.518,\n\t\t\t\t\t\"y\":\t0.214\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-31T00:49:33-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ohene\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS323\",\n\t\t\t\t\"serialNo\":\t32,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.093,\n\t\t\t\t\t\"width\":\t0.053,\n\t\t\t\t\t\"x\":\t0.533,\n\t\t\t\t\t\"y\":\t0.208\n\t\t\t\t}\n\t\t\t}]\n\t}\n}"
+  }
+}

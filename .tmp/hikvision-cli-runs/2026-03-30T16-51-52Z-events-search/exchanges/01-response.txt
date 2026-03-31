@@ -1,0 +1,5 @@
+<userCheck version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">
+<statusValue>401</statusValue>
+<statusString>Unauthorized</statusString>
+<isActivated>false</isActivated>
+</userCheck>

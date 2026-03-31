@@ -1,0 +1,113 @@
+{
+  "major": 5,
+  "minors": [
+    75,
+    21,
+    22
+  ],
+  "records": [],
+  "perMinor": [
+    {
+      "minor": 75,
+      "result": {
+        "totalMatches": 0,
+        "searchResultPosition": 0,
+        "maxResults": 20,
+        "records": [],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "133",
+            "content-type": "application/json",
+            "date": "Mon, 30 Mar 2026 00:54:52 GMT",
+            "keep-alive": "timeout=5, max=99",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774831384955",
+              "totalMatches": 0,
+              "responseStatusStrg": "NO MATCH",
+              "numOfMatches": 0
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774831384955\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+        }
+      }
+    },
+    {
+      "minor": 21,
+      "result": {
+        "totalMatches": 0,
+        "searchResultPosition": 0,
+        "maxResults": 20,
+        "records": [],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "133",
+            "content-type": "application/json",
+            "date": "Mon, 30 Mar 2026 00:54:52 GMT",
+            "keep-alive": "timeout=5, max=98",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774831385057",
+              "totalMatches": 0,
+              "responseStatusStrg": "NO MATCH",
+              "numOfMatches": 0
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774831385057\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+        }
+      }
+    },
+    {
+      "minor": 22,
+      "result": {
+        "totalMatches": 0,
+        "searchResultPosition": 0,
+        "maxResults": 20,
+        "records": [],
+        "rawResponse": {
+          "ok": true,
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "133",
+            "content-type": "application/json",
+            "date": "Mon, 30 Mar 2026 00:54:52 GMT",
+            "keep-alive": "timeout=5, max=97",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "body": {
+            "AcsEvent": {
+              "searchID": "acs-1774831385098",
+              "totalMatches": 0,
+              "responseStatusStrg": "NO MATCH",
+              "numOfMatches": 0
+            }
+          },
+          "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774831385098\",\n\t\t\"totalMatches\":\t0,\n\t\t\"responseStatusStrg\":\t\"NO MATCH\",\n\t\t\"numOfMatches\":\t0\n\t}\n}"
+        }
+      }
+    }
+  ]
+}

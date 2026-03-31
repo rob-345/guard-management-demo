@@ -1,0 +1,16 @@
+meta {
+  name: DoorSecurityModule capabilities
+  type: http
+  seq: 18
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/AccessControl/DoorSecurityModule/moduleStatus/capabilities
+  body: none
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

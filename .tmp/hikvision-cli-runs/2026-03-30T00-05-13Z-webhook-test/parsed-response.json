@@ -1,0 +1,4 @@
+{
+  "success": true,
+  "responseText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<HttpHostNotification version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<id>1</id>\r\n<url>http://192.168.0.194:3101/api/events/hikvision/cli...cli-monitor</url>\r\n<protocolType>HTTP</protocolType>\r\n<parameterFormatType>JSON</parameterFormatType>\r\n<addressingFormatType>ipaddress</addressingFormatType>\r\n<ipAddress>192.168.0.194</ipAddress>\r\n<portNo>3101</portNo>\r\n<httpAuthenticationMethod>none</httpAuthenticationMethod>\r\n<SubscribeEvent><heartbeat>30</heartbeat><eventMode>all</eventMode><EventList><Event><type>AccessControllerEvent</type><minorAlarm></minorAlarm><minorException></minorException><minorOperation></minorOperation><minorEvent></minorEvent><pictureURLType>binary</pictureURLType></Event></EventList></SubscribeEvent>\n</HttpHostNotification>\r\n"
+}

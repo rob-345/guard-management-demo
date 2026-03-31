@@ -1,0 +1,20 @@
+meta {
+  name: AcsWorkStatus capabilities
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/AccessControl/AcsWorkStatus/capabilities
+  body: none
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

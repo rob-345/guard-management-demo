@@ -1,0 +1,724 @@
+{
+  "totalMatches": 10,
+  "searchResultPosition": 0,
+  "maxResults": 10,
+  "records": [
+    {
+      "serialNo": "197",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:05:01Z",
+      "dateTime": "2026-03-29T22:05:01Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "AcsEvent": {
+          "searchID": "acs-1774828368861",
+          "totalMatches": 11,
+          "responseStatusStrg": "MORE",
+          "numOfMatches": 10,
+          "InfoList": [
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:05:01Z",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 197,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.517,
+                "width": 0.294,
+                "x": 0.359,
+                "y": 0.103
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:06:54Z",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 200,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.494,
+                "width": 0.281,
+                "x": 0.399,
+                "y": 0.177
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:06:57Z",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 202,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.336,
+                "width": 0.232,
+                "x": 0.498,
+                "y": 0.659
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:09:39Z",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 204,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.47,
+                "width": 0.267,
+                "x": 0.401,
+                "y": 0.28
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:09:43Z",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 206,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.359,
+                "width": 0.203,
+                "x": 0.481,
+                "y": 0.344
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:12:51Z",
+              "cardType": 1,
+              "name": "Ekow",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS012",
+              "serialNo": 221,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.335,
+                "width": 0.189,
+                "x": 0.401,
+                "y": 0.275
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:12:55Z",
+              "cardType": 1,
+              "name": "Ekow",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS012",
+              "serialNo": 223,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.346,
+                "width": 0.196,
+                "x": 0.395,
+                "y": 0.243
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:12:58Z",
+              "cardType": 1,
+              "name": "Ekow",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS012",
+              "serialNo": 224,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.332,
+                "width": 0.188,
+                "x": 0.401,
+                "y": 0.256
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T22:13:01Z",
+              "cardType": 1,
+              "name": "Ekow",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS012",
+              "serialNo": 225,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.338,
+                "width": 0.191,
+                "x": 0.418,
+                "y": 0.236
+              }
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-29T23:27:40Z",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 231,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.446,
+                "width": 0.253,
+                "x": 0.388,
+                "y": 0.203
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "serialNo": "200",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:06:54Z",
+      "dateTime": "2026-03-29T22:06:54Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:06:54Z",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 200,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.494,
+          "width": 0.281,
+          "x": 0.399,
+          "y": 0.177
+        }
+      }
+    },
+    {
+      "serialNo": "202",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:06:57Z",
+      "dateTime": "2026-03-29T22:06:57Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:06:57Z",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 202,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.336,
+          "width": 0.232,
+          "x": 0.498,
+          "y": 0.659
+        }
+      }
+    },
+    {
+      "serialNo": "204",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:09:39Z",
+      "dateTime": "2026-03-29T22:09:39Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:09:39Z",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 204,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.47,
+          "width": 0.267,
+          "x": 0.401,
+          "y": 0.28
+        }
+      }
+    },
+    {
+      "serialNo": "206",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:09:43Z",
+      "dateTime": "2026-03-29T22:09:43Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:09:43Z",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 206,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.359,
+          "width": 0.203,
+          "x": 0.481,
+          "y": 0.344
+        }
+      }
+    },
+    {
+      "serialNo": "221",
+      "employeeNoString": "WS012",
+      "name": "Ekow",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:12:51Z",
+      "dateTime": "2026-03-29T22:12:51Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:12:51Z",
+        "cardType": 1,
+        "name": "Ekow",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS012",
+        "serialNo": 221,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.335,
+          "width": 0.189,
+          "x": 0.401,
+          "y": 0.275
+        }
+      }
+    },
+    {
+      "serialNo": "223",
+      "employeeNoString": "WS012",
+      "name": "Ekow",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:12:55Z",
+      "dateTime": "2026-03-29T22:12:55Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:12:55Z",
+        "cardType": 1,
+        "name": "Ekow",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS012",
+        "serialNo": 223,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.346,
+          "width": 0.196,
+          "x": 0.395,
+          "y": 0.243
+        }
+      }
+    },
+    {
+      "serialNo": "224",
+      "employeeNoString": "WS012",
+      "name": "Ekow",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:12:58Z",
+      "dateTime": "2026-03-29T22:12:58Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:12:58Z",
+        "cardType": 1,
+        "name": "Ekow",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS012",
+        "serialNo": 224,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.332,
+          "width": 0.188,
+          "x": 0.401,
+          "y": 0.256
+        }
+      }
+    },
+    {
+      "serialNo": "225",
+      "employeeNoString": "WS012",
+      "name": "Ekow",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T22:13:01Z",
+      "dateTime": "2026-03-29T22:13:01Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T22:13:01Z",
+        "cardType": 1,
+        "name": "Ekow",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS012",
+        "serialNo": 225,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.338,
+          "width": 0.191,
+          "x": 0.418,
+          "y": 0.236
+        }
+      }
+    },
+    {
+      "serialNo": "231",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-29T23:27:40Z",
+      "dateTime": "2026-03-29T23:27:40Z",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-29T23:27:40Z",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 231,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.446,
+          "width": 0.253,
+          "x": 0.388,
+          "y": 0.203
+        }
+      }
+    }
+  ],
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "4167",
+      "content-type": "application/json",
+      "date": "Mon, 30 Mar 2026 00:04:36 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "AcsEvent": {
+        "searchID": "acs-1774828368861",
+        "totalMatches": 11,
+        "responseStatusStrg": "MORE",
+        "numOfMatches": 10,
+        "InfoList": [
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:05:01Z",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 197,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.517,
+              "width": 0.294,
+              "x": 0.359,
+              "y": 0.103
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:06:54Z",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 200,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.494,
+              "width": 0.281,
+              "x": 0.399,
+              "y": 0.177
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:06:57Z",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 202,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.336,
+              "width": 0.232,
+              "x": 0.498,
+              "y": 0.659
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:09:39Z",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 204,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.47,
+              "width": 0.267,
+              "x": 0.401,
+              "y": 0.28
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:09:43Z",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 206,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.359,
+              "width": 0.203,
+              "x": 0.481,
+              "y": 0.344
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:12:51Z",
+            "cardType": 1,
+            "name": "Ekow",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS012",
+            "serialNo": 221,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.335,
+              "width": 0.189,
+              "x": 0.401,
+              "y": 0.275
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:12:55Z",
+            "cardType": 1,
+            "name": "Ekow",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS012",
+            "serialNo": 223,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.346,
+              "width": 0.196,
+              "x": 0.395,
+              "y": 0.243
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:12:58Z",
+            "cardType": 1,
+            "name": "Ekow",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS012",
+            "serialNo": 224,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.332,
+              "width": 0.188,
+              "x": 0.401,
+              "y": 0.256
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T22:13:01Z",
+            "cardType": 1,
+            "name": "Ekow",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS012",
+            "serialNo": 225,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.338,
+              "width": 0.191,
+              "x": 0.418,
+              "y": 0.236
+            }
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-29T23:27:40Z",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 231,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.446,
+              "width": 0.253,
+              "x": 0.388,
+              "y": 0.203
+            }
+          }
+        ]
+      }
+    },
+    "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774828368861\",\n\t\t\"totalMatches\":\t11,\n\t\t\"responseStatusStrg\":\t\"MORE\",\n\t\t\"numOfMatches\":\t10,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:05:01Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t197,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.517,\n\t\t\t\t\t\"width\":\t0.294,\n\t\t\t\t\t\"x\":\t0.359,\n\t\t\t\t\t\"y\":\t0.103\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:06:54Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t200,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.494,\n\t\t\t\t\t\"width\":\t0.281,\n\t\t\t\t\t\"x\":\t0.399,\n\t\t\t\t\t\"y\":\t0.177\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:06:57Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t202,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.336,\n\t\t\t\t\t\"width\":\t0.232,\n\t\t\t\t\t\"x\":\t0.498,\n\t\t\t\t\t\"y\":\t0.659\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:09:39Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t204,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.47,\n\t\t\t\t\t\"width\":\t0.267,\n\t\t\t\t\t\"x\":\t0.401,\n\t\t\t\t\t\"y\":\t0.28\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:09:43Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t206,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.359,\n\t\t\t\t\t\"width\":\t0.203,\n\t\t\t\t\t\"x\":\t0.481,\n\t\t\t\t\t\"y\":\t0.344\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:12:51Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ekow\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\t\t\"serialNo\":\t221,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.335,\n\t\t\t\t\t\"width\":\t0.189,\n\t\t\t\t\t\"x\":\t0.401,\n\t\t\t\t\t\"y\":\t0.275\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:12:55Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ekow\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\t\t\"serialNo\":\t223,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.346,\n\t\t\t\t\t\"width\":\t0.196,\n\t\t\t\t\t\"x\":\t0.395,\n\t\t\t\t\t\"y\":\t0.243\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:12:58Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ekow\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\t\t\"serialNo\":\t224,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.332,\n\t\t\t\t\t\"width\":\t0.188,\n\t\t\t\t\t\"x\":\t0.401,\n\t\t\t\t\t\"y\":\t0.256\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T22:13:01Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Ekow\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS012\",\n\t\t\t\t\"serialNo\":\t225,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.338,\n\t\t\t\t\t\"width\":\t0.191,\n\t\t\t\t\t\"x\":\t0.418,\n\t\t\t\t\t\"y\":\t0.236\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-29T23:27:40Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t231,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.446,\n\t\t\t\t\t\"width\":\t0.253,\n\t\t\t\t\t\"x\":\t0.388,\n\t\t\t\t\t\"y\":\t0.203\n\t\t\t\t}\n\t\t\t}]\n\t}\n}"
+  }
+}

@@ -1,0 +1,22 @@
+info:
+  name: "CardInfo capabilities"
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: "http://{{device_host}}/ISAPI/AccessControl/CardInfo/capabilities"
+  params:
+    - name: "format"
+      value: "json"
+      type: query
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

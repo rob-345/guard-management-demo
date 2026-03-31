@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DeviceInfo version="2.0" xmlns="http://www.isapi.org/ver20/XMLSchema">
+<deviceName>Access Controller</deviceName>
+<deviceID>255</deviceID>
+<model>DS-K1T342MFX-E1</model>
+<serialNumber>DS-K1T342MFX-E120250307V043800ENGF8169846</serialNumber>
+<macAddress>88:DE:39:38:04:0F</macAddress>
+<firmwareVersion>V4.38.0</firmwareVersion>
+<firmwareReleasedDate>build 250307</firmwareReleasedDate>
+<encoderVersion>V2.9</encoderVersion>
+<encoderReleasedDate>build 250117</encoderReleasedDate>
+<hardwareVersion>V1.0.0</hardwareVersion>
+<deviceType>ACS</deviceType>
+<subDeviceType>accessControlTerminal</subDeviceType>
+<localZoneNum>0</localZoneNum>
+<alarmOutNum>0</alarmOutNum>
+<electroLockNum>1</electroLockNum>
+<RS485Num>1</RS485Num>
+<manufacturer>hikvision</manufacturer>
+<OEMCode>1</OEMCode>
+<marketType>1</marketType>
+<dispalyNum>1</dispalyNum>
+<bspVersion>V1.6.1.751013 build 241114</bspVersion>
+<dspVersion>V2.9 build 250117</dspVersion>
+<productionDate>2025-09-15</productionDate>
+</DeviceInfo>

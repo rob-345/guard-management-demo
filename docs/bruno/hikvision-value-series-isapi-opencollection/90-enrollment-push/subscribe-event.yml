@@ -1,0 +1,28 @@
+info:
+  name: "SubscribeEvent"
+  type: http
+  seq: 26
+
+http:
+  method: POST
+  url: "http://{{device_host}}/ISAPI/Event/notification/subscribeEvent"
+  headers:
+    - name: "Content-Type"
+      value: "application/xml"
+  body:
+    type: xml
+    data: |-
+      <SubscribeEvent version="2.0">
+          <eventMode>all</eventMode>
+          <channelMode>all</channelMode>
+        </SubscribeEvent>
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

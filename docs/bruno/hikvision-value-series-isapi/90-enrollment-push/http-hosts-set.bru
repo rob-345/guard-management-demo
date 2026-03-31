@@ -1,0 +1,36 @@
+meta {
+  name: HttpHosts set
+  type: http
+  seq: 29
+}
+
+put {
+  url: http://{{device_host}}/ISAPI/Event/notification/httpHosts
+  body: json
+  auth: digest
+}
+
+params:query {
+  security: {{security}}
+  iv: {{iv}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:json {
+  {
+    "HttpHostNotification": {
+      "id": "{{host_id}}",
+      "url": "{{event_push_url}}",
+      "protocolType": "HTTP",
+      "parameterFormatType": "JSON"
+    }
+  }
+}

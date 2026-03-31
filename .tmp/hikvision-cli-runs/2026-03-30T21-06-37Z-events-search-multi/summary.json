@@ -1,0 +1,12 @@
+{
+  "major": 5,
+  "minors": [
+    75,
+    76,
+    80,
+    104
+  ],
+  "records": 2,
+  "successfulQueries": 4,
+  "failedQueries": 0
+}

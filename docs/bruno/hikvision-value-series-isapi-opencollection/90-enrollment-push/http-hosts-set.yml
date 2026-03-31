@@ -1,0 +1,39 @@
+info:
+  name: "HttpHosts set"
+  type: http
+  seq: 29
+
+http:
+  method: PUT
+  url: "http://{{device_host}}/ISAPI/Event/notification/httpHosts"
+  params:
+    - name: "security"
+      value: "{{security}}"
+      type: query
+    - name: "iv"
+      value: "{{iv}}"
+      type: query
+  headers:
+    - name: "Content-Type"
+      value: "application/json"
+  body:
+    type: json
+    data: |-
+      {
+          "HttpHostNotification": {
+            "id": "{{host_id}}",
+            "url": "{{event_push_url}}",
+            "protocolType": "HTTP",
+            "parameterFormatType": "JSON"
+          }
+        }
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

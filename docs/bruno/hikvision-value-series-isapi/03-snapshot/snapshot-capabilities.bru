@@ -1,0 +1,20 @@
+meta {
+  name: Snapshot capabilities
+  type: http
+  seq: 20
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/Streaming/channels/{{track_stream_id}}/picture/capabilities
+  body: none
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

@@ -1,0 +1,14 @@
+{
+  "command": {
+    "group": "events",
+    "action": "stream-follow",
+    "displayName": "events stream-follow"
+  },
+  "flags": {
+    "duration-seconds": [
+      "120"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "dual"
+}

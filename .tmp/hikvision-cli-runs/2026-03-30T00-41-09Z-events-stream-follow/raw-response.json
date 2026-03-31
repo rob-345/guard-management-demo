@@ -1,0 +1,155 @@
+{
+  "raw": {
+    "chunks": [
+      {
+        "timestamp": "2026-03-30T00:41:10.077Z",
+        "byteLength": 728,
+        "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:52:46Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t122,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t246,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t245,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:41:10.303Z",
+        "byteLength": 728,
+        "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 594\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:52:57Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t3,\n\t\t\"subEventType\":\t121,\n\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\"serialNo\":\t247,\n\t\t\"currentEvent\":\tfalse,\n\t\t\"frontSerialNo\":\t246,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:41:34.360Z",
+        "byteLength": 348,
+        "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:22Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:41:42.017Z",
+        "byteLength": 931,
+        "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 797\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:29Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t75,\n\t\t\"name\":\t\"Robert\",\n\t\t\"cardReaderNo\":\t1,\n\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\"serialNo\":\t248,\n\t\t\"userType\":\t\"normal\",\n\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t247,\n\t\t\"label\":\t\"\",\n\t\t\"mask\":\t\"no\",\n\t\t\"purePwdVerifyEnable\":\ttrue,\n\t\t\"FaceRect\":\t{\n\t\t\t\"height\":\t0.502,\n\t\t\t\"width\":\t0.288,\n\t\t\t\"x\":\t0.391,\n\t\t\t\"y\":\t0\n\t\t}\n\t}\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:41:42.372Z",
+        "byteLength": 704,
+        "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 570\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:29Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t21,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t249,\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t248,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:41:46.880Z",
+        "byteLength": 704,
+        "text": "Content-Disposition: form-data; name=\"AccessControllerEvent\"\r\nContent-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 570\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:34Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"AccessControllerEvent\",\n\t\"eventState\":\t\"active\",\n\t\"eventDescription\":\t\"Access Controller Event\",\n\t\"shortSerialNumber\":\t\"GF8169846\",\n\t\"AccessControllerEvent\":\t{\n\t\t\"deviceName\":\t\"Access Controller\",\n\t\t\"majorEventType\":\t5,\n\t\t\"subEventType\":\t22,\n\t\t\"doorNo\":\t1,\n\t\t\"serialNo\":\t250,\n\t\t\"currentEvent\":\ttrue,\n\t\t\"frontSerialNo\":\t249,\n\t\t\"label\":\t\"\",\n\t\t\"purePwdVerifyEnable\":\ttrue\n\t}\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:42:11.389Z",
+        "byteLength": 348,
+        "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:53:59Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:42:36.417Z",
+        "byteLength": 348,
+        "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:54:24Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}"
+      },
+      {
+        "timestamp": "2026-03-30T00:43:01.429Z",
+        "byteLength": 348,
+        "text": "Content-Type: application/json; charset=\"UTF-8\"\r\nContent-Length: 276\r\n\r\n{\n\t\"ipAddress\":\t\"192.168.0.179\",\n\t\"portNo\":\t80,\n\t\"protocol\":\t\"HTTP\",\n\t\"macAddress\":\t\"88:de:39:38:04:0f\",\n\t\"channelID\":\t1,\n\t\"dateTime\":\t\"2026-03-30T00:54:49Z\",\n\t\"activePostCount\":\t1,\n\t\"eventType\":\t\"videoloss\",\n\t\"eventState\":\t\"inactive\",\n\t\"eventDescription\":\t\"videoloss alarm\"\n}"
+      }
+    ],
+    "exchanges": [
+      {
+        "timestamp": "2026-03-30T00:41:09.952Z",
+        "request": {
+          "method": "GET",
+          "path": "/ISAPI/Event/notification/alertStream",
+          "url": "http://192.168.0.179/ISAPI/Event/notification/alertStream",
+          "headers": {
+            "accept": "application/json, application/xml, text/xml, text/plain, */*"
+          }
+        },
+        "response": {
+          "status": 401,
+          "statusText": "Unauthorized",
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "235",
+            "content-type": "application/xml",
+            "date": "Mon, 30 Mar 2026 00:52:57 GMT",
+            "keep-alive": "timeout=5, max=99",
+            "referrer-policy": "no-referrer",
+            "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"YjUwMmY1YjMyOGM2NDdmNjkzZDA1YWJlMzljMTg1ODQ=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-xss-protection": "1; mode=block"
+          },
+          "contentType": "application/xml"
+        }
+      },
+      {
+        "timestamp": "2026-03-30T00:41:09.979Z",
+        "request": {
+          "method": "GET",
+          "path": "/ISAPI/Event/notification/alertStream",
+          "url": "http://192.168.0.179/ISAPI/Event/notification/alertStream",
+          "headers": {
+            "accept": "application/json, application/xml, text/xml, text/plain, */*",
+            "authorization": "***redacted***"
+          }
+        },
+        "response": {
+          "status": 200,
+          "statusText": "OK",
+          "headers": {
+            "connection": "keep-alive",
+            "content-type": "multipart/mixed; boundary=MIME_boundary",
+            "mime-version": "1.0"
+          },
+          "contentType": "multipart/mixed; boundary=MIME_boundary"
+        }
+      }
+    ]
+  },
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T00:41:09.952Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/alertStream",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/alertStream",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:52:57 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"YjUwMmY1YjMyOGM2NDdmNjkzZDA1YWJlMzljMTg1ODQ=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:41:09.979Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/alertStream",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/alertStream",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-type": "multipart/mixed; boundary=MIME_boundary",
+          "mime-version": "1.0"
+        },
+        "contentType": "multipart/mixed; boundary=MIME_boundary"
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T09:13:00.674Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774861980664\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":0,\"minor\":0}}",
+        "bodyBytes": 110
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "195",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 09:24:49 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"NjRmZmViZTA0ODdlNGM2YmNlMmU2MDE2OGQ3NjZmZWU=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 195,
+        "bodyText": "<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T09:13:00.722Z",
+      "request": {
+        "method": "POST",
+        "path": "/ISAPI/AccessControl/AcsEvent?format=json",
+        "url": "http://192.168.0.179/ISAPI/AccessControl/AcsEvent?format=json",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***",
+          "content-type": "application/json; charset=UTF-8"
+        },
+        "contentType": "application/json; charset=UTF-8",
+        "bodyText": "{\"AcsEventCond\":{\"searchID\":\"acs-1774861980664\",\"searchResultPosition\":0,\"maxResults\":20,\"major\":0,\"minor\":0}}",
+        "bodyBytes": 110
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "3133",
+          "content-type": "application/json",
+          "date": "Mon, 30 Mar 2026 09:24:49 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/json",
+        "bodyBytes": 3133,
+        "bodyText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774861980664\",\n\t\t\"totalMatches\":\t284,\n\t\t\"responseStatusStrg\":\t\"MORE\",\n\t\t\"numOfMatches\":\t20,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:11Z\",\n\t\t\t\t\"serialNo\":\t1\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:11Z\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t2\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:16Z\",\n\t\t\t\t\"serialNo\":\t3\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T22:32:26Z\",\n\t\t\t\t\"serialNo\":\t4\n\t\t\t}, {\n\t\t\t\t\"major\":\t3,\n\t\t\t\t\"minor\":\t240,\n\t\t\t\t\"time\":\t\"2026-03-26T22:33:42Z\",\n\t\t\t\t\"serialNo\":\t5\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:08Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t6,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.656,\n\t\t\t\t\t\"width\":\t0.373,\n\t\t\t\t\t\"x\":\t0.282,\n\t\t\t\t\t\"y\":\t0.274\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:18Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t7,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.505,\n\t\t\t\t\t\"width\":\t0.286,\n\t\t\t\t\t\"x\":\t0.359,\n\t\t\t\t\t\"y\":\t0.267\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:22Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t8,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.415,\n\t\t\t\t\t\"width\":\t0.236,\n\t\t\t\t\t\"x\":\t0.416,\n\t\t\t\t\t\"y\":\t0.347\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T22:35:36Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t9,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\"\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1029,\n\t\t\t\t\"time\":\t\"2026-03-26T22:40:14Z\",\n\t\t\t\t\"serialNo\":\t10\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T22:40:17Z\",\n\t\t\t\t\"serialNo\":\t11\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t76,\n\t\t\t\t\"time\":\t\"2026-03-26T22:40:26Z\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t12,\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.468,\n\t\t\t\t\t\"width\":\t0.267,\n\t\t\t\t\t\"x\":\t0.366,\n\t\t\t\t\t\"y\":\t0.252\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:07Z\",\n\t\t\t\t\"serialNo\":\t13\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:07Z\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t14\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:23Z\",\n\t\t\t\t\"serialNo\":\t15\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T22:47:27Z\",\n\t\t\t\t\"serialNo\":\t16\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t1024,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:18Z\",\n\t\t\t\t\"serialNo\":\t17\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:18Z\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t18\n\t\t\t}, {\n\t\t\t\t\"major\":\t2,\n\t\t\t\t\"minor\":\t39,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:26Z\",\n\t\t\t\t\"serialNo\":\t19\n\t\t\t}, {\n\t\t\t\t\"major\":\t1,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-26T23:20:30Z\",\n\t\t\t\t\"serialNo\":\t20\n\t\t\t}]\n\t}\n}"
+      }
+    }
+  ]
+}

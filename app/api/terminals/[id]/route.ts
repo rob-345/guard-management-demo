@@ -21,19 +21,13 @@ const terminalUpdateSchema = z
     status: z.enum(["online", "offline", "error"]).optional(),
     activation_status: z.enum(["unknown", "activated", "not_activated", "error"]).optional(),
     last_seen: z.string().optional(),
+    heartbeat_status: z.enum(["online", "offline", "error"]).optional(),
+    heartbeat_checked_at: z.string().optional(),
     device_uid: z.string().optional(),
     device_info: z.record(z.any()).optional(),
     capability_snapshot: z.record(z.any()).optional(),
     acs_work_status: z.record(z.any()).optional(),
     face_recognize_mode: z.string().optional(),
-    webhook_token: z.string().optional(),
-    webhook_host_id: z.string().optional(),
-    webhook_url: z.string().optional(),
-    webhook_status: z.enum(["unset", "configured", "testing", "active", "error"]).optional(),
-    webhook_subscription_id: z.string().optional(),
-    webhook_subscription_status: z.enum(["unset", "subscribed", "unsubscribed", "error"]).optional(),
-    webhook_subscription_error: z.string().optional(),
-    webhook_upload_ctrl: z.record(z.any()).optional()
   })
   .strict();
 

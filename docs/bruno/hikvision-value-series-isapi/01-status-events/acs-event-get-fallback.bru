@@ -1,0 +1,21 @@
+meta {
+  name: AcsEvent GET fallback
+  type: http
+  seq: 16
+}
+
+get {
+  url: http://{{device_host}}/ISAPI/AccessControl/AcsEvent
+  body: none
+  auth: digest
+}
+
+params:query {
+  searchResultPosition: 0
+  maxResults: 20
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}

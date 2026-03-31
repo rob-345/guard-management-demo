@@ -1,0 +1,25 @@
+info:
+  name: "AcsEvent GET fallback"
+  type: http
+  seq: 16
+
+http:
+  method: GET
+  url: "http://{{device_host}}/ISAPI/AccessControl/AcsEvent"
+  params:
+    - name: "searchResultPosition"
+      value: "0"
+      type: query
+    - name: "maxResults"
+      value: "20"
+      type: query
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

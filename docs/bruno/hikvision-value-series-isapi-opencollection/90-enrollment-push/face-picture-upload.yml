@@ -1,0 +1,29 @@
+info:
+  name: "Face picture upload"
+  type: http
+  seq: 23
+
+http:
+  method: POST
+  url: "http://{{device_host}}/ISAPI/Intelligent/FDLib/pictureUpload"
+  body:
+    type: multipart-form
+    data:
+      - name: "FDID"
+        value: "{{fdid}}"
+      - name: "employeeNo"
+        value: "{{employee_no}}"
+      - name: "name"
+        value: "{{person_name}}"
+      - name: "faceURL"
+        value: "{{face_url}}"
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

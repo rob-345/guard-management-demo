@@ -1,0 +1,15 @@
+{
+	"AcsEvent":	{
+		"searchID":	"acs-1774862021471",
+		"totalMatches":	284,
+		"responseStatusStrg":	"OK",
+		"numOfMatches":	1,
+		"InfoList":	[{
+				"major":	5,
+				"minor":	22,
+				"time":	"2026-03-30T09:20:10Z",
+				"doorNo":	1,
+				"serialNo":	284
+			}]
+	}
+}

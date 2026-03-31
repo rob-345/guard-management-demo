@@ -1,0 +1,36 @@
+meta {
+  name: AcsEvent POST search
+  type: http
+  seq: 15
+}
+
+post {
+  url: http://{{device_host}}/ISAPI/AccessControl/AcsEvent
+  body: json
+  auth: digest
+}
+
+params:query {
+  format: json
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:json {
+  {
+    "AcsEventCond": {
+      "searchID": "{{event_search_id}}",
+      "searchResultPosition": {{event_search_position}},
+      "maxResults": {{event_max_results}},
+      "major": {{event_major}},
+      "minor": {{event_minor}}
+    }
+  }
+}

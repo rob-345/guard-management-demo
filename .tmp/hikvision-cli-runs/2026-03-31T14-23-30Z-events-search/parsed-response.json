@@ -1,0 +1,271 @@
+{
+  "totalMatches": 20,
+  "searchResultPosition": 0,
+  "maxResults": 5,
+  "records": [
+    {
+      "serialNo": "61",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 3,
+      "minor": 1028,
+      "eventTime": "2026-03-30T21:04:18-00:00",
+      "dateTime": "2026-03-30T21:04:18-00:00",
+      "currentVerifyMode": "invalid",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "unknown",
+      "faceRect": {
+        "height": 0.595,
+        "width": 0.337,
+        "x": 0.353,
+        "y": 0.043
+      },
+      "raw": {
+        "AcsEvent": {
+          "searchID": "acs-1774967010986",
+          "totalMatches": 20,
+          "responseStatusStrg": "MORE",
+          "numOfMatches": 5,
+          "InfoList": [
+            {
+              "major": 3,
+              "minor": 1028,
+              "time": "2026-03-30T21:04:18-00:00",
+              "remoteHostAddr": "192.168.0.194",
+              "serialNo": 61,
+              "currentVerifyMode": "invalid",
+              "mask": "unknown"
+            },
+            {
+              "major": 5,
+              "minor": 21,
+              "time": "2026-03-30T21:04:56-00:00",
+              "doorNo": 1,
+              "serialNo": 63,
+              "currentVerifyMode": "invalid",
+              "mask": "unknown"
+            },
+            {
+              "major": 5,
+              "minor": 75,
+              "time": "2026-03-30T21:04:56-00:00",
+              "cardType": 1,
+              "name": "Robert",
+              "cardReaderNo": 1,
+              "doorNo": 1,
+              "employeeNoString": "WS001",
+              "serialNo": 62,
+              "userType": "normal",
+              "currentVerifyMode": "faceOrFpOrCardOrPw",
+              "mask": "no",
+              "FaceRect": {
+                "height": 0.595,
+                "width": 0.337,
+                "x": 0.353,
+                "y": 0.043
+              }
+            },
+            {
+              "major": 5,
+              "minor": 22,
+              "time": "2026-03-30T21:05:01-00:00",
+              "doorNo": 1,
+              "serialNo": 64,
+              "currentVerifyMode": "invalid",
+              "mask": "unknown"
+            },
+            {
+              "major": 3,
+              "minor": 112,
+              "time": "2026-03-30T21:12:23-00:00",
+              "remoteHostAddr": "192.168.0.194",
+              "serialNo": 65,
+              "currentVerifyMode": "invalid",
+              "mask": "unknown"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "serialNo": "63",
+      "major": 5,
+      "minor": 21,
+      "eventTime": "2026-03-30T21:04:56-00:00",
+      "dateTime": "2026-03-30T21:04:56-00:00",
+      "currentVerifyMode": "invalid",
+      "doorNo": 1,
+      "mask": "unknown",
+      "raw": {
+        "major": 5,
+        "minor": 21,
+        "time": "2026-03-30T21:04:56-00:00",
+        "doorNo": 1,
+        "serialNo": 63,
+        "currentVerifyMode": "invalid",
+        "mask": "unknown"
+      }
+    },
+    {
+      "serialNo": "62",
+      "employeeNoString": "WS001",
+      "name": "Robert",
+      "major": 5,
+      "minor": 75,
+      "eventTime": "2026-03-30T21:04:56-00:00",
+      "dateTime": "2026-03-30T21:04:56-00:00",
+      "currentVerifyMode": "faceOrFpOrCardOrPw",
+      "cardReaderNo": 1,
+      "doorNo": 1,
+      "cardType": 1,
+      "mask": "no",
+      "faceRect": {
+        "height": 0.595,
+        "width": 0.337,
+        "x": 0.353,
+        "y": 0.043
+      },
+      "raw": {
+        "major": 5,
+        "minor": 75,
+        "time": "2026-03-30T21:04:56-00:00",
+        "cardType": 1,
+        "name": "Robert",
+        "cardReaderNo": 1,
+        "doorNo": 1,
+        "employeeNoString": "WS001",
+        "serialNo": 62,
+        "userType": "normal",
+        "currentVerifyMode": "faceOrFpOrCardOrPw",
+        "mask": "no",
+        "FaceRect": {
+          "height": 0.595,
+          "width": 0.337,
+          "x": 0.353,
+          "y": 0.043
+        }
+      }
+    },
+    {
+      "serialNo": "64",
+      "major": 5,
+      "minor": 22,
+      "eventTime": "2026-03-30T21:05:01-00:00",
+      "dateTime": "2026-03-30T21:05:01-00:00",
+      "currentVerifyMode": "invalid",
+      "doorNo": 1,
+      "mask": "unknown",
+      "raw": {
+        "major": 5,
+        "minor": 22,
+        "time": "2026-03-30T21:05:01-00:00",
+        "doorNo": 1,
+        "serialNo": 64,
+        "currentVerifyMode": "invalid",
+        "mask": "unknown"
+      }
+    },
+    {
+      "serialNo": "65",
+      "major": 3,
+      "minor": 112,
+      "eventTime": "2026-03-30T21:12:23-00:00",
+      "dateTime": "2026-03-30T21:12:23-00:00",
+      "currentVerifyMode": "invalid",
+      "mask": "unknown",
+      "raw": {
+        "major": 3,
+        "minor": 112,
+        "time": "2026-03-30T21:12:23-00:00",
+        "remoteHostAddr": "192.168.0.194",
+        "serialNo": 65,
+        "currentVerifyMode": "invalid",
+        "mask": "unknown"
+      }
+    }
+  ],
+  "rawResponse": {
+    "ok": true,
+    "status": 200,
+    "statusText": "OK",
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "1308",
+      "content-type": "application/json",
+      "date": "Tue, 31 Mar 2026 14:23:32 GMT",
+      "keep-alive": "timeout=5, max=99",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-xss-protection": "1; mode=block"
+    },
+    "body": {
+      "AcsEvent": {
+        "searchID": "acs-1774967010986",
+        "totalMatches": 20,
+        "responseStatusStrg": "MORE",
+        "numOfMatches": 5,
+        "InfoList": [
+          {
+            "major": 3,
+            "minor": 1028,
+            "time": "2026-03-30T21:04:18-00:00",
+            "remoteHostAddr": "192.168.0.194",
+            "serialNo": 61,
+            "currentVerifyMode": "invalid",
+            "mask": "unknown"
+          },
+          {
+            "major": 5,
+            "minor": 21,
+            "time": "2026-03-30T21:04:56-00:00",
+            "doorNo": 1,
+            "serialNo": 63,
+            "currentVerifyMode": "invalid",
+            "mask": "unknown"
+          },
+          {
+            "major": 5,
+            "minor": 75,
+            "time": "2026-03-30T21:04:56-00:00",
+            "cardType": 1,
+            "name": "Robert",
+            "cardReaderNo": 1,
+            "doorNo": 1,
+            "employeeNoString": "WS001",
+            "serialNo": 62,
+            "userType": "normal",
+            "currentVerifyMode": "faceOrFpOrCardOrPw",
+            "mask": "no",
+            "FaceRect": {
+              "height": 0.595,
+              "width": 0.337,
+              "x": 0.353,
+              "y": 0.043
+            }
+          },
+          {
+            "major": 5,
+            "minor": 22,
+            "time": "2026-03-30T21:05:01-00:00",
+            "doorNo": 1,
+            "serialNo": 64,
+            "currentVerifyMode": "invalid",
+            "mask": "unknown"
+          },
+          {
+            "major": 3,
+            "minor": 112,
+            "time": "2026-03-30T21:12:23-00:00",
+            "remoteHostAddr": "192.168.0.194",
+            "serialNo": 65,
+            "currentVerifyMode": "invalid",
+            "mask": "unknown"
+          }
+        ]
+      }
+    },
+    "rawText": "{\n\t\"AcsEvent\":\t{\n\t\t\"searchID\":\t\"acs-1774967010986\",\n\t\t\"totalMatches\":\t20,\n\t\t\"responseStatusStrg\":\t\"MORE\",\n\t\t\"numOfMatches\":\t5,\n\t\t\"InfoList\":\t[{\n\t\t\t\t\"major\":\t3,\n\t\t\t\t\"minor\":\t1028,\n\t\t\t\t\"time\":\t\"2026-03-30T21:04:18-00:00\",\n\t\t\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\t\t\"serialNo\":\t61,\n\t\t\t\t\"currentVerifyMode\":\t\"invalid\",\n\t\t\t\t\"mask\":\t\"unknown\"\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t21,\n\t\t\t\t\"time\":\t\"2026-03-30T21:04:56-00:00\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t63,\n\t\t\t\t\"currentVerifyMode\":\t\"invalid\",\n\t\t\t\t\"mask\":\t\"unknown\"\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t75,\n\t\t\t\t\"time\":\t\"2026-03-30T21:04:56-00:00\",\n\t\t\t\t\"cardType\":\t1,\n\t\t\t\t\"name\":\t\"Robert\",\n\t\t\t\t\"cardReaderNo\":\t1,\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"employeeNoString\":\t\"WS001\",\n\t\t\t\t\"serialNo\":\t62,\n\t\t\t\t\"userType\":\t\"normal\",\n\t\t\t\t\"currentVerifyMode\":\t\"faceOrFpOrCardOrPw\",\n\t\t\t\t\"mask\":\t\"no\",\n\t\t\t\t\"FaceRect\":\t{\n\t\t\t\t\t\"height\":\t0.595,\n\t\t\t\t\t\"width\":\t0.337,\n\t\t\t\t\t\"x\":\t0.353,\n\t\t\t\t\t\"y\":\t0.043\n\t\t\t\t}\n\t\t\t}, {\n\t\t\t\t\"major\":\t5,\n\t\t\t\t\"minor\":\t22,\n\t\t\t\t\"time\":\t\"2026-03-30T21:05:01-00:00\",\n\t\t\t\t\"doorNo\":\t1,\n\t\t\t\t\"serialNo\":\t64,\n\t\t\t\t\"currentVerifyMode\":\t\"invalid\",\n\t\t\t\t\"mask\":\t\"unknown\"\n\t\t\t}, {\n\t\t\t\t\"major\":\t3,\n\t\t\t\t\"minor\":\t112,\n\t\t\t\t\"time\":\t\"2026-03-30T21:12:23-00:00\",\n\t\t\t\t\"remoteHostAddr\":\t\"192.168.0.194\",\n\t\t\t\t\"serialNo\":\t65,\n\t\t\t\t\"currentVerifyMode\":\t\"invalid\",\n\t\t\t\t\"mask\":\t\"unknown\"\n\t\t\t}]\n\t}\n}"
+  }
+}

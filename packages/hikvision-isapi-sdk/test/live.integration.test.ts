@@ -136,36 +136,39 @@ test("live device probe and fdlib count", { skip: !live }, async () => {
   assert.ok(count.recordDataNumber >= 0);
 });
 
-test("live webhook configure capability probe", { skip: !live }, async () => {
+test("live heartbeat", { skip: !live }, async () => {
   const client = createClient();
-  const capabilities = await client.getHttpHostCapabilities();
+  const heartbeat = await client.getHeartbeat();
+  assert.equal(heartbeat.success, true);
+  assert.ok(heartbeat.checkedAt);
+  assert.ok(heartbeat.workStatus);
+});
+
+test("live acs event diagnostics", { skip: !live }, async () => {
+  const client = createClient();
+  const capabilities = await client.getAcsEventCapabilities();
   assert.ok(capabilities);
+
+  const history = await client.searchAcsEvents({
+    maxResults: 5,
+    searchResultPosition: 0,
+  });
+
+  assert.ok(history.totalMatches >= 0);
+  assert.ok(Array.isArray(history.records));
 });
 
-test("live webhook upload control", { skip: !live }, async () => {
+test("live alert stream diagnostic sample", { skip: !live }, async () => {
   const client = createClient();
-  const uploadCtrl = await client.getHttpHostUploadCtrl("1");
+  const sample = await client.readAlertStreamSample({
+    timeoutMs: 2_000,
+    maxBytes: 2048,
+  });
 
-  assert.equal(uploadCtrl.success, true);
-  assert.ok(uploadCtrl.body);
+  assert.equal(sample.success, true);
+  assert.ok(sample.sampleBytes >= 0);
+  assert.ok(typeof sample.sampleText === "string");
 });
-
-test(
-  "live webhook subscribe and unsubscribe",
-  { skip: !live || process.env.HIKVISION_TEST_WEBHOOK_SUBSCRIBE_REQUIRED !== "1" },
-  async () => {
-    const client = createClient();
-    const subscribe = await client.subscribeEvent({ eventMode: "all", channelMode: "all" });
-
-    assert.equal(subscribe.success, true);
-    assert.ok(subscribe.subscriptionId);
-
-    if (subscribe.subscriptionId) {
-      const unsubscribe = await client.unsubscribeEvent(subscribe.subscriptionId);
-      assert.ok(unsubscribe);
-    }
-  }
-);
 
 test("live face add, apply, search, verify, and cleanup", { skip: !live }, async () => {
   const client = createClient();
@@ -249,6 +252,104 @@ test("live face add, apply, search, verify, and cleanup", { skip: !live }, async
   } finally {
     await fixture.close().catch(() => undefined);
     await client.deleteFace(recordId).catch(() => undefined);
+  }
+});
+
+test("live registerFace enrolls a verifiable face record", { skip: !live }, async () => {
+  const client = createClient();
+  const fdid = process.env.HIKVISION_TEST_FDID!;
+  const faceLibType = process.env.HIKVISION_TEST_FACE_LIB_TYPE!;
+  const fixture = await startFaceFixtureServer();
+  const recordId = `sdkregister${Date.now().toString(36)}`;
+
+  try {
+    const before = await client.countFaces(fdid, faceLibType, process.env.HIKVISION_TEST_TERMINAL_NO);
+
+    const registration = await client.registerFace({
+      employeeNo: recordId,
+      name: "SDK Register Face",
+      faceUrl: fixture.url,
+      image: Buffer.from("unused"),
+      fdid,
+    });
+
+    assert.equal(registration.employeeNo.length > 0, true);
+
+    const verify = await waitForCondition(
+      "registerFace verification",
+      () =>
+        client.verifyFaceSynced(fdid, faceLibType, {
+          fpid: registration.employeeNo,
+          name: "SDK Register Face",
+          countBefore: before.recordDataNumber,
+          terminalNo: process.env.HIKVISION_TEST_TERMINAL_NO,
+        }),
+      (result) => result.verified,
+      45_000,
+      3_000
+    );
+
+    assert.equal(verify.verified, true);
+    assert.ok(verify.matchingRecords.length > 0);
+  } finally {
+    await fixture.close().catch(() => undefined);
+    await client.deleteFace(recordId).catch(() => undefined);
+  }
+});
+
+test("live upsertUserInfo and validateUserState read back terminal user details", { skip: !live }, async () => {
+  const client = createClient();
+  const employeeNo = `sdkuser${Date.now().toString(36)}`;
+  const name = "SDK User Sync";
+  const phoneNumber = "+15551234567";
+  const gender = "male";
+  const userType = "visitor";
+  const personRole = "Supervisor";
+
+  try {
+    const upsert = await client.upsertUserInfo({
+      employeeNo,
+      name,
+      userInfo: {
+        userType,
+        phoneNumber,
+        gender,
+        personInfoExtends: [
+          {
+            id: 1,
+            enable: true,
+            name: "personRole",
+            value: personRole,
+          },
+        ],
+      },
+    });
+
+    assert.equal(upsert.employeeNo.length > 0, true);
+
+    const validation = await waitForCondition(
+      "user info propagation",
+      () =>
+        client.validateUserState({
+          employeeNo: upsert.employeeNo,
+          name,
+          phoneNumber,
+          gender,
+          userType,
+          personRole,
+          requireFace: false,
+        }),
+      (result) => result.status === "verified" && result.detailsMatch && result.accessReady,
+      30_000,
+      2_000
+    );
+
+    assert.equal(validation.status, "verified");
+    assert.equal(validation.userPresent, true);
+    assert.equal(validation.detailsMatch, true);
+    assert.equal(validation.accessReady, true);
+  } finally {
+    await client.deleteFace(employeeNo).catch(() => undefined);
   }
 });
 

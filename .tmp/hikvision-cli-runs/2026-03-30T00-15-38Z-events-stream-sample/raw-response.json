@@ -1,0 +1,64 @@
+{
+  "error": {
+    "name": "HikvisionInvalidResponseError",
+    "message": "Hikvision request failed for /ISAPI/Event/notification/alertStream: 404 Not Found"
+  },
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T00:15:38.921Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/alertStream",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/alertStream",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:27:26 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-1315c7ab\", nonce=\"OWQ5ZmFkM2RjNTRiMGFiOWI5NjQwZTI0NmM4MDk1MjI=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T00:15:38.946Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/Event/notification/alertStream",
+        "url": "http://192.168.0.179/ISAPI/Event/notification/alertStream",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 404,
+        "statusText": "Not Found",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "354",
+          "content-type": "application/xml",
+          "date": "Mon, 30 Mar 2026 00:27:26 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "referrer-policy": "no-referrer",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml"
+      }
+    }
+  ]
+}

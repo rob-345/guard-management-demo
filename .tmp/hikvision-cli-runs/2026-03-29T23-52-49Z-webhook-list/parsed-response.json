@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1",
+    "url": "http://192.168.0.194:3000/api/events/hikvision/e1c614...fb07",
+    "protocolType": "HTTP",
+    "parameterFormatType": "JSON",
+    "addressingFormatType": "ipaddress",
+    "ipAddress": "192.168.0.194",
+    "portNo": 3000,
+    "httpAuthenticationMethod": "none",
+    "subscribeEvent": {
+      "heartbeat": "30",
+      "eventMode": "all",
+      "eventTypes": [
+        "AccessControllerEvent"
+      ],
+      "minorAlarm": [],
+      "minorException": [],
+      "minorOperation": [],
+      "minorEvent": [],
+      "pictureURLType": "binary",
+      "rawXml": "<heartbeat>30</heartbeat><eventMode>all</eventMode><EventList><Event><type>AccessControllerEvent</type><minorAlarm></minorAlarm><minorException></minorException><minorOperation></minorOperation><minorEvent></minorEvent><pictureURLType>binary</pictureURLType></Event></EventList>"
+    },
+    "rawXml": "<id>1</id>\r\n<url>http://192.168.0.194:3000/api/events/hikvision/e1c614...fb07</url>\r\n<protocolType>HTTP</protocolType>\r\n<parameterFormatType>JSON</parameterFormatType>\r\n<addressingFormatType>ipaddress</addressingFormatType>\r\n<ipAddress>192.168.0.194</ipAddress>\r\n<portNo>3000</portNo>\r\n<httpAuthenticationMethod>none</httpAuthenticationMethod>\r\n<SubscribeEvent><heartbeat>30</heartbeat><eventMode>all</eventMode><EventList><Event><type>AccessControllerEvent</type><minorAlarm></minorAlarm><minorException></minorException><minorOperation></minorOperation><minorEvent></minorEvent><pictureURLType>binary</pictureURLType></Event></EventList></SubscribeEvent>"
+  },
+  {
+    "id": "2",
+    "protocolType": "EHome",
+    "parameterFormatType": "JSON",
+    "addressingFormatType": "ipaddress",
+    "ipAddress": "0.0.0.0",
+    "portNo": 0,
+    "httpAuthenticationMethod": "none",
+    "rawXml": "<id>2</id>\r\n<url></url>\r\n<protocolType>EHome</protocolType>\r\n<parameterFormatType>JSON</parameterFormatType>\r\n<addressingFormatType>ipaddress</addressingFormatType>\r\n<ipAddress>0.0.0.0</ipAddress>\r\n<portNo>0</portNo>\r\n<httpAuthenticationMethod>none</httpAuthenticationMethod>"
+  }
+]

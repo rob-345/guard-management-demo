@@ -1,0 +1,32 @@
+{
+  "command": {
+    "group": "events",
+    "action": "search",
+    "displayName": "events search"
+  },
+  "flags": {
+    "host": [
+      "192.168.0.160"
+    ],
+    "username": [
+      "admin"
+    ],
+    "password": [
+      "***redacted***"
+    ],
+    "major": [
+      "5"
+    ],
+    "minor": [
+      "75"
+    ],
+    "max-results": [
+      "5"
+    ],
+    "output": [
+      "summary"
+    ]
+  },
+  "booleans": {},
+  "outputMode": "summary"
+}

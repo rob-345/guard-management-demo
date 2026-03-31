@@ -1,0 +1,62 @@
+{
+  "exchanges": [
+    {
+      "timestamp": "2026-03-30T20:58:07.929Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/System/deviceInfo",
+        "url": "http://192.168.0.160/ISAPI/System/deviceInfo",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*"
+        }
+      },
+      "response": {
+        "status": 401,
+        "statusText": "Unauthorized",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Tue, 31 Mar 2026 04:58:06 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "www-authenticate": "Digest qop=\"auth\", realm=\"DS-7AD7D63A\", nonce=\"ZDE1NjUyNTQ2NTBiZjAwMGNiNDE3Y2UxYmQyZWI5ZTY=\", stale=\"false\", opaque=\"\", domain=\"::\"",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 235,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<userCheck version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<statusValue>401</statusValue>\r\n<statusString>Unauthorized</statusString>\r\n<isActivated>false</isActivated>\r\n</userCheck>\r\n"
+      }
+    },
+    {
+      "timestamp": "2026-03-30T20:58:07.977Z",
+      "request": {
+        "method": "GET",
+        "path": "/ISAPI/System/deviceInfo",
+        "url": "http://192.168.0.160/ISAPI/System/deviceInfo",
+        "headers": {
+          "accept": "application/json, application/xml, text/xml, text/plain, */*",
+          "authorization": "***redacted***"
+        }
+      },
+      "response": {
+        "status": 200,
+        "statusText": "OK",
+        "headers": {
+          "connection": "keep-alive",
+          "content-length": "1046",
+          "content-type": "application/xml",
+          "date": "Tue, 31 Mar 2026 04:58:06 GMT",
+          "keep-alive": "timeout=5, max=99",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block"
+        },
+        "contentType": "application/xml",
+        "bodyBytes": 1046,
+        "bodyText": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<DeviceInfo version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\">\r\n<deviceName>Access Controller</deviceName>\r\n<deviceID>255</deviceID>\r\n<model>DS-K1T342MFWX-E1</model>\r\n<serialNumber>DS-K1T342MFWX-E120240701V031601ENAY1020057</serialNumber>\r\n<macAddress>08:54:11:2c:fc:57</macAddress>\r\n<firmwareVersion>V3.16.1</firmwareVersion>\r\n<firmwareReleasedDate>build 240701</firmwareReleasedDate>\r\n<encoderVersion>V1.8.0_C2024031400053.677289 build 2024-04-22</encoderVersion>\r\n<encoderReleasedDate>build 240422</encoderReleasedDate>\r\n<deviceType>ACS</deviceType>\r\n<subDeviceType>accessControlTerminal</subDeviceType>\r\n<telecontrolID>1</telecontrolID>\r\n<localZoneNum>0</localZoneNum>\r\n<alarmOutNum>0</alarmOutNum>\r\n<electroLockNum>1</electroLockNum>\r\n<RS485Num>1</RS485Num>\r\n<manufacturer>hikvision</manufacturer>\r\n<OEMCode>1</OEMCode>\r\n<bspVersion>V1.6.1.679689 build 2024-3-26</bspVersion>\r\n<dspVersion></dspVersion>\r\n<marketType>1</marketType>\r\n<productionDate>2023-12-14</productionDate>\r\n</DeviceInfo>\r\n"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+info:
+  name: "System deviceInfo"
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "http://{{device_host}}/ISAPI/System/deviceInfo"
+  auth:
+    type: digest
+    username: "{{username}}"
+    password: "{{password}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

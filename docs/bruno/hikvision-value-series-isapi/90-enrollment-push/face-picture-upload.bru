@@ -1,0 +1,23 @@
+meta {
+  name: Face picture upload
+  type: http
+  seq: 23
+}
+
+post {
+  url: http://{{device_host}}/ISAPI/Intelligent/FDLib/pictureUpload
+  body: multipart-form
+  auth: digest
+}
+
+auth:digest {
+  username: {{username}}
+  password: {{password}}
+}
+
+body:multipart-form {
+  FDID: {{fdid}}
+  employeeNo: {{employee_no}}
+  name: {{person_name}}
+  faceURL: {{face_url}}
+}
