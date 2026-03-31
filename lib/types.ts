@@ -226,6 +226,8 @@ export interface Terminal {
   device_info?: HikvisionDeviceInfo;
   capability_snapshot?: HikvisionCapabilitiesSnapshot;
   acs_work_status?: HikvisionAcsWorkStatus;
+  acs_event_time_filters_supported?: boolean;
+  acs_event_time_filters_checked_at?: string;
   face_recognize_mode?: string;
   created_at: string;
   updated_at?: string;

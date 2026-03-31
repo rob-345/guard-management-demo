@@ -7,6 +7,8 @@ import { HikvisionInvalidResponseError } from "@guard-management/hikvision-isapi
 import { fetchTerminalMetadataBackfill, terminalNeedsMetadataBackfill } from "@/lib/terminal-integration";
 import type { ClockingEvent, Terminal } from "@/lib/types";
 
+const ACS_EVENT_TIME_FILTER_SUPPORT_RECHECK_MS = 24 * 60 * 60 * 1000;
+
 function toOptionalNumber(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -38,6 +40,59 @@ function toIsoOrUndefined(value?: string) {
   return Number.isFinite(parsed)
     ? new Date(parsed).toISOString().replace(/\.\d{3}Z$/, "Z")
     : undefined;
+}
+
+export function isTerminalAcsEventTimeFilterSupportStale(terminal: Pick<
+  Terminal,
+  "acs_event_time_filters_supported" | "acs_event_time_filters_checked_at"
+>, nowMs = Date.now()) {
+  if (terminal.acs_event_time_filters_supported !== false) {
+    return false;
+  }
+
+  const checkedAtMs = terminal.acs_event_time_filters_checked_at
+    ? Date.parse(terminal.acs_event_time_filters_checked_at)
+    : Number.NaN;
+  if (!Number.isFinite(checkedAtMs)) {
+    return false;
+  }
+
+  return nowMs - checkedAtMs >= ACS_EVENT_TIME_FILTER_SUPPORT_RECHECK_MS;
+}
+
+export function shouldAttemptAcsEventTimeFilters(
+  terminal: Pick<
+    Terminal,
+    "acs_event_time_filters_supported" | "acs_event_time_filters_checked_at"
+  >,
+  options: Pick<PollTerminalOptions, "startTime" | "endTime"> = {}
+) {
+  if (options.startTime || options.endTime) {
+    return true;
+  }
+
+  return (
+    terminal.acs_event_time_filters_supported !== false ||
+    isTerminalAcsEventTimeFilterSupportStale(terminal)
+  );
+}
+
+async function persistAcsEventTimeFilterSupport(
+  terminalId: string,
+  supported: boolean
+) {
+  const terminals = await getCollection<Terminal>("terminals");
+  const now = new Date().toISOString();
+  await terminals.updateOne(
+    { id: terminalId },
+    {
+      $set: {
+        acs_event_time_filters_supported: supported,
+        acs_event_time_filters_checked_at: now,
+        updated_at: now,
+      },
+    }
+  );
 }
 
 export function shouldRetryAcsEventSearchWithoutTimeBounds(error: unknown) {
@@ -258,8 +313,10 @@ export async function fetchTerminalEventHistory(
       ? new Date(Date.parse(latestStoredEvent.event_time) - 60_000).toISOString().replace(/\.\d{3}Z$/, "Z")
       : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
 
-  const startTime = toIsoOrUndefined(options.startTime) || defaultStartTime;
-  const endTime = toIsoOrUndefined(options.endTime);
+  const shouldUseTimeFilters = shouldAttemptAcsEventTimeFilters(terminal, options);
+  const startTime = shouldUseTimeFilters ? toIsoOrUndefined(options.startTime) || defaultStartTime : undefined;
+  const endTime = shouldUseTimeFilters ? toIsoOrUndefined(options.endTime) : undefined;
+  const reportedStartTime = startTime || defaultStartTime;
   const searchErrors: TerminalEventHistoryResult["search_errors"] = [];
   const normalizedEvents: Array<ReturnType<typeof normalizeAcsEventRecord>> = [];
   const seenEventKeys = new Set<string>();
@@ -267,13 +324,23 @@ export async function fetchTerminalEventHistory(
   let latestResult: Awaited<ReturnType<HikvisionClient["searchAcsEvents"]>> | null = null;
 
   try {
-    latestResult = await client.searchLatestAcsEvents({
-      maxResults: pageSize,
-      startTime,
-      endTime,
-    });
+    latestResult = await client.searchLatestAcsEvents(
+      shouldUseTimeFilters
+        ? {
+            maxResults: pageSize,
+            startTime,
+            endTime,
+          }
+        : {
+            maxResults: pageSize,
+          }
+    );
+    if (shouldUseTimeFilters && (startTime || endTime) && terminal.acs_event_time_filters_supported !== true) {
+      void persistAcsEventTimeFilterSupport(terminal.id, true).catch(() => undefined);
+    }
   } catch (error) {
-    if ((startTime || endTime) && shouldRetryAcsEventSearchWithoutTimeBounds(error)) {
+    if (shouldUseTimeFilters && (startTime || endTime) && shouldRetryAcsEventSearchWithoutTimeBounds(error)) {
+      void persistAcsEventTimeFilterSupport(terminal.id, false).catch(() => undefined);
       searchErrors.push({
         major: 0,
         minor: 0,
@@ -332,7 +399,7 @@ export async function fetchTerminalEventHistory(
       all_events: true,
       searchResultPosition: latestResult?.searchResultPosition,
       maxResults: pageSize,
-      startTime,
+      startTime: reportedStartTime,
       endTime,
       plans: [],
     },
