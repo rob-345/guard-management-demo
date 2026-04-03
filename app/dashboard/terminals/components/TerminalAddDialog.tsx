@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,6 +48,7 @@ interface Props {
   sites: Site[];
   terminal?: Terminal | null;
   mode?: TerminalFormMode;
+  onSaved?: (terminal: Terminal) => void;
 }
 
 function buildDefaultValues(sites: Site[], terminal: Terminal | null, mode: TerminalFormMode): TerminalFormValues {
@@ -67,9 +67,9 @@ export function TerminalAddDialog({
   onOpenChange,
   sites,
   terminal = null,
-  mode = "create"
+  mode = "create",
+  onSaved,
 }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const isEditMode = mode === "edit" && Boolean(terminal);
 
@@ -114,9 +114,12 @@ export function TerminalAddDialog({
         throw new Error(await getApiErrorMessage(res, "Failed to save terminal"));
       }
 
+      const savedTerminal = (await res.json().catch(() => null)) as Terminal | null;
       toast.success(isEditMode ? "Terminal updated successfully" : "Terminal registered successfully");
+      if (savedTerminal?.id) {
+        onSaved?.(savedTerminal);
+      }
       onOpenChange(false);
-      router.refresh();
     } catch (error) {
       toast.error(`Failed to save terminal: ${error instanceof Error ? error.message : String(error)}`);
     } finally {

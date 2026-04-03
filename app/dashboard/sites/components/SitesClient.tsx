@@ -1,8 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,27 +48,46 @@ function formatCoords(site: Site) {
 }
 
 export function SitesClient({ sites }: Props) {
-  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
+  const [siteList, setSiteList] = useState(sites);
   const [editSite, setEditSite] = useState<Site | null>(null);
   const [deleteSite, setDeleteSite] = useState<Site | null>(null);
   const [selectedSiteId, setSelectedSiteId] = useState<string | null>(sites[0]?.id ?? null);
   const [view, setView] = useState<"cards" | "table">("cards");
   const [deleting, setDeleting] = useState(false);
 
+  useEffect(() => {
+    setSiteList(sites);
+  }, [sites]);
+
   const sitesWithCoords = useMemo(
     () =>
-      sites.filter(
+      siteList.filter(
         (site) => typeof site.latitude === "number" && typeof site.longitude === "number"
       ),
-    [sites]
+    [siteList]
   );
 
   const selectedSite = useMemo(
-    () => sites.find((site) => site.id === selectedSiteId) || null,
-    [selectedSiteId, sites]
+    () => siteList.find((site) => site.id === selectedSiteId) || null,
+    [selectedSiteId, siteList]
   );
   const dialogOpen = createOpen || Boolean(editSite) || Boolean(deleteSite);
+
+  function sortSites(nextSites: Site[]) {
+    return nextSites.sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  function handleSiteSaved(savedSite: Site) {
+    setSiteList((current) => {
+      const next = current.some((site) => site.id === savedSite.id)
+        ? current.map((site) => (site.id === savedSite.id ? savedSite : site))
+        : [...current, savedSite];
+
+      return sortSites(next);
+    });
+    setSelectedSiteId(savedSite.id);
+  }
 
   async function handleDelete() {
     if (!deleteSite) return;
@@ -85,11 +103,14 @@ export function SitesClient({ sites }: Props) {
       }
 
       toast.success("Site deleted successfully");
+      setSiteList((current) => {
+        const next = current.filter((site) => site.id !== deleteSite.id);
+        if (selectedSiteId === deleteSite.id) {
+          setSelectedSiteId(next[0]?.id ?? null);
+        }
+        return next;
+      });
       setDeleteSite(null);
-      if (selectedSiteId === deleteSite.id) {
-        setSelectedSiteId(sites.find((site) => site.id !== deleteSite.id)?.id ?? null);
-      }
-      router.refresh();
     } catch (error) {
       toast.error(`Failed to delete site: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -104,7 +125,7 @@ export function SitesClient({ sites }: Props) {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Sites</h2>
             <p className="text-muted-foreground">
-              {sites.length} managed location{sites.length !== 1 ? "s" : ""}
+              {siteList.length} managed location{siteList.length !== 1 ? "s" : ""}
             </p>
           </div>
           <Button onClick={() => setCreateOpen(true)}>
@@ -139,7 +160,7 @@ export function SitesClient({ sites }: Props) {
               </div>
             ) : (
               <SitesMap
-                sites={sites}
+                sites={siteList}
                 selectedSiteId={selectedSiteId}
                 onSelectSite={(site) => setSelectedSiteId(site.id)}
               />
@@ -168,7 +189,7 @@ export function SitesClient({ sites }: Props) {
 
           <TabsContent value="cards" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {sites.length === 0 ? (
+              {siteList.length === 0 ? (
                 <Card className="col-span-full">
                   <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
                     <Building2 className="h-8 w-8 opacity-20" />
@@ -176,7 +197,7 @@ export function SitesClient({ sites }: Props) {
                   </CardContent>
                 </Card>
               ) : (
-                sites.map((site) => {
+                siteList.map((site) => {
                   const selected = site.id === selectedSiteId;
                   return (
                     <Card
@@ -258,14 +279,14 @@ export function SitesClient({ sites }: Props) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sites.length === 0 ? (
+                    {siteList.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                           No sites defined yet.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      sites.map((site) => (
+                      siteList.map((site) => (
                         <TableRow
                           key={site.id}
                           className={site.id === selectedSiteId ? "bg-muted/40" : ""}
@@ -320,6 +341,7 @@ export function SitesClient({ sites }: Props) {
         }}
         site={editSite}
         mode={editSite ? "edit" : "create"}
+        onSaved={handleSiteSaved}
       />
 
       <AlertDialog open={Boolean(deleteSite)} onOpenChange={(open) => !open && setDeleteSite(null)}>

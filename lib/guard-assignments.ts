@@ -273,23 +273,22 @@ export async function assignGuardToSiteShift(options: {
     publicBaseUrl = resolvePublicAppBaseUrl(options.request.url, options.request.headers);
   }
 
-  const removalResult =
+  const [removalResult, syncResult] = await Promise.all([
     removalTerminals.length > 0
-      ? await removeGuardFromTerminals({
+      ? removeGuardFromTerminals({
           guard,
           terminals: removalTerminals,
         })
-      : null;
-
-  const syncResult =
+      : Promise.resolve(null),
     syncTerminals.length > 0 && publicBaseUrl
-      ? await syncGuardToTerminals({
+      ? syncGuardToTerminals({
           guard,
           terminals: syncTerminals,
           validationTerminals: syncTerminals,
           publicBaseUrl,
         })
-      : null;
+      : Promise.resolve(null),
+  ]);
 
   const terminalSyncSummary = buildAssignmentTerminalSyncSummary({
     previousTerminalCount: removalTerminals.length,

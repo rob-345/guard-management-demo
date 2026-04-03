@@ -121,6 +121,7 @@ function formatDeviationLabel(value?: number) {
 
 export function ShiftsClient({ sites, schedules, initialAttendance }: Props) {
   const [attendance, setAttendance] = useState(initialAttendance);
+  const [scheduleList, setScheduleList] = useState(schedules);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCheckIn, setSelectedCheckIn] = useState<{
     group: ShiftAttendanceGroup;
@@ -133,8 +134,8 @@ export function ShiftsClient({ sites, schedules, initialAttendance }: Props) {
   } | null>(null);
 
   const scheduleBySiteId = useMemo(
-    () => new Map(schedules.map((schedule) => [schedule.site_id, schedule])),
-    [schedules]
+    () => new Map(scheduleList.map((schedule) => [schedule.site_id, schedule])),
+    [scheduleList]
   );
 
   async function refreshAttendance() {
@@ -165,6 +166,10 @@ export function ShiftsClient({ sites, schedules, initialAttendance }: Props) {
     return () => window.clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    setScheduleList(schedules);
+  }, [schedules]);
+
   const sortedGroups = useMemo(
     () =>
       [...attendance.groups].sort((left, right) => {
@@ -179,6 +184,14 @@ export function ShiftsClient({ sites, schedules, initialAttendance }: Props) {
 
   const firstConfigurableSite =
     sites.find((site) => !scheduleBySiteId.has(site.id)) || sites[0] || null;
+
+  function handleScheduleSaved(savedSchedule: SiteShiftSchedule) {
+    setScheduleList((current) =>
+      current.some((schedule) => schedule.id === savedSchedule.id)
+        ? current.map((schedule) => (schedule.id === savedSchedule.id ? savedSchedule : schedule))
+        : [...current, savedSchedule]
+    );
+  }
 
   return (
     <>
@@ -549,6 +562,7 @@ export function ShiftsClient({ sites, schedules, initialAttendance }: Props) {
         sites={sites}
         schedule={editorTarget?.schedule || null}
         initialSiteId={editorTarget?.siteId || undefined}
+        onSaved={handleScheduleSaved}
       />
     </>
   );

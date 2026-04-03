@@ -255,8 +255,9 @@ function EventSummaryBadges({
   );
 }
 
-export function TerminalDetailsClient({ terminal, site, sites, events }: Props) {
+export function TerminalDetailsClient({ terminal: initialTerminal, site: initialSite, sites, events }: Props) {
   const router = useRouter();
+  const [terminal, setTerminal] = useState(initialTerminal);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -269,6 +270,7 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
   const [deviceEventCount, setDeviceEventCount] = useState<TerminalDeviceEventCountResponse | null>(null);
   const [deviceEventClearResult, setDeviceEventClearResult] = useState<TerminalDeviceEventClearResponse | null>(null);
   const [pollMaxResults, setPollMaxResults] = useState("20");
+  const site = sites.find((candidate) => candidate.id === terminal.site_id) || initialSite;
 
   const deviceInfo = terminal.device_info || {};
   const workStatus = terminal.acs_work_status || {};
@@ -280,7 +282,7 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
     options?: {
       method?: "GET" | "POST" | "PATCH" | "DELETE";
       successMessage?: string;
-      onSuccess?: (data: unknown) => void;
+      onSuccess?: (data: unknown) => void | Promise<void>;
     }
   ) {
     setBusyAction(action);
@@ -296,17 +298,33 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
       }
 
       const data = await res.json().catch(() => null);
-      options?.onSuccess?.(data);
+      await options?.onSuccess?.(data);
       toast.success(options?.successMessage || "Terminal updated");
-      router.refresh();
       return data;
     } catch (error) {
       toast.error(`Terminal action failed: ${error instanceof Error ? error.message : String(error)}`);
-      router.refresh();
       return null;
     } finally {
       setBusyAction(null);
     }
+  }
+
+  async function refreshTerminalRecord() {
+    const res = await fetch(`/api/terminals/${terminal.id}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error(await getApiErrorMessage(res, "Failed to refresh terminal"));
+    }
+
+    const refreshedTerminal = (await res.json().catch(() => null)) as Terminal | null;
+    if (!refreshedTerminal?.id) {
+      throw new Error("Failed to load updated terminal");
+    }
+
+    setTerminal(refreshedTerminal);
+    return refreshedTerminal;
   }
 
   async function inspectTerminalEventHistory() {
@@ -451,7 +469,6 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
       toast.success("Terminal deleted successfully");
       setDeleteOpen(false);
       router.push("/dashboard/terminals");
-      router.refresh();
     } catch (error) {
       toast.error(`Failed to delete terminal: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -561,7 +578,17 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
         <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
-            onClick={() => runAction("probe", `/api/terminals/${terminal.id}/probe`)}
+            onClick={() =>
+              void runAction("probe", `/api/terminals/${terminal.id}/probe`, undefined, {
+                method: "POST",
+                successMessage: "Terminal probed",
+                onSuccess: (data) => {
+                  if (data && typeof data === "object") {
+                    setTerminal(data as Terminal);
+                  }
+                },
+              })
+            }
             disabled={busyAction !== null}
           >
             {busyAction === "probe" ? (
@@ -573,7 +600,15 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
           </Button>
           <Button
             variant="outline"
-            onClick={() => runAction("activation", `/api/terminals/${terminal.id}/activate`)}
+            onClick={() =>
+              void runAction("activation", `/api/terminals/${terminal.id}/activate`, undefined, {
+                method: "POST",
+                successMessage: "Activation refreshed",
+                onSuccess: async () => {
+                  await refreshTerminalRecord();
+                },
+              })
+            }
             disabled={busyAction !== null}
           >
             {busyAction === "activation" ? (
@@ -674,6 +709,7 @@ export function TerminalDetailsClient({ terminal, site, sites, events }: Props) 
           sites={sites}
           terminal={terminal}
           mode="edit"
+          onSaved={(savedTerminal) => setTerminal(savedTerminal)}
         />
 
         <AlertDialog open={deleteOpen} onOpenChange={(open) => !open && setDeleteOpen(false)}>

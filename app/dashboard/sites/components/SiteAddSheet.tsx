@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -54,6 +53,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   site?: Site | null;
   mode?: SiteFormMode;
+  onSaved?: (site: Site) => void;
 }
 
 function formatCoordinate(value?: number | null) {
@@ -64,9 +64,9 @@ export function SiteAddDialog({
   open,
   onOpenChange,
   site = null,
-  mode = "create"
+  mode = "create",
+  onSaved,
 }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [selectedCoords, setSelectedCoords] = useState<{
     latitude?: number;
@@ -145,10 +145,13 @@ export function SiteAddDialog({
         throw new Error(await getApiErrorMessage(res, "Failed to save site"));
       }
 
+      const savedSite = (await res.json().catch(() => null)) as Site | null;
       toast.success(isEditMode ? "Site updated successfully" : "Site added successfully");
+      if (savedSite?.id) {
+        onSaved?.(savedSite);
+      }
       form.reset();
       onOpenChange(false);
-      router.refresh();
     } catch (err) {
       toast.error(`Failed to save site: ${err instanceof Error ? err.message : String(err)}`);
     } finally {

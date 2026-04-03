@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,6 +61,16 @@ type RegistrationState =
   | "synced"
   | "sync_failed";
 
+type GuardSaveResponse = Guard & {
+  terminal_sync?: {
+    verified_count?: number;
+    total_terminals?: number;
+    unknown_count?: number;
+    failed_count?: number;
+    results?: unknown[];
+  } | null;
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -69,6 +78,7 @@ interface Props {
   mode?: GuardFormMode;
   terminals: Terminal[];
   initialCameraTerminalId?: string | null;
+  onSaved?: (guard: Guard) => void;
 }
 
 function resolveGuardPhotoSrc(guard?: Guard | null) {
@@ -142,9 +152,9 @@ export function GuardRegistrationDialog({
   guard = null,
   mode = "create",
   terminals,
-  initialCameraTerminalId = null
+  initialCameraTerminalId = null,
+  onSaved,
 }: Props) {
-  const router = useRouter();
   const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -291,7 +301,7 @@ export function GuardRegistrationDialog({
         throw new Error(await getApiErrorMessage(res, "Failed to save guard"));
       }
 
-      const savedGuard = await res.json().catch(() => null);
+      const savedGuard = (await res.json().catch(() => null)) as GuardSaveResponse | null;
       let toastMessage = isEditMode ? "Guard updated successfully" : "Guard registered successfully";
       let syncWarning: { type: "info" | "error"; message: string } | null = null;
       const editTerminalSync = savedGuard?.terminal_sync;
@@ -395,8 +405,10 @@ export function GuardRegistrationDialog({
       setRemovePhoto(false);
       setPhotoSource("upload");
       setSelectedTerminalId(resolveTerminalId(terminals, initialCameraTerminalId));
+      if (savedGuard?.id) {
+        onSaved?.(savedGuard);
+      }
       onOpenChange(false);
-      router.refresh();
     } catch (err) {
       setRegistrationState("sync_failed");
       setRegistrationStateMessage("The guard could not be saved. Check the form and try again.");

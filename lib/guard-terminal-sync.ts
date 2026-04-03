@@ -96,67 +96,67 @@ export async function syncGuardToTerminals(options: {
   const normalizedGuard = normalizeGuardRecord(guard);
   const photo = await loadGuardPhoto(normalizedGuard);
   const userInfo = buildGuardTerminalUserInfo(normalizedGuard);
-  const results: TerminalMutationResult[] = [];
+  const results: TerminalMutationResult[] = await Promise.all(
+    terminals.map(async (terminal) => {
+      const existingEnrollment = existingEnrollmentByTerminalId.get(terminal.id);
+      const enrollmentEmployeeNo = resolveGuardFaceEnrollmentEmployeeNo(
+        normalizedGuard,
+        existingEnrollment
+      );
 
-  for (const terminal of terminals) {
-    const existingEnrollment = existingEnrollmentByTerminalId.get(terminal.id);
-    const enrollmentEmployeeNo = resolveGuardFaceEnrollmentEmployeeNo(
-      normalizedGuard,
-      existingEnrollment
-    );
-
-    const enrollmentBase: GuardFaceEnrollment = {
-      id: existingEnrollment?.id || uuidv4(),
-      guard_id: normalizedGuard.id,
-      terminal_id: terminal.id,
-      device_employee_no: enrollmentEmployeeNo,
-      status: "syncing",
-      created_at: existingEnrollment?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    await upsertEnrollment(enrollments, enrollmentBase);
-
-    try {
-      const client = new HikvisionClient(terminal);
-      const faceUrl = buildGuardPhotoUrl(publicBaseUrl, normalizedGuard, terminal);
-      const registration = await client.registerFace({
-        employeeNo: enrollmentEmployeeNo,
-        name: normalizedGuard.full_name,
-        faceUrl,
-        image: photo.buffer,
-        filename: photo.filename,
-        mimeType: photo.mimeType,
-        userInfo,
-      });
-
-      await upsertEnrollment(enrollments, {
-        ...enrollmentBase,
-        status: "syncing",
-        device_employee_no: registration.employeeNo,
-        updated_at: new Date().toISOString(),
-      });
-
-      results.push({
+      const enrollmentBase: GuardFaceEnrollment = {
+        id: existingEnrollment?.id || uuidv4(),
+        guard_id: normalizedGuard.id,
         terminal_id: terminal.id,
+        device_employee_no: enrollmentEmployeeNo,
         status: "syncing",
-        already_present: Boolean(registration.alreadyPresent),
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Face sync failed";
-      await upsertEnrollment(enrollments, {
-        ...enrollmentBase,
-        status: "failed",
-        error: message,
+        created_at: existingEnrollment?.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
-      results.push({
-        terminal_id: terminal.id,
-        status: "failed",
-        error: message,
-      });
-    }
-  }
+      };
+
+      await upsertEnrollment(enrollments, enrollmentBase);
+
+      try {
+        const client = new HikvisionClient(terminal);
+        const faceUrl = buildGuardPhotoUrl(publicBaseUrl, normalizedGuard, terminal);
+        const registration = await client.registerFace({
+          employeeNo: enrollmentEmployeeNo,
+          name: normalizedGuard.full_name,
+          faceUrl,
+          image: photo.buffer,
+          filename: photo.filename,
+          mimeType: photo.mimeType,
+          userInfo,
+        });
+
+        await upsertEnrollment(enrollments, {
+          ...enrollmentBase,
+          status: "syncing",
+          device_employee_no: registration.employeeNo,
+          updated_at: new Date().toISOString(),
+        });
+
+        return {
+          terminal_id: terminal.id,
+          status: "syncing",
+          already_present: Boolean(registration.alreadyPresent),
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Face sync failed";
+        await upsertEnrollment(enrollments, {
+          ...enrollmentBase,
+          status: "failed",
+          error: message,
+          updated_at: new Date().toISOString(),
+        });
+        return {
+          terminal_id: terminal.id,
+          status: "failed",
+          error: message,
+        };
+      }
+    })
+  );
 
   const refreshedEnrollments = await enrollments.find({ guard_id: normalizedGuard.id }).toArray();
   const summary = await validateGuardAcrossTerminals({
@@ -221,67 +221,66 @@ export async function removeGuardFromTerminals(options: {
     terminal_id: string;
     status: GuardFaceEnrollment["status"];
     error?: string;
-  }> = [];
-
-  for (const terminal of options.terminals) {
-    const existing = await enrollments.findOne({
-      guard_id: options.guard.id,
-      terminal_id: terminal.id,
-    });
-
-    if (!existing) {
-      results.push({ terminal_id: terminal.id, status: "removed" });
-      continue;
-    }
-
-    const removingAt = new Date().toISOString();
-    const employeeNo = resolveGuardFaceEnrollmentEmployeeNo(options.guard, existing);
-    await enrollments.updateOne(
-      { guard_id: options.guard.id, terminal_id: terminal.id },
-      {
-        $set: {
-          status: "removing",
-          updated_at: removingAt,
-        },
-      }
-    );
-
-    try {
-      const client = new HikvisionClient(terminal);
-      await client.deleteFace(employeeNo);
-
-      await enrollments.updateOne(
-        { guard_id: options.guard.id, terminal_id: terminal.id },
-        {
-          $set: {
-            status: "removed",
-            removed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        }
-      );
-
-      results.push({ terminal_id: terminal.id, status: "removed" });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Face removal failed";
-      await enrollments.updateOne(
-        { guard_id: options.guard.id, terminal_id: terminal.id },
-        {
-          $set: {
-            status: "failed",
-            error: message,
-            updated_at: new Date().toISOString(),
-          },
-        }
-      );
-
-      results.push({
+  }> = await Promise.all(
+    options.terminals.map(async (terminal) => {
+      const existing = await enrollments.findOne({
+        guard_id: options.guard.id,
         terminal_id: terminal.id,
-        status: "failed",
-        error: message,
       });
-    }
-  }
+
+      if (!existing) {
+        return { terminal_id: terminal.id, status: "removed" };
+      }
+
+      const removingAt = new Date().toISOString();
+      const employeeNo = resolveGuardFaceEnrollmentEmployeeNo(options.guard, existing);
+      await enrollments.updateOne(
+        { guard_id: options.guard.id, terminal_id: terminal.id },
+        {
+          $set: {
+            status: "removing",
+            updated_at: removingAt,
+          },
+        }
+      );
+
+      try {
+        const client = new HikvisionClient(terminal);
+        await client.deleteFace(employeeNo);
+
+        await enrollments.updateOne(
+          { guard_id: options.guard.id, terminal_id: terminal.id },
+          {
+            $set: {
+              status: "removed",
+              removed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          }
+        );
+
+        return { terminal_id: terminal.id, status: "removed" };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Face removal failed";
+        await enrollments.updateOne(
+          { guard_id: options.guard.id, terminal_id: terminal.id },
+          {
+            $set: {
+              status: "failed",
+              error: message,
+              updated_at: new Date().toISOString(),
+            },
+          }
+        );
+
+        return {
+          terminal_id: terminal.id,
+          status: "failed",
+          error: message,
+        };
+      }
+    })
+  );
 
   const summary = await summarizeGuardFaceEnrollments(enrollments, options.guard.id);
   await guards.updateOne(

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,14 +56,47 @@ function terminalSubtitle(terminal: Terminal, siteName?: string) {
   return parts.join(" · ");
 }
 
+function sortTerminals(nextTerminals: Terminal[]) {
+  return [...nextTerminals].sort((left, right) => left.name.localeCompare(right.name));
+}
+
 export function TerminalsClient({ terminals, sites }: Props) {
-  const router = useRouter();
+  const [terminalList, setTerminalList] = useState(() => sortTerminals(terminals));
   const [registerOpen, setRegisterOpen] = useState(false);
   const [editTerminal, setEditTerminal] = useState<Terminal | null>(null);
   const [deleteTerminal, setDeleteTerminal] = useState<Terminal | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [activating, setActivating] = useState<string | null>(null);
   const siteMap = new Map(sites.map((site) => [site.id, site.name]));
+
+  useEffect(() => {
+    setTerminalList(sortTerminals(terminals));
+  }, [terminals]);
+
+  function upsertTerminal(nextTerminal: Terminal) {
+    setTerminalList((current) =>
+      sortTerminals(
+        current.some((terminal) => terminal.id === nextTerminal.id)
+          ? current.map((terminal) => (terminal.id === nextTerminal.id ? nextTerminal : terminal))
+          : [...current, nextTerminal]
+      )
+    );
+  }
+
+  async function refreshTerminal(terminalId: string) {
+    const res = await fetch(`/api/terminals/${terminalId}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error(await getApiErrorMessage(res, "Failed to refresh terminal"));
+    }
+
+    const updatedTerminal = (await res.json().catch(() => null)) as Terminal | null;
+    if (updatedTerminal?.id) {
+      upsertTerminal(updatedTerminal);
+    }
+  }
 
   async function handleCheckActivation(terminalId: string) {
     setActivating(terminalId);
@@ -75,8 +107,8 @@ export function TerminalsClient({ terminals, sites }: Props) {
       if (!res.ok) {
         throw new Error(await getApiErrorMessage(res, "Activation check failed"));
       }
+      await refreshTerminal(terminalId);
       toast.success("Activation status refreshed");
-      router.refresh();
     } catch (err) {
       toast.error(`Activation check failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -99,7 +131,7 @@ export function TerminalsClient({ terminals, sites }: Props) {
 
       toast.success("Terminal deleted successfully");
       setDeleteTerminal(null);
-      router.refresh();
+      setTerminalList((current) => current.filter((terminal) => terminal.id !== deleteTerminal.id));
     } catch (error) {
       toast.error(`Failed to delete terminal: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -114,7 +146,7 @@ export function TerminalsClient({ terminals, sites }: Props) {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Terminals</h2>
             <p className="text-muted-foreground">
-              {terminals.length} facial recognition device{terminals.length !== 1 ? "s" : ""} connected
+              {terminalList.length} facial recognition device{terminalList.length !== 1 ? "s" : ""} connected
             </p>
           </div>
           <Button onClick={() => setRegisterOpen(true)}>
@@ -124,7 +156,7 @@ export function TerminalsClient({ terminals, sites }: Props) {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {terminals.length === 0 ? (
+          {terminalList.length === 0 ? (
             <Card className="col-span-full border-dashed">
               <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
                 <Server className="h-8 w-8 opacity-20" />
@@ -132,7 +164,7 @@ export function TerminalsClient({ terminals, sites }: Props) {
               </CardContent>
             </Card>
           ) : (
-            terminals.map((terminal) => (
+            terminalList.map((terminal) => (
               <Card key={terminal.id} className="overflow-hidden">
                 <CardHeader className="border-b bg-muted/20 pb-3">
                   <div className="flex items-start justify-between gap-3">
@@ -246,6 +278,7 @@ export function TerminalsClient({ terminals, sites }: Props) {
         sites={sites}
         terminal={editTerminal}
         mode={editTerminal ? "edit" : "create"}
+        onSaved={upsertTerminal}
       />
 
       <AlertDialog open={Boolean(deleteTerminal)} onOpenChange={(open) => !open && setDeleteTerminal(null)}>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +32,7 @@ import {
 import { toast } from "sonner";
 
 import { getApiErrorMessage } from "@/lib/http";
-import type { Guard, Site, SiteShiftSchedule, Terminal } from "@/lib/types";
+import type { Guard, GuardAssignment, Site, SiteShiftSchedule, Terminal } from "@/lib/types";
 
 import { GuardAssignmentDialog } from "./GuardAssignmentDialog";
 import { GuardFaceRemoveDialog } from "./GuardFaceRemoveDialog";
@@ -108,8 +107,8 @@ export function GuardsClient({
   initialCreateOpen = false,
   initialCameraTerminalId = null
 }: Props) {
-  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
+  const [guardList, setGuardList] = useState(guards);
   const [editGuard, setEditGuard] = useState<Guard | null>(null);
   const [assignGuard, setAssignGuard] = useState<Guard | null>(null);
   const [syncGuard, setSyncGuard] = useState<Guard | null>(null);
@@ -122,6 +121,30 @@ export function GuardsClient({
       setCreateOpen(true);
     }
   }, [initialCreateOpen]);
+
+  useEffect(() => {
+    setGuardList(guards);
+  }, [guards]);
+
+  function sortGuards(nextGuards: Guard[]) {
+    return [...nextGuards].sort((left, right) => left.full_name.localeCompare(right.full_name));
+  }
+
+  function handleGuardSaved(savedGuard: Guard) {
+    setGuardList((current) =>
+      sortGuards(
+        current.some((guard) => guard.id === savedGuard.id)
+          ? current.map((guard) => (guard.id === savedGuard.id ? savedGuard : guard))
+          : [...current, savedGuard]
+      )
+    );
+  }
+
+  function handleGuardUpdated(updatedGuard: Guard) {
+    setGuardList((current) =>
+      sortGuards(current.map((guard) => (guard.id === updatedGuard.id ? updatedGuard : guard)))
+    );
+  }
 
   async function handleDelete() {
     if (!deleteGuard) return;
@@ -137,8 +160,8 @@ export function GuardsClient({
       }
 
       toast.success("Guard deleted successfully");
+      setGuardList((current) => current.filter((guard) => guard.id !== deleteGuard.id));
       setDeleteGuard(null);
-      router.refresh();
     } catch (error) {
       toast.error(`Failed to delete guard: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -153,7 +176,7 @@ export function GuardsClient({
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Guards</h2>
             <p className="text-muted-foreground">
-              {guards.length} registered guard{guards.length !== 1 ? "s" : ""}
+              {guardList.length} registered guard{guardList.length !== 1 ? "s" : ""}
             </p>
           </div>
           <Button onClick={() => setCreateOpen(true)}>
@@ -167,13 +190,13 @@ export function GuardsClient({
             <CardTitle className="text-base">All Guards</CardTitle>
           </CardHeader>
           <CardContent>
-            {guards.length === 0 ? (
+            {guardList.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
                 <p className="text-sm">No guards registered yet. Click &quot;Register Guard&quot; to add one.</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {guards.map((guard) => {
+                {guardList.map((guard) => {
                   const terminalStatus = guardTerminalStatusMeta(guard);
                   return (
                   <div
@@ -265,6 +288,7 @@ export function GuardsClient({
         mode={editGuard ? "edit" : "create"}
         terminals={terminals}
         initialCameraTerminalId={initialCameraTerminalId}
+        onSaved={handleGuardSaved}
       />
 
       <GuardAssignmentDialog
@@ -275,6 +299,7 @@ export function GuardsClient({
         guard={assignGuard}
         sites={sites}
         schedules={schedules}
+        onSaved={handleGuardSaved}
       />
 
       <GuardFaceSyncDialog
@@ -284,6 +309,7 @@ export function GuardsClient({
         }}
         guard={syncGuard}
         terminals={terminals}
+        onUpdated={handleGuardUpdated}
       />
 
       <GuardFaceRemoveDialog
@@ -293,6 +319,7 @@ export function GuardsClient({
         }}
         guard={removeFaceGuard}
         terminals={terminals}
+        onUpdated={handleGuardUpdated}
       />
 
       <AlertDialog open={Boolean(deleteGuard)} onOpenChange={(open) => !open && setDeleteGuard(null)}>

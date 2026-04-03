@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck, Server } from "lucide-react";
 
@@ -24,10 +23,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   guard: Guard | null;
   terminals: Terminal[];
+  onUpdated?: (guard: Guard) => void;
 }
 
-export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Props) {
-  const router = useRouter();
+export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals, onUpdated }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -143,7 +142,16 @@ export function GuardFaceSyncDialog({ open, onOpenChange, guard, terminals }: Pr
         toast.error(firstError ? `Face sync failed: ${firstError}` : "Face sync failed on all selected terminals");
       }
 
-      router.refresh();
+      const refreshedGuard = await fetch(`/api/guards/${guard.id}`, {
+        cache: "no-store",
+      })
+        .then(async (response) => (response.ok ? ((await response.json()) as Guard) : null))
+        .catch(() => null);
+
+      if (refreshedGuard?.id) {
+        onUpdated?.(refreshedGuard);
+      }
+
       if (syncedCount > 0 || failedCount === 0) {
         onOpenChange(false);
       }

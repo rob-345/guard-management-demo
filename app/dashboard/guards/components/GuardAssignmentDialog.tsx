@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,6 +42,7 @@ interface Props {
   guard: Guard | null;
   sites: Site[];
   schedules: SiteShiftSchedule[];
+  onSaved?: (guard: Guard) => void;
 }
 
 function describeShift(schedule: SiteShiftSchedule | undefined, shiftSlot: "day" | "night") {
@@ -78,8 +78,8 @@ export function GuardAssignmentDialog({
   guard,
   sites,
   schedules,
+  onSaved,
 }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const scheduleBySiteId = useMemo(
     () => new Map(schedules.map((schedule) => [schedule.site_id, schedule])),
@@ -146,8 +146,22 @@ export function GuardAssignmentDialog({
         toast.success("Guard assignment updated successfully.");
       }
 
+      const refreshedGuard = await fetch(`/api/guards/${guard.id}`, {
+        cache: "no-store",
+      })
+        .then(async (response) => (response.ok ? ((await response.json()) as Guard) : null))
+        .catch(() => null);
+
+      if (refreshedGuard?.id) {
+        onSaved?.(refreshedGuard);
+      } else if (payload?.assignment) {
+        onSaved?.({
+          ...guard,
+          current_assignment: payload.assignment,
+        });
+      }
+
       onOpenChange(false);
-      router.refresh();
     } catch (error) {
       toast.error(
         `Failed to save assignment: ${error instanceof Error ? error.message : String(error)}`

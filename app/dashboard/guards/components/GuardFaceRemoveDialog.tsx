@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, Server, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,6 +23,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   guard: Guard | null;
   terminals: Terminal[];
+  onUpdated?: (guard: Guard) => void;
 }
 
 export function GuardFaceRemoveDialog({
@@ -31,8 +31,8 @@ export function GuardFaceRemoveDialog({
   onOpenChange,
   guard,
   terminals,
+  onUpdated,
 }: Props) {
-  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -93,7 +93,16 @@ export function GuardFaceRemoveDialog({
         );
       }
 
-      router.refresh();
+      const refreshedGuard = await fetch(`/api/guards/${guard.id}`, {
+        cache: "no-store",
+      })
+        .then(async (response) => (response.ok ? ((await response.json()) as Guard) : null))
+        .catch(() => null);
+
+      if (refreshedGuard?.id) {
+        onUpdated?.(refreshedGuard);
+      }
+
       onOpenChange(false);
     } catch (error) {
       toast.error(

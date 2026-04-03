@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -82,6 +81,7 @@ interface Props {
   sites: Site[];
   schedule?: SiteShiftSchedule | null;
   initialSiteId?: string;
+  onSaved?: (schedule: SiteShiftSchedule) => void;
 }
 
 function buildDefaultValues(
@@ -107,8 +107,8 @@ export function ShiftAddDialog({
   sites,
   schedule = null,
   initialSiteId,
+  onSaved,
 }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const isEditMode = Boolean(schedule);
 
@@ -155,9 +155,12 @@ export function ShiftAddDialog({
         throw new Error(await getApiErrorMessage(res, "Failed to save site shift schedule"));
       }
 
+      const savedSchedule = (await res.json().catch(() => null)) as SiteShiftSchedule | null;
       toast.success(isEditMode ? "Shift schedule updated successfully" : "Shift schedule created successfully");
+      if (savedSchedule?.id) {
+        onSaved?.(savedSchedule);
+      }
       onOpenChange(false);
-      router.refresh();
     } catch (error) {
       toast.error(
         `Failed to save shift schedule: ${error instanceof Error ? error.message : String(error)}`
