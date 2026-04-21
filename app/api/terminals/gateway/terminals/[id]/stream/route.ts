@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/api-route";
+import type { HikvisionTerminalGatewaySessionSnapshot } from "@/lib/hikvision-terminal-gateway-session";
 import {
   buildGatewaySseHeaders,
   findGatewaySupervisorTerminalSnapshot,
@@ -11,6 +12,12 @@ import {
 } from "@/lib/hikvision-terminal-gateway-supervisor";
 
 const KEEPALIVE_INTERVAL_MS = 15_000;
+
+export function resolveGatewayStreamSnapshotPayload(
+  snapshot: HikvisionTerminalGatewaySessionSnapshot
+) {
+  return snapshot;
+}
 
 export async function GET(
   request: NextRequest,
@@ -28,6 +35,15 @@ export async function GET(
   }
 
   const session = getHikvisionTerminalGatewaySession(id);
+  const snapshot = session?.snapshot() || terminal.session;
+
+  if (!snapshot) {
+    return NextResponse.json(
+      { error: "Gateway session snapshot unavailable for terminal" },
+      { status: 409 }
+    );
+  }
+
   const encoder = new TextEncoder();
   let cancelStream: () => void = () => {};
 
@@ -67,14 +83,7 @@ export async function GET(
 
       request.signal.addEventListener("abort", close, { once: true });
 
-      enqueue(
-        formatGatewaySseEvent("snapshot", {
-          terminal: {
-            ...terminal,
-            session: session?.snapshot() || terminal.session,
-          },
-        })
-      );
+      enqueue(formatGatewaySseEvent("snapshot", resolveGatewayStreamSnapshotPayload(snapshot)));
 
       if (session) {
         unsubscribe = session.subscribe((event) => {

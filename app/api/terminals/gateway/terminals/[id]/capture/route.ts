@@ -13,10 +13,30 @@ import {
 } from "@/lib/hikvision-terminal-gateway-capture";
 import { getHikvisionTerminalGatewayConfig } from "@/lib/hikvision-terminal-gateway-config";
 import { requireAuthorizedTerminal } from "@/lib/hikvision-admin";
+import type {
+  HikvisionTerminalGatewayCaptureMetadata,
+  HikvisionTerminalGatewayEvent,
+} from "@/lib/hikvision-terminal-gateway-types";
 
 const DEFAULT_CAPTURE_DURATION_MS = 15_000;
 const MIN_CAPTURE_DURATION_MS = 1_000;
 const MAX_CAPTURE_DURATION_MS = 60_000;
+
+export function buildGatewayCaptureResponse(input: {
+  metadata: HikvisionTerminalGatewayCaptureMetadata;
+  events: HikvisionTerminalGatewayEvent[];
+  summary_markdown: string;
+}) {
+  return {
+    success: true,
+    capture_id: input.metadata.capture_id,
+    capture: {
+      metadata: input.metadata,
+      event_count: input.events.length,
+      summary_markdown: input.summary_markdown,
+    },
+  };
+}
 
 function clampCaptureDurationMs(value: unknown) {
   const parsed = typeof value === "number" ? value : Number(value);
@@ -109,12 +129,5 @@ export async function POST(
     multipartParts: buildCapturedMultipartParts(capture.contentType, capture.chunks),
   });
 
-  return NextResponse.json({
-    success: true,
-    capture: {
-      metadata: record.metadata,
-      event_count: record.events.length,
-      summary_markdown: record.summary_markdown,
-    },
-  });
+  return NextResponse.json(buildGatewayCaptureResponse(record));
 }
