@@ -29,6 +29,28 @@ export type HikvisionTerminalGatewayEvent = {
   parse_warnings: string[];
 };
 
+export type HikvisionTerminalGatewayStreamState =
+  | "idle"
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "error"
+  | "stopped";
+
+export type HikvisionTerminalGatewaySessionSnapshot = {
+  terminal_id: string;
+  terminal_name?: string;
+  stream_state: HikvisionTerminalGatewayStreamState;
+  connected: boolean;
+  last_error?: string;
+  last_event_at?: string;
+  last_connected_at?: string;
+  last_disconnected_at?: string;
+  buffered_event_count: number;
+  recent_events: HikvisionTerminalGatewayEvent[];
+  summary: HikvisionTerminalGatewaySummary;
+};
+
 export type ParseGatewayEventPartInput = {
   part: HikvisionAlertStreamPart;
   sequenceIndex: number;
@@ -54,6 +76,8 @@ export type HikvisionTerminalGatewaySummary = {
 export type HikvisionTerminalGatewayCapturePaths = {
   directory: string;
   metadata_path: string;
+  response_headers_path: string;
+  raw_multipart_path: string;
   events_path: string;
   summary_path: string;
 };
@@ -66,10 +90,17 @@ export type HikvisionTerminalGatewayCaptureMetadata = {
   finished_at?: string;
   part_count: number;
   bytes_captured: number;
+  response_content_type?: string;
+};
+
+export type HikvisionTerminalGatewayRawCapture = {
+  response_headers: Record<string, string>;
+  raw_multipart_body_text: string;
 };
 
 export type HikvisionTerminalGatewayCaptureRecord = {
   metadata: HikvisionTerminalGatewayCaptureMetadata;
+  raw_capture: HikvisionTerminalGatewayRawCapture;
   events: HikvisionTerminalGatewayEvent[];
   summary_markdown: string;
   paths: HikvisionTerminalGatewayCapturePaths;
