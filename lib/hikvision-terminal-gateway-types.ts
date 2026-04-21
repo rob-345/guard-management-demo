@@ -78,6 +78,7 @@ export type HikvisionTerminalGatewayCapturePaths = {
   metadata_path: string;
   response_headers_path: string;
   raw_multipart_path: string;
+  multipart_parts_path: string;
   events_path: string;
   summary_path: string;
 };
@@ -98,9 +99,17 @@ export type HikvisionTerminalGatewayRawCapture = {
   raw_multipart_body_text: string;
 };
 
+export type HikvisionTerminalGatewayCapturedMultipartPart = {
+  headers: Record<string, string>;
+  byte_length: number;
+  raw_text: string;
+  source_timestamp?: string;
+};
+
 export type HikvisionTerminalGatewayCaptureRecord = {
   metadata: HikvisionTerminalGatewayCaptureMetadata;
   raw_capture: HikvisionTerminalGatewayRawCapture;
+  multipart_parts: HikvisionTerminalGatewayCapturedMultipartPart[];
   events: HikvisionTerminalGatewayEvent[];
   summary_markdown: string;
   paths: HikvisionTerminalGatewayCapturePaths;

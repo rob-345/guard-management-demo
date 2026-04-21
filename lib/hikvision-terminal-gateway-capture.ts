@@ -3,14 +3,17 @@ import path from "node:path";
 
 import {
   consumeMultipartMixedText,
+  parseAcsEventRecordsFromObject,
+  parseAcsEventRecordsFromXml,
   parseMultipartBoundary,
   type HikvisionAlertStreamPart,
 } from "@guard-management/hikvision-isapi-sdk";
 
-import { parseGatewayEventPart } from "./hikvision-terminal-gateway-parser";
+import { parseGatewayEventParts, parseGatewayJsonBodyText } from "./hikvision-terminal-gateway-parser";
 import { renderGatewayEventSummaryMarkdown } from "./hikvision-terminal-gateway-summary";
 import { summarizeGatewayEvents } from "./hikvision-terminal-gateway-summary";
 import type {
+  HikvisionTerminalGatewayCapturedMultipartPart,
   HikvisionTerminalGatewayCaptureMetadata,
   HikvisionTerminalGatewayCapturePaths,
   HikvisionTerminalGatewayCaptureRecord,
@@ -36,6 +39,7 @@ export function buildGatewayCapturePaths(
     metadata_path: path.join(directory, "metadata.json"),
     response_headers_path: path.join(directory, "response-headers.json"),
     raw_multipart_path: path.join(directory, "raw-multipart.txt"),
+    multipart_parts_path: path.join(directory, "multipart-parts.json"),
     events_path: path.join(directory, "events.json"),
     summary_path: path.join(directory, "summary.md"),
   };
@@ -45,6 +49,47 @@ function normalizeHeaders(headers: Record<string, string>) {
   return Object.fromEntries(
     Object.entries(headers).map(([name, value]) => [name.toLowerCase(), value])
   );
+}
+
+function extractAlertStreamEvents(bodyText: string) {
+  const trimmed = bodyText.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    const parsed = parseGatewayJsonBodyText(trimmed);
+    const payloadRecord =
+      typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : null;
+    return payloadRecord ? parseAcsEventRecordsFromObject(payloadRecord) : [];
+  }
+
+  if (trimmed.startsWith("<")) {
+    return parseAcsEventRecordsFromXml(trimmed);
+  }
+
+  return [];
+}
+
+function buildDefaultMultipartParts(input: {
+  rawMultipartBodyText: string;
+  responseHeaders: Record<string, string>;
+  startedAt: string;
+}) {
+  const boundary = parseMultipartBoundary(normalizeHeaders(input.responseHeaders)["content-type"] || "");
+  if (!boundary) {
+    throw new Error("Raw capture response headers did not include a multipart boundary");
+  }
+
+  const consumed = consumeMultipartMixedText(input.rawMultipartBodyText, boundary);
+  return consumed.parts.map((part) => ({
+    headers: part.headers,
+    byte_length: Buffer.byteLength(part.rawText),
+    raw_text: part.rawText,
+    source_timestamp: input.startedAt,
+  })) satisfies HikvisionTerminalGatewayCapturedMultipartPart[];
 }
 
 export function createGatewayCaptureMetadata(input: {
@@ -71,6 +116,7 @@ export function createGatewayCaptureMetadata(input: {
 function buildRawCaptureEvents(input: {
   metadata: HikvisionTerminalGatewayCaptureMetadata;
   rawCapture: HikvisionTerminalGatewayRawCapture;
+  multipartParts: HikvisionTerminalGatewayCapturedMultipartPart[];
 }) {
   const responseHeaders = normalizeHeaders(input.rawCapture.response_headers);
   const contentType = responseHeaders["content-type"] || input.metadata.response_content_type || "";
@@ -81,23 +127,32 @@ function buildRawCaptureEvents(input: {
   }
 
   const consumed = consumeMultipartMixedText(input.rawCapture.raw_multipart_body_text, boundary);
-  return consumed.parts.map((part, index) => {
+  let nextSequenceIndex = 1;
+
+  return consumed.parts.flatMap((part, index) => {
+    const persistedPart = input.multipartParts[index];
+    const partTimestamp =
+      persistedPart?.source_timestamp || input.metadata.finished_at || input.metadata.started_at;
+    const rawText = persistedPart?.raw_text || part.rawText;
+    const headers = persistedPart?.headers || part.headers;
     const alertPart: HikvisionAlertStreamPart = {
-      timestamp: input.metadata.started_at,
-      headers: part.headers,
+      timestamp: partTimestamp,
+      headers,
       bodyText: part.bodyText,
-      rawText: part.rawText,
-      byteLength: Buffer.byteLength(part.rawText),
-      events: [],
+      rawText,
+      byteLength: persistedPart?.byte_length || Buffer.byteLength(rawText),
+      events: extractAlertStreamEvents(part.bodyText),
     };
 
-    return parseGatewayEventPart({
+    const events = parseGatewayEventParts({
       part: alertPart,
-      sequenceIndex: index + 1,
+      sequenceIndex: nextSequenceIndex,
       terminalId: input.metadata.terminal_id,
       terminalName: input.metadata.terminal_name,
-      receivedAt: input.metadata.finished_at || input.metadata.started_at,
+      receivedAt: partTimestamp,
     });
+    nextSequenceIndex += events.length;
+    return events;
   });
 }
 
@@ -107,13 +162,15 @@ async function readRawCaptureArtifacts(
 ): Promise<{
   metadata: HikvisionTerminalGatewayCaptureMetadata;
   rawCapture: HikvisionTerminalGatewayRawCapture;
+  multipartParts: HikvisionTerminalGatewayCapturedMultipartPart[];
   paths: HikvisionTerminalGatewayCapturePaths;
 }> {
   const paths = buildGatewayCapturePaths(captureDirectory, captureId);
-  const [metadataText, responseHeadersText, rawMultipartBodyText] = await Promise.all([
+  const [metadataText, responseHeadersText, rawMultipartBodyText, multipartPartsText] = await Promise.all([
     readFile(paths.metadata_path, "utf8"),
     readFile(paths.response_headers_path, "utf8"),
     readFile(paths.raw_multipart_path, "utf8"),
+    readFile(paths.multipart_parts_path, "utf8").catch(() => "[]"),
   ]);
 
   return {
@@ -122,6 +179,7 @@ async function readRawCaptureArtifacts(
       response_headers: JSON.parse(responseHeadersText) as Record<string, string>,
       raw_multipart_body_text: rawMultipartBodyText,
     },
+    multipartParts: JSON.parse(multipartPartsText) as HikvisionTerminalGatewayCapturedMultipartPart[],
     paths,
   };
 }
@@ -131,6 +189,7 @@ export async function writeGatewayCapture(input: {
   metadata: HikvisionTerminalGatewayCaptureMetadata;
   responseHeaders: Record<string, string>;
   rawMultipartBodyText: string;
+  multipartParts?: HikvisionTerminalGatewayCapturedMultipartPart[];
   events?: HikvisionTerminalGatewayEvent[];
 }) {
   const paths = buildGatewayCapturePaths(input.captureDirectory, input.metadata.capture_id);
@@ -138,6 +197,13 @@ export async function writeGatewayCapture(input: {
     response_headers: normalizeHeaders(input.responseHeaders),
     raw_multipart_body_text: input.rawMultipartBodyText,
   } satisfies HikvisionTerminalGatewayRawCapture;
+  const multipartParts =
+    input.multipartParts ||
+    buildDefaultMultipartParts({
+      rawMultipartBodyText: input.rawMultipartBodyText,
+      responseHeaders: rawCapture.response_headers,
+      startedAt: input.metadata.started_at,
+    });
   const events =
     input.events ||
     buildRawCaptureEvents({
@@ -146,12 +212,13 @@ export async function writeGatewayCapture(input: {
         response_content_type: rawCapture.response_headers["content-type"],
       },
       rawCapture,
+      multipartParts,
     });
   const summaryMarkdown = renderGatewayEventSummaryMarkdown(events);
   const summary = summarizeGatewayEvents(events);
   const metadata = {
     ...input.metadata,
-    part_count: summary.total_events,
+    part_count: multipartParts.length,
     bytes_captured: input.metadata.bytes_captured || Buffer.byteLength(input.rawMultipartBodyText),
     finished_at: input.metadata.finished_at || new Date().toISOString(),
     response_content_type: rawCapture.response_headers["content-type"],
@@ -162,6 +229,7 @@ export async function writeGatewayCapture(input: {
     writeFile(paths.metadata_path, JSON.stringify(metadata, null, 2)),
     writeFile(paths.response_headers_path, JSON.stringify(rawCapture.response_headers, null, 2)),
     writeFile(paths.raw_multipart_path, rawCapture.raw_multipart_body_text),
+    writeFile(paths.multipart_parts_path, JSON.stringify(multipartParts, null, 2)),
     writeFile(paths.events_path, JSON.stringify(events, null, 2)),
     writeFile(paths.summary_path, summaryMarkdown),
   ]);
@@ -169,6 +237,7 @@ export async function writeGatewayCapture(input: {
   return {
     metadata,
     raw_capture: rawCapture,
+    multipart_parts: multipartParts,
     events,
     summary_markdown: summaryMarkdown,
     paths,
@@ -176,13 +245,16 @@ export async function writeGatewayCapture(input: {
 }
 
 export async function readGatewayCapture(captureDirectory: string, captureId: string) {
-  const { metadata, rawCapture, paths } = await readRawCaptureArtifacts(captureDirectory, captureId);
+  const { metadata, rawCapture, multipartParts, paths } = await readRawCaptureArtifacts(
+    captureDirectory,
+    captureId
+  );
   let events: HikvisionTerminalGatewayEvent[];
 
   try {
     events = JSON.parse(await readFile(paths.events_path, "utf8")) as HikvisionTerminalGatewayEvent[];
   } catch {
-    events = buildRawCaptureEvents({ metadata, rawCapture });
+    events = buildRawCaptureEvents({ metadata, rawCapture, multipartParts });
   }
 
   const summaryMarkdown = await lookupGatewayCaptureSummary(captureDirectory, captureId);
@@ -190,6 +262,7 @@ export async function readGatewayCapture(captureDirectory: string, captureId: st
   return {
     metadata,
     raw_capture: rawCapture,
+    multipart_parts: multipartParts,
     events,
     summary_markdown: summaryMarkdown,
     paths,
@@ -197,12 +270,15 @@ export async function readGatewayCapture(captureDirectory: string, captureId: st
 }
 
 export async function lookupGatewayCaptureSummary(captureDirectory: string, captureId: string) {
-  const { metadata, rawCapture, paths } = await readRawCaptureArtifacts(captureDirectory, captureId);
+  const { metadata, rawCapture, multipartParts, paths } = await readRawCaptureArtifacts(
+    captureDirectory,
+    captureId
+  );
 
   try {
     return await readFile(paths.summary_path, "utf8");
   } catch {
-    const events = buildRawCaptureEvents({ metadata, rawCapture });
+    const events = buildRawCaptureEvents({ metadata, rawCapture, multipartParts });
     return renderGatewayEventSummaryMarkdown(events);
   }
 }

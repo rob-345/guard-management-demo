@@ -150,3 +150,101 @@ Content-Type: application/json; charset="UTF-8"\r
     await rm(tempDirectory, { recursive: true, force: true });
   }
 });
+
+test("offline capture replay preserves per-part source timestamps when payloads omit event time", async () => {
+  const tempDirectory = await mkdtemp(path.join(os.tmpdir(), "hikvision-gateway-timing-"));
+  const captureId = "capture-timing";
+  const boundary = "MIME_boundary";
+  const rawMultipartBodyText = `--${boundary}\r
+Content-Disposition: form-data; name="AccessControllerEvent"\r
+Content-Type: application/json; charset="UTF-8"\r
+\r
+{"eventType":"AccessControllerEvent","AccessControllerEvent":{"majorEventType":5,"subEventType":75,"eventDescription":"First without payload timestamp"}}\r
+--${boundary}\r
+Content-Disposition: form-data; name="AccessControllerEvent"\r
+Content-Type: application/json; charset="UTF-8"\r
+\r
+{"eventType":"AccessControllerEvent","AccessControllerEvent":{"majorEventType":5,"subEventType":76,"eventDescription":"Second without payload timestamp"}}\r
+--${boundary}--\r
+`;
+
+  try {
+    await writeGatewayCapture({
+      captureDirectory: tempDirectory,
+      metadata: createGatewayCaptureMetadata({
+        captureId,
+        terminalId: "terminal-raw-2",
+        terminalName: "Rear Gate",
+        startedAt: "2026-04-21T10:20:00.000Z",
+      }),
+      responseHeaders: {
+        "content-type": `multipart/mixed; boundary=${boundary}`,
+      },
+      rawMultipartBodyText,
+      multipartParts: [
+        {
+          headers: {
+            "content-disposition": 'form-data; name="AccessControllerEvent"',
+            "content-type": 'application/json; charset="UTF-8"',
+          },
+          byte_length: 219,
+          raw_text: "first-raw-part",
+          source_timestamp: "2026-04-21T10:20:05.000Z",
+        },
+        {
+          headers: {
+            "content-disposition": 'form-data; name="AccessControllerEvent"',
+            "content-type": 'application/json; charset="UTF-8"',
+          },
+          byte_length: 220,
+          raw_text: "second-raw-part",
+          source_timestamp: "2026-04-21T10:20:09.000Z",
+        },
+      ],
+    });
+
+    const initial = await readGatewayCapture(tempDirectory, captureId);
+    assert.deepEqual(
+      initial.events.map((event) => ({
+        timestamp: event.timestamp,
+        source_timestamp: event.multipart.source_timestamp,
+        description: event.description,
+      })),
+      [
+        {
+          timestamp: "2026-04-21T10:20:05.000Z",
+          source_timestamp: "2026-04-21T10:20:05.000Z",
+          description: "First without payload timestamp",
+        },
+        {
+          timestamp: "2026-04-21T10:20:09.000Z",
+          source_timestamp: "2026-04-21T10:20:09.000Z",
+          description: "Second without payload timestamp",
+        },
+      ]
+    );
+
+    await unlink(initial.paths.summary_path);
+    await unlink(initial.paths.events_path);
+
+    const rebuilt = await readGatewayCapture(tempDirectory, captureId);
+    assert.deepEqual(
+      rebuilt.events.map((event) => ({
+        timestamp: event.timestamp,
+        source_timestamp: event.multipart.source_timestamp,
+      })),
+      [
+        {
+          timestamp: "2026-04-21T10:20:05.000Z",
+          source_timestamp: "2026-04-21T10:20:05.000Z",
+        },
+        {
+          timestamp: "2026-04-21T10:20:09.000Z",
+          source_timestamp: "2026-04-21T10:20:09.000Z",
+        },
+      ]
+    );
+  } finally {
+    await rm(tempDirectory, { recursive: true, force: true });
+  }
+});
