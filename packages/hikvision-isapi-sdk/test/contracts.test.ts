@@ -333,7 +333,7 @@ test("helper methods call the documented capability and fallback HTTP-host endpo
   ]);
 });
 
-test("helper methods fall back when the specific HTTP-host action returns a structured ISAPI failure", async () => {
+test("helper methods fall back when the specific HTTP-host action returns a structured unsupported response", async () => {
   const seenPaths: string[] = [];
 
   const client = new HikvisionIsapiClient({
@@ -349,7 +349,7 @@ test("helper methods fall back when the specific HTTP-host action returns a stru
           `<?xml version="1.0" encoding="UTF-8"?>
 <ResponseStatus>
   <statusCode>4</statusCode>
-  <statusString>Invalid Operation</statusString>
+  <statusString>OK</statusString>
   <subStatusCode>notSupport</subStatusCode>
   <errorMsg>not supported</errorMsg>
 </ResponseStatus>`,
@@ -378,4 +378,130 @@ test("helper methods fall back when the specific HTTP-host action returns a stru
     "/ISAPI/Event/notification/httpHosts/host%203/testTheListeningHost",
     "/ISAPI/Event/notification/httpHosts/host%203/test",
   ]);
+});
+
+test("helper methods do not fall back when the specific HTTP-host action returns a real structured failure", async () => {
+  const seenPaths: string[] = [];
+
+  const client = new HikvisionIsapiClient({
+    host: "127.0.0.1",
+    username: "admin",
+    password: "password",
+    fetchImpl: async (input) => {
+      const path = new URL(String(input)).pathname;
+      seenPaths.push(path);
+
+      if (path === "/ISAPI/Event/notification/httpHosts/host%204/testEventMessages") {
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?>
+<ResponseStatus>
+  <statusCode>4</statusCode>
+  <statusString>Invalid Operation</statusString>
+  <subStatusCode>deviceBusy</subStatusCode>
+  <errorMsg>busy</errorMsg>
+</ResponseStatus>`,
+          {
+            status: 200,
+            headers: { "content-type": "application/xml" },
+          }
+        );
+      }
+
+      if (path === "/ISAPI/Event/notification/httpHosts/host%204/test") {
+        return new Response(JSON.stringify({ tested: "should-not-fallback" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return new Response("unexpected path", { status: 500 });
+    },
+  });
+
+  await assert.rejects(client.testHttpHostEventMessages("host 4"), /ISAPI response.*indicated failure/);
+  assert.deepEqual(seenPaths, ["/ISAPI/Event/notification/httpHosts/host%204/testEventMessages"]);
+});
+
+test("consumeAlertStream does not start a request when already aborted", async () => {
+  const abortController = new AbortController();
+  abortController.abort();
+
+  let fetchCount = 0;
+  const client = new HikvisionIsapiClient({
+    host: "127.0.0.1",
+    username: "admin",
+    password: "password",
+    timeoutMs: 1_000,
+    fetchImpl: async (_input, init) => {
+      fetchCount += 1;
+      return new Promise<Response>((_resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("missing abort propagation")), 50);
+        init?.signal?.addEventListener(
+          "abort",
+          () => {
+            clearTimeout(timer);
+            reject(new DOMException("The operation was aborted", "AbortError"));
+          },
+          { once: true }
+        );
+        if (init?.signal?.aborted) {
+          clearTimeout(timer);
+          reject(new DOMException("The operation was aborted", "AbortError"));
+        }
+      });
+    },
+  });
+
+  await assert.rejects(
+    client.consumeAlertStream({ signal: abortController.signal }),
+    /AbortError/
+  );
+  assert.equal(fetchCount, 0);
+});
+
+test("consumeAlertStream aborts an in-flight request", async () => {
+  const abortController = new AbortController();
+  let sawAbort = false;
+  let fetchSignal: AbortSignal | undefined;
+
+  const client = new HikvisionIsapiClient({
+    host: "127.0.0.1",
+    username: "admin",
+    password: "password",
+    timeoutMs: 200,
+    fetchImpl: async (_input, init) => {
+      fetchSignal = init?.signal;
+      if (fetchSignal?.aborted) {
+        sawAbort = true;
+        throw new DOMException("The operation was aborted", "AbortError");
+      }
+
+      return new Promise<Response>((_resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("missing abort propagation")), 100);
+        fetchSignal?.addEventListener(
+          "abort",
+          () => {
+            sawAbort = true;
+            clearTimeout(timer);
+            reject(new DOMException("The operation was aborted", "AbortError"));
+          },
+          { once: true }
+        );
+      });
+    },
+  });
+
+  const consumePromise = client.consumeAlertStream({ signal: abortController.signal });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  abortController.abort();
+
+  await assert.rejects(
+    Promise.race([
+      consumePromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("missing abort propagation")), 150)),
+    ]),
+    /AbortError/
+  );
+  assert.equal(Boolean(fetchSignal), true);
+  assert.equal(sawAbort, true);
 });
