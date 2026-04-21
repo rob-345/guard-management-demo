@@ -30,12 +30,14 @@ export type HikvisionTerminalGatewaySupervisorStatus = {
   connected_session_count: number;
   buffered_event_count: number;
   active_subscriber_count: number;
-  terminals: Array<{
-    terminal_id: string;
-    terminal_name?: string;
-    eligible: boolean;
-    session?: HikvisionTerminalGatewaySessionSnapshot;
-  }>;
+  terminals: HikvisionTerminalGatewayTerminalSnapshot[];
+};
+
+export type HikvisionTerminalGatewayTerminalSnapshot = {
+  terminal_id: string;
+  terminal_name?: string;
+  eligible: boolean;
+  session?: HikvisionTerminalGatewaySessionSnapshot;
 };
 
 export type HikvisionTerminalGatewaySupervisorDeps = {
@@ -81,6 +83,33 @@ function createState(): HikvisionTerminalGatewaySupervisorState {
 
 function buildTerminalConnectionKey(terminal: Terminal) {
   return [terminal.ip_address || "", terminal.username || "", terminal.password || ""].join("|");
+}
+
+export function findGatewaySupervisorTerminalSnapshot(
+  status: HikvisionTerminalGatewaySupervisorStatus,
+  terminalId: string
+) {
+  return status.terminals.find((terminal) => terminal.terminal_id === terminalId);
+}
+
+export function formatGatewaySseEvent(event: string, payload: unknown) {
+  const serialized = JSON.stringify(payload ?? null);
+  return [`event: ${event}`, ...serialized.split("\n").map((line) => `data: ${line}`), "", ""].join(
+    "\n"
+  );
+}
+
+export function formatGatewaySseComment(comment?: string) {
+  return comment ? `: ${comment}\n\n` : ":\n\n";
+}
+
+export function buildGatewaySseHeaders() {
+  return {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  };
 }
 
 export function createHikvisionTerminalGatewaySupervisor(
