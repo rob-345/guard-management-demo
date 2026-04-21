@@ -241,6 +241,73 @@ test("gateway session notifies subscribers and unsubscribe removes them from fut
   await session.stop();
 });
 
+test("gateway session isolates subscriber failures so a bad subscriber does not kill fanout or the session", async () => {
+  const terminal = createTerminal({ id: "terminal-2b", edge_terminal_id: "terminal-2b" });
+  const goodSubscriberEvents: string[] = [];
+  let badSubscriberCalls = 0;
+
+  const session = new HikvisionTerminalGatewaySession(terminal, {
+    maxBufferedEvents: 4,
+    consumeAlertStream: async (options: HikvisionConsumeAlertStreamOptions = {}) => {
+      await options.onPart?.(
+        createPart({
+          timestamp: "2026-04-21T13:10:00.000Z",
+          bodyText: JSON.stringify({
+            eventType: "AccessControllerEvent",
+            AccessControllerEvent: {
+              majorEventType: 5,
+              subEventType: 75,
+              eventDescription: "First Subscriber Event",
+              dateTime: "2026-04-21T13:10:00Z",
+            },
+          }),
+        })
+      );
+
+      await options.onPart?.(
+        createPart({
+          timestamp: "2026-04-21T13:10:01.000Z",
+          bodyText: JSON.stringify({
+            eventType: "AccessControllerEvent",
+            AccessControllerEvent: {
+              majorEventType: 5,
+              subEventType: 76,
+              eventDescription: "Second Subscriber Event",
+              dateTime: "2026-04-21T13:10:01Z",
+            },
+          }),
+        })
+      );
+
+      await waitForAbort(options.signal);
+    },
+  });
+
+  session.subscribe(() => {
+    badSubscriberCalls += 1;
+    throw new Error("subscriber failed");
+  });
+  session.subscribe((event) => {
+    goodSubscriberEvents.push(event.description);
+  });
+
+  session.start();
+  await session.whenReady();
+  await flushAsyncWork();
+
+  const snapshot = session.snapshot();
+  assert.equal(snapshot.stream_state, "connected");
+  assert.equal(snapshot.connected, true);
+  assert.equal(snapshot.active_subscriber_count, 1);
+  assert.equal(badSubscriberCalls, 1);
+  assert.deepEqual(goodSubscriberEvents, [
+    "First Subscriber Event",
+    "Second Subscriber Event",
+  ]);
+
+  await session.stop();
+});
+
 test("gateway session uses error before first parsed event, preserves buffered events across retries, and resets reconnect backoff after reconnect success", async () => {
   const terminal = createTerminal({ id: "terminal-3", edge_terminal_id: "terminal-3" });
   const sleepCalls: number[] = [];
@@ -328,6 +395,93 @@ test("gateway session uses error before first parsed event, preserves buffered e
   const retryingSnapshot = session.snapshot();
   assert.equal(retryingSnapshot.stream_state, "reconnecting");
   assert.equal(retryingSnapshot.buffered_event_count, 1);
+
+  await session.stop();
+});
+
+test("gateway session stop interrupts reconnect backoff promptly", async () => {
+  const terminal = createTerminal({ id: "terminal-3b", edge_terminal_id: "terminal-3b" });
+  let sleepCallCount = 0;
+
+  const session = new HikvisionTerminalGatewaySession(terminal, {
+    maxBufferedEvents: 2,
+    sleep: async () => {
+      sleepCallCount += 1;
+      await new Promise<void>(() => undefined);
+    },
+    consumeAlertStream: async () => {
+      throw new Error("dial failed");
+    },
+  });
+
+  session.start();
+  await flushAsyncWork();
+  assert.equal(session.snapshot().stream_state, "error");
+  assert.equal(sleepCallCount, 1);
+
+  let stopResolved = false;
+  const stopPromise = session.stop().then(() => {
+    stopResolved = true;
+  });
+
+  await flushAsyncWork();
+  assert.equal(stopResolved, true);
+  await stopPromise;
+  assert.equal(session.snapshot().stream_state, "stopped");
+});
+
+test("gateway session whenReady is scoped to a start cycle and does not resolve on stop", async () => {
+  const terminal = createTerminal({ id: "terminal-3c", edge_terminal_id: "terminal-3c" });
+  let attempt = 0;
+
+  const session = new HikvisionTerminalGatewaySession(terminal, {
+    maxBufferedEvents: 2,
+    consumeAlertStream: async (options: HikvisionConsumeAlertStreamOptions = {}) => {
+      attempt += 1;
+
+      if (attempt === 1) {
+        await waitForAbort(options.signal);
+        return;
+      }
+
+      await options.onPart?.(
+        createPart({
+          timestamp: "2026-04-21T15:30:00.000Z",
+          bodyText: JSON.stringify({
+            eventType: "AccessControllerEvent",
+            AccessControllerEvent: {
+              majorEventType: 5,
+              subEventType: 75,
+              eventDescription: "Restart Event",
+              dateTime: "2026-04-21T15:30:00Z",
+            },
+          }),
+        })
+      );
+      await waitForAbort(options.signal);
+    },
+  });
+
+  session.start();
+  const firstReady = session.whenReady();
+  let firstReadyResolved = false;
+  void firstReady.then(() => {
+    firstReadyResolved = true;
+  });
+
+  await flushAsyncWork();
+  await session.stop();
+  await flushAsyncWork();
+  assert.equal(firstReadyResolved, false);
+
+  session.start();
+  const secondReady = session.whenReady();
+  assert.notEqual(secondReady, firstReady);
+
+  await secondReady;
+  await flushAsyncWork();
+  assert.equal(firstReadyResolved, false);
+  assert.equal(session.snapshot().stream_state, "connected");
 
   await session.stop();
 });

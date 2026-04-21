@@ -53,10 +53,11 @@ export class HikvisionTerminalGatewaySession {
   private lastDisconnectedAt?: string;
   private reconnectBackoffMs = INITIAL_RECONNECT_BACKOFF_MS;
   private readyResolved = false;
-  private readonly readyPromise: Promise<void>;
+  private readyPromise: Promise<void>;
   private readonly now: () => string;
   private readonly sleep: (ms: number) => Promise<void>;
   private resolveReady!: () => void;
+  private cancelBackoffWait?: () => void;
   private readonly consumeAlertStream: (
     options?: HikvisionConsumeAlertStreamOptions
   ) => Promise<void>;
@@ -75,9 +76,7 @@ export class HikvisionTerminalGatewaySession {
     this.consumeAlertStream =
       deps.consumeAlertStream ||
       ((options) => getCachedHikvisionClient(this.terminal).consumeAlertStream(options));
-    this.readyPromise = new Promise<void>((resolve) => {
-      this.resolveReady = resolve;
-    });
+    this.readyPromise = Promise.resolve();
   }
 
   start() {
@@ -86,6 +85,7 @@ export class HikvisionTerminalGatewaySession {
     }
 
     this.running = true;
+    this.createReadyCycle();
     if (this.streamState === "stopped") {
       this.streamState = "idle";
     }
@@ -96,6 +96,7 @@ export class HikvisionTerminalGatewaySession {
   async stop() {
     this.running = false;
     this.abortController?.abort();
+    this.cancelBackoffWait?.();
 
     try {
       await this.loopPromise;
@@ -108,7 +109,6 @@ export class HikvisionTerminalGatewaySession {
       if (this.lastConnectedAt) {
         this.lastDisconnectedAt = this.now();
       }
-      this.resolveReadyOnce();
     }
   }
 
@@ -187,9 +187,7 @@ export class HikvisionTerminalGatewaySession {
                 );
               }
 
-              for (const subscriber of this.subscribers) {
-                await subscriber(event);
-              }
+              this.notifySubscribers(event);
             }
           },
         });
@@ -221,7 +219,10 @@ export class HikvisionTerminalGatewaySession {
         break;
       }
 
-      await this.sleep(this.reconnectBackoffMs);
+      await this.waitForReconnectBackoff(this.reconnectBackoffMs);
+      if (!this.running) {
+        break;
+      }
       this.reconnectBackoffMs = Math.min(
         this.reconnectBackoffMs * 2,
         MAX_RECONNECT_BACKOFF_MS
@@ -249,5 +250,44 @@ export class HikvisionTerminalGatewaySession {
 
     this.readyResolved = true;
     this.resolveReady();
+  }
+
+  private createReadyCycle() {
+    this.readyResolved = false;
+    this.readyPromise = new Promise<void>((resolve) => {
+      this.resolveReady = resolve;
+    });
+  }
+
+  private notifySubscribers(event: HikvisionTerminalGatewayEvent) {
+    for (const subscriber of [...this.subscribers]) {
+      try {
+        Promise.resolve(subscriber(event)).catch(() => {
+          this.subscribers.delete(subscriber);
+        });
+      } catch {
+        this.subscribers.delete(subscriber);
+      }
+    }
+  }
+
+  private async waitForReconnectBackoff(ms: number) {
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const settle = () => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        if (this.cancelBackoffWait === settle) {
+          this.cancelBackoffWait = undefined;
+        }
+        resolve();
+      };
+
+      this.cancelBackoffWait = settle;
+      Promise.resolve(this.sleep(ms)).catch(() => undefined).finally(settle);
+    });
   }
 }
