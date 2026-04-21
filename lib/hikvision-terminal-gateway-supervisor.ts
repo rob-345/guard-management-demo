@@ -56,6 +56,7 @@ type HikvisionTerminalGatewaySupervisorState = {
   lastEligibleTerminalCount: number;
   terminalsById: Map<string, Terminal>;
   sessionsById: Map<string, HikvisionTerminalGatewaySessionLike>;
+  sessionConnectionKeysById: Map<string, string>;
 };
 
 declare global {
@@ -74,7 +75,12 @@ function createState(): HikvisionTerminalGatewaySupervisorState {
     lastEligibleTerminalCount: 0,
     terminalsById: new Map(),
     sessionsById: new Map(),
+    sessionConnectionKeysById: new Map(),
   };
+}
+
+function buildTerminalConnectionKey(terminal: Terminal) {
+  return [terminal.ip_address || "", terminal.username || "", terminal.password || ""].join("|");
 }
 
 export function createHikvisionTerminalGatewaySupervisor(
@@ -160,9 +166,20 @@ export function createHikvisionTerminalGatewaySupervisor(
       state.lastEligibleTerminalCount = eligibleTerminals.length;
 
       for (const terminal of eligibleTerminals) {
+        const nextConnectionKey = buildTerminalConnectionKey(terminal);
+        const existingSession = state.sessionsById.get(terminal.id);
+        const existingConnectionKey = state.sessionConnectionKeysById.get(terminal.id);
+
+        if (existingSession && existingConnectionKey !== nextConnectionKey) {
+          await existingSession.stop();
+          state.sessionsById.delete(terminal.id);
+          state.sessionConnectionKeysById.delete(terminal.id);
+        }
+
         if (!state.sessionsById.has(terminal.id)) {
           const session = createSession(terminal);
           state.sessionsById.set(terminal.id, session);
+          state.sessionConnectionKeysById.set(terminal.id, nextConnectionKey);
           session.start();
         }
       }
@@ -174,6 +191,7 @@ export function createHikvisionTerminalGatewaySupervisor(
 
         await session.stop();
         state.sessionsById.delete(terminalId);
+        state.sessionConnectionKeysById.delete(terminalId);
       }
 
       state.lastRefreshAt = now();
@@ -227,6 +245,7 @@ export function createHikvisionTerminalGatewaySupervisor(
       [...state.sessionsById.values()].map((session) => Promise.resolve(session.stop()))
     );
     state.sessionsById.clear();
+    state.sessionConnectionKeysById.clear();
   }
 
   return {
