@@ -1,4 +1,7 @@
-import type { HikvisionAlertStreamPart } from "@guard-management/hikvision-isapi-sdk";
+import type {
+  HikvisionAcsEventRecord,
+  HikvisionAlertStreamPart,
+} from "@guard-management/hikvision-isapi-sdk";
 
 import type {
   HikvisionTerminalGatewayEvent,
@@ -249,13 +252,122 @@ function buildGatewayEventFromPayload(
   };
 }
 
-export function parseGatewayEventPart(input: ParseGatewayEventPartInput): HikvisionTerminalGatewayEvent {
+function buildGatewayEventFromSdkRecord(args: {
+  input: ParseGatewayEventPartInput;
+  multipart: HikvisionTerminalGatewayMultipartMetadata;
+  payloadRecord?: Record<string, unknown>;
+  record: HikvisionAcsEventRecord;
+  sequenceIndex: number;
+}): HikvisionTerminalGatewayEvent {
+  const detection = args.payloadRecord
+    ? detectGatewayNestedPayload(args.payloadRecord)
+    : {
+        eventFamily: undefined,
+        nestedPayload: undefined,
+        warnings: [] as string[],
+      };
+  const payloadBackedNestedPayload =
+    detection.nestedPayload || asRecord(args.record.raw) || args.payloadRecord;
+  const timestamp =
+    normalizeTimestamp(args.record.eventTime ?? args.record.dateTime) ??
+    normalizeTimestamp(
+      payloadBackedNestedPayload?.dateTime ??
+        payloadBackedNestedPayload?.eventTime ??
+        payloadBackedNestedPayload?.timestamp
+    ) ??
+    normalizeTimestamp(args.multipart.source_timestamp) ??
+    normalizeTimestamp(args.input.receivedAt);
+
+  const eventFamily =
+    pickFirstString(
+      args.record.eventType,
+      detection.eventFamily,
+      args.multipart.part_name,
+      args.payloadRecord?.eventType,
+      args.payloadRecord?.eventFamily,
+      args.payloadRecord?.type
+    ) || "unknown";
+
+  const majorEventType = normalizeEventType(args.record.major ?? payloadBackedNestedPayload?.majorEventType);
+  const subEventType = normalizeEventType(args.record.minor ?? payloadBackedNestedPayload?.subEventType);
+
+  return {
+    sequence_index: args.sequenceIndex,
+    terminal_id: args.input.terminalId,
+    terminal_name: args.input.terminalName,
+    timestamp,
+    received_at:
+      args.input.receivedAt ||
+      args.multipart.source_timestamp ||
+      args.input.part.timestamp ||
+      new Date().toISOString(),
+    event_family: eventFamily,
+    description:
+      pickFirstString(
+        args.record.eventDescription,
+        payloadBackedNestedPayload?.eventDescription,
+        payloadBackedNestedPayload?.description
+      ) || buildDescription({
+        eventFamily,
+        payload: args.payloadRecord,
+        nestedPayload: payloadBackedNestedPayload,
+        majorEventType,
+        subEventType,
+      }),
+    major_event_type: majorEventType,
+    sub_event_type: subEventType,
+    event_state: pickFirstString(
+      args.record.eventState,
+      payloadBackedNestedPayload?.eventState,
+      args.payloadRecord?.eventState
+    ),
+    device_identifier: pickFirstString(
+      args.record.deviceID,
+      args.record.deviceId,
+      args.record.ipAddress,
+      args.record.macAddress,
+      payloadBackedNestedPayload?.deviceID,
+      payloadBackedNestedPayload?.deviceId,
+      args.payloadRecord?.deviceID,
+      args.payloadRecord?.deviceId,
+      args.payloadRecord?.ipAddress,
+      args.payloadRecord?.serialNumber,
+      args.payloadRecord?.macAddress
+    ),
+    terminal_identifier: pickFirstString(
+      args.record.terminalId,
+      args.record.terminalID,
+      payloadBackedNestedPayload?.terminalId,
+      payloadBackedNestedPayload?.terminalID,
+      args.payloadRecord?.terminalId,
+      args.payloadRecord?.terminalID
+    ),
+    raw_payload: args.payloadRecord ?? args.record.raw,
+    nested_payload: asRecord(args.record.raw) || payloadBackedNestedPayload,
+    multipart: args.multipart,
+    parse_warnings: detection.warnings,
+  };
+}
+
+export function parseGatewayEventParts(input: ParseGatewayEventPartInput): HikvisionTerminalGatewayEvent[] {
   const multipart = extractGatewayMultipartMetadata(input.part);
   const parsedPayload = parseGatewayJsonBodyText(input.part.bodyText);
   const payloadRecord = asRecord(parsedPayload);
 
+  if (input.part.events.length > 0) {
+    return input.part.events.map((record, index) =>
+      buildGatewayEventFromSdkRecord({
+        input,
+        multipart,
+        payloadRecord,
+        record,
+        sequenceIndex: input.sequenceIndex + index,
+      })
+    );
+  }
+
   if (payloadRecord) {
-    return buildGatewayEventFromPayload(input, payloadRecord, multipart);
+    return [buildGatewayEventFromPayload(input, payloadRecord, multipart)];
   }
 
   const parseWarnings =
@@ -263,22 +375,28 @@ export function parseGatewayEventPart(input: ParseGatewayEventPartInput): Hikvis
       ? ["failed to parse JSON body text"]
       : [];
 
-  return {
-    sequence_index: input.sequenceIndex,
-    terminal_id: input.terminalId,
-    terminal_name: input.terminalName,
-    timestamp:
-      normalizeTimestamp(input.part.timestamp) ??
-      normalizeTimestamp(input.receivedAt) ??
-      new Date().toISOString(),
-    received_at: input.receivedAt || input.part.timestamp || new Date().toISOString(),
-    event_family: multipart.part_name || "unknown",
-    description: multipart.part_name
-      ? `${multipart.part_name} payload`
-      : "Unparsed Hikvision gateway payload",
-    raw_payload: parsedPayload,
-    nested_payload: undefined,
-    multipart,
-    parse_warnings: parseWarnings,
-  };
+  return [
+    {
+      sequence_index: input.sequenceIndex,
+      terminal_id: input.terminalId,
+      terminal_name: input.terminalName,
+      timestamp:
+        normalizeTimestamp(input.part.timestamp) ??
+        normalizeTimestamp(input.receivedAt) ??
+        new Date().toISOString(),
+      received_at: input.receivedAt || input.part.timestamp || new Date().toISOString(),
+      event_family: multipart.part_name || "unknown",
+      description: multipart.part_name
+        ? `${multipart.part_name} payload`
+        : "Unparsed Hikvision gateway payload",
+      raw_payload: parsedPayload,
+      nested_payload: undefined,
+      multipart,
+      parse_warnings: parseWarnings,
+    },
+  ];
+}
+
+export function parseGatewayEventPart(input: ParseGatewayEventPartInput): HikvisionTerminalGatewayEvent {
+  return parseGatewayEventParts(input)[0];
 }

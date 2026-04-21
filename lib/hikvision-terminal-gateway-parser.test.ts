@@ -5,6 +5,7 @@ import type { HikvisionAlertStreamPart } from "@guard-management/hikvision-isapi
 
 import {
   parseGatewayEventPart,
+  parseGatewayEventParts,
   parseGatewayJsonBodyText,
 } from "./hikvision-terminal-gateway-parser";
 
@@ -124,4 +125,101 @@ test("parseGatewayEventPart falls back to generic event-like nested payload keys
     minor: "18",
     dateTime: "2026-04-21T10:29:59Z",
   });
+});
+
+test("parseGatewayEventParts preserves multiple logical SDK event records from one multipart part", () => {
+  const receivedAt = "2026-04-21T10:40:00.000Z";
+  const part: HikvisionAlertStreamPart = {
+    timestamp: "2026-04-21T10:39:59.000Z",
+    headers: {
+      "content-disposition": 'form-data; name="AccessControllerEvent"',
+      "content-type": 'application/json; charset="UTF-8"',
+    },
+    bodyText: JSON.stringify({
+      eventType: "AccessControllerEvent",
+      AccessControllerEvent: {
+        eventDescription: "Multipart wrapper payload",
+      },
+    }),
+    rawText: "--raw-part--",
+    byteLength: 144,
+    events: [
+      {
+        employeeNoString: "GW-100",
+        major: 5,
+        minor: 75,
+        eventTime: "2026-04-21T10:39:58Z",
+        eventType: "AccessControllerEvent",
+        eventDescription: "Face Authentication Completed",
+        deviceID: "device-1",
+        terminalId: "terminal-device-1",
+        raw: {
+          employeeNoString: "GW-100",
+          major: 5,
+          minor: 75,
+        },
+      },
+      {
+        employeeNoString: "GW-101",
+        major: 5,
+        minor: 76,
+        eventTime: "2026-04-21T10:39:59Z",
+        eventType: "AccessControllerEvent",
+        eventDescription: "Face Authentication Failed",
+        deviceID: "device-1",
+        terminalId: "terminal-device-1",
+        raw: {
+          employeeNoString: "GW-101",
+          major: 5,
+          minor: 76,
+        },
+      },
+    ],
+  };
+
+  const events = parseGatewayEventParts({
+    part,
+    sequenceIndex: 10,
+    terminalId: "terminal-3",
+    terminalName: "Side Entrance",
+    receivedAt,
+  });
+
+  assert.equal(events.length, 2);
+  assert.deepEqual(
+    events.map((event) => ({
+      sequence_index: event.sequence_index,
+      description: event.description,
+      sub_event_type: event.sub_event_type,
+      timestamp: event.timestamp,
+      device_identifier: event.device_identifier,
+      terminal_identifier: event.terminal_identifier,
+    })),
+    [
+      {
+        sequence_index: 10,
+        description: "Face Authentication Completed",
+        sub_event_type: "75",
+        timestamp: "2026-04-21T10:39:58.000Z",
+        device_identifier: "device-1",
+        terminal_identifier: "terminal-device-1",
+      },
+      {
+        sequence_index: 11,
+        description: "Face Authentication Failed",
+        sub_event_type: "76",
+        timestamp: "2026-04-21T10:39:59.000Z",
+        device_identifier: "device-1",
+        terminal_identifier: "terminal-device-1",
+      },
+    ]
+  );
+  assert.deepEqual(events[0]?.raw_payload, {
+    eventType: "AccessControllerEvent",
+    AccessControllerEvent: {
+      eventDescription: "Multipart wrapper payload",
+    },
+  });
+  assert.equal(events[0]?.multipart.source_timestamp, "2026-04-21T10:39:59.000Z");
+  assert.equal(events[1]?.multipart.part_name, "AccessControllerEvent");
 });
