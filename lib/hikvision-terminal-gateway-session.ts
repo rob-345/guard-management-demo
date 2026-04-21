@@ -1,0 +1,242 @@
+import type { HikvisionConsumeAlertStreamOptions } from "@guard-management/hikvision-isapi-sdk";
+
+import { getCachedHikvisionClient } from "./hikvision";
+import { parseGatewayEventParts } from "./hikvision-terminal-gateway-parser";
+import { summarizeGatewayEvents } from "./hikvision-terminal-gateway-summary";
+import type {
+  HikvisionTerminalGatewayEvent,
+  HikvisionTerminalGatewayStreamState,
+  HikvisionTerminalGatewaySummary,
+} from "./hikvision-terminal-gateway-types";
+import type { Terminal } from "./types";
+
+const INITIAL_RECONNECT_BACKOFF_MS = 1_000;
+const MAX_RECONNECT_BACKOFF_MS = 30_000;
+
+export type HikvisionTerminalGatewaySessionSnapshot = {
+  terminal_id: string;
+  terminal_name?: string;
+  stream_state: HikvisionTerminalGatewayStreamState;
+  connected: boolean;
+  last_error?: string;
+  last_event_at?: string;
+  last_connected_at?: string;
+  last_disconnected_at?: string;
+  buffered_event_count: number;
+  recent_events: HikvisionTerminalGatewayEvent[];
+  summary: HikvisionTerminalGatewaySummary;
+  active_subscriber_count: number;
+};
+
+export type HikvisionTerminalGatewaySessionSubscriber = (
+  event: HikvisionTerminalGatewayEvent
+) => void | Promise<void>;
+
+export type HikvisionTerminalGatewaySessionDeps = {
+  maxBufferedEvents: number;
+  consumeAlertStream?: (options?: HikvisionConsumeAlertStreamOptions) => Promise<void>;
+  now?: () => string;
+  sleep?: (ms: number) => Promise<void>;
+};
+
+export class HikvisionTerminalGatewaySession {
+  private streamState: HikvisionTerminalGatewayStreamState = "idle";
+  private recentEvents: HikvisionTerminalGatewayEvent[] = [];
+  private subscribers = new Set<HikvisionTerminalGatewaySessionSubscriber>();
+  private sequenceIndex = 0;
+  private running = false;
+  private loopPromise?: Promise<void>;
+  private abortController?: AbortController;
+  private lastError?: string;
+  private lastEventAt?: string;
+  private lastConnectedAt?: string;
+  private lastDisconnectedAt?: string;
+  private reconnectBackoffMs = INITIAL_RECONNECT_BACKOFF_MS;
+  private readyResolved = false;
+  private readonly readyPromise: Promise<void>;
+  private readonly now: () => string;
+  private readonly sleep: (ms: number) => Promise<void>;
+  private resolveReady!: () => void;
+  private readonly consumeAlertStream: (
+    options?: HikvisionConsumeAlertStreamOptions
+  ) => Promise<void>;
+
+  constructor(
+    private readonly terminal: Terminal,
+    private readonly deps: HikvisionTerminalGatewaySessionDeps
+  ) {
+    this.now = deps.now || (() => new Date().toISOString());
+    this.sleep =
+      deps.sleep ||
+      ((ms) =>
+        new Promise<void>((resolve) => {
+          setTimeout(resolve, ms);
+        }));
+    this.consumeAlertStream =
+      deps.consumeAlertStream ||
+      ((options) => getCachedHikvisionClient(this.terminal).consumeAlertStream(options));
+    this.readyPromise = new Promise<void>((resolve) => {
+      this.resolveReady = resolve;
+    });
+  }
+
+  start() {
+    if (this.running) {
+      return this.snapshot();
+    }
+
+    this.running = true;
+    if (this.streamState === "stopped") {
+      this.streamState = "idle";
+    }
+    this.loopPromise = this.runLoop();
+    return this.snapshot();
+  }
+
+  async stop() {
+    this.running = false;
+    this.abortController?.abort();
+
+    try {
+      await this.loopPromise;
+    } catch {
+      // The session stores the stream failure state in-memory; stop should remain best-effort.
+    } finally {
+      this.loopPromise = undefined;
+      this.abortController = undefined;
+      this.streamState = "stopped";
+      if (this.lastConnectedAt) {
+        this.lastDisconnectedAt = this.now();
+      }
+      this.resolveReadyOnce();
+    }
+  }
+
+  subscribe(subscriber: HikvisionTerminalGatewaySessionSubscriber) {
+    this.subscribers.add(subscriber);
+    return () => {
+      this.subscribers.delete(subscriber);
+    };
+  }
+
+  whenReady() {
+    return this.readyPromise;
+  }
+
+  snapshot(): HikvisionTerminalGatewaySessionSnapshot {
+    const recentEvents = [...this.recentEvents];
+    return {
+      terminal_id: this.terminal.id,
+      terminal_name: this.terminal.name,
+      stream_state: this.streamState,
+      connected: this.streamState === "connected",
+      last_error: this.lastError,
+      last_event_at: this.lastEventAt,
+      last_connected_at: this.lastConnectedAt,
+      last_disconnected_at: this.lastDisconnectedAt,
+      buffered_event_count: recentEvents.length,
+      recent_events: recentEvents,
+      summary: summarizeGatewayEvents(recentEvents),
+      active_subscriber_count: this.subscribers.size,
+    };
+  }
+
+  private async runLoop() {
+    while (this.running) {
+      const attemptConnectedAt = this.now();
+      let sawParsedEvent = false;
+
+      this.streamState = this.lastConnectedAt ? "reconnecting" : "connecting";
+      this.abortController = new AbortController();
+
+      try {
+        await this.consumeAlertStream({
+          signal: this.abortController.signal,
+          onPart: async (part) => {
+            const receivedAt = this.now();
+            const events = parseGatewayEventParts({
+              part,
+              sequenceIndex: this.sequenceIndex,
+              terminalId: this.terminal.id,
+              terminalName: this.terminal.name,
+              receivedAt,
+            });
+
+            this.sequenceIndex += events.length;
+            if (events.length === 0) {
+              return;
+            }
+
+            if (!sawParsedEvent) {
+              this.streamState = "connected";
+              this.lastConnectedAt = attemptConnectedAt;
+              this.lastError = undefined;
+              this.reconnectBackoffMs = INITIAL_RECONNECT_BACKOFF_MS;
+              sawParsedEvent = true;
+              this.resolveReadyOnce();
+            }
+
+            for (const event of events) {
+              this.lastEventAt = event.timestamp || event.received_at;
+              this.recentEvents.push(event);
+              if (this.recentEvents.length > this.deps.maxBufferedEvents) {
+                this.recentEvents.splice(
+                  0,
+                  this.recentEvents.length - this.deps.maxBufferedEvents
+                );
+              }
+
+              for (const subscriber of this.subscribers) {
+                await subscriber(event);
+              }
+            }
+          },
+        });
+
+        if (!this.running) {
+          break;
+        }
+
+        this.markDisconnected("Alert stream ended unexpectedly", sawParsedEvent);
+      } catch (error) {
+        if (!this.running) {
+          break;
+        }
+
+        this.markDisconnected(
+          error instanceof Error ? error.message : "Gateway alert stream failed",
+          sawParsedEvent
+        );
+      } finally {
+        this.abortController = undefined;
+      }
+
+      if (!this.running) {
+        break;
+      }
+
+      await this.sleep(this.reconnectBackoffMs);
+      this.reconnectBackoffMs = Math.min(
+        this.reconnectBackoffMs * 2,
+        MAX_RECONNECT_BACKOFF_MS
+      );
+    }
+  }
+
+  private markDisconnected(message: string, hadConnectedThisAttempt: boolean) {
+    this.lastError = message;
+    if (hadConnectedThisAttempt || this.lastConnectedAt) {
+      this.lastDisconnectedAt = this.now();
+    }
+    this.streamState = "reconnecting";
+  }
+
+  private resolveReadyOnce() {
+    if (this.readyResolved) {
+      return;
+    }
+
+    this.readyResolved = true;
+    this.resolveReady();
+  }
+}

@@ -5,4 +5,9 @@ export async function register() {
 
   const { ensureTerminalLiveMonitor } = await import("./lib/terminal-live-monitor");
   ensureTerminalLiveMonitor();
+
+  const { ensureHikvisionTerminalGateway } = await import(
+    "./lib/hikvision-terminal-gateway-supervisor"
+  );
+  ensureHikvisionTerminalGateway();
 }
