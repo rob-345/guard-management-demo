@@ -1,7 +1,9 @@
 import type { HikvisionConsumeAlertStreamOptions } from "@guard-management/hikvision-isapi-sdk";
 
 import { getCachedHikvisionClient } from "./hikvision";
+import { getHikvisionTerminalGatewayConfig } from "./hikvision-terminal-gateway-config";
 import { parseGatewayEventParts } from "./hikvision-terminal-gateway-parser";
+import { bridgeGatewayEventToClockingIngest } from "./hikvision-terminal-gateway-shadow-bridge";
 import { summarizeGatewayEvents } from "./hikvision-terminal-gateway-summary";
 import type {
   HikvisionTerminalGatewayEvent,
@@ -37,6 +39,8 @@ export type HikvisionTerminalGatewaySessionDeps = {
   consumeAlertStream?: (options?: HikvisionConsumeAlertStreamOptions) => Promise<void>;
   now?: () => string;
   sleep?: (ms: number) => Promise<void>;
+  shadowBridgeEnabled?: boolean;
+  bridgeGatewayEventToClockingIngest?: typeof bridgeGatewayEventToClockingIngest;
 };
 
 export class HikvisionTerminalGatewaySession {
@@ -61,6 +65,8 @@ export class HikvisionTerminalGatewaySession {
   private readonly consumeAlertStream: (
     options?: HikvisionConsumeAlertStreamOptions
   ) => Promise<void>;
+  private readonly shadowBridgeEnabled: boolean;
+  private readonly bridgeGatewayEventToClockingIngest: typeof bridgeGatewayEventToClockingIngest;
 
   constructor(
     private readonly terminal: Terminal,
@@ -76,6 +82,10 @@ export class HikvisionTerminalGatewaySession {
     this.consumeAlertStream =
       deps.consumeAlertStream ||
       ((options) => getCachedHikvisionClient(this.terminal).consumeAlertStream(options));
+    this.shadowBridgeEnabled =
+      deps.shadowBridgeEnabled ?? getHikvisionTerminalGatewayConfig().shadow_bridge_enabled;
+    this.bridgeGatewayEventToClockingIngest =
+      deps.bridgeGatewayEventToClockingIngest || bridgeGatewayEventToClockingIngest;
     this.readyPromise = Promise.resolve();
   }
 
@@ -188,6 +198,11 @@ export class HikvisionTerminalGatewaySession {
               }
 
               this.notifySubscribers(event);
+              void this.bridgeGatewayEventToClockingIngest({
+                terminal: this.terminal,
+                gatewayEvent: event,
+                enabled: this.shadowBridgeEnabled,
+              }).catch(() => undefined);
             }
           },
         });

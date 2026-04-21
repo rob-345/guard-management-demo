@@ -144,7 +144,7 @@ export function annotateLiveClockingEventTrace(
         terminal_id: "",
         terminal_name: "",
         site_id: "",
-        source: "terminal_poll",
+        source: "terminal_gateway",
         event_type: "unknown",
         event_time: now,
         ingested_at: now,

@@ -18,7 +18,10 @@ export type ClockingEventType =
   | "clock_out"
   | "stranger";
 export type ClockingEventOutcome = "valid" | "invalid" | "unauthorized" | "unknown";
-export type ClockingEventSource = "terminal_poll" | "shared_ingest";
+export type ClockingEventSource =
+  | "terminal_poll"
+  | "shared_ingest"
+  | "terminal_gateway";
 export type AssignmentStatus = "active" | "replaced" | "completed";
 export type AssignmentSyncStatus = "ok" | "partial" | "failed" | "not_required";
 export type TerminalStatus = "online" | "offline" | "error";

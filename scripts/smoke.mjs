@@ -771,6 +771,42 @@ async function main() {
     }
     pass("terminal polling ingests clocking events");
 
+    log("checking hikvision gateway status");
+    const gatewayStatus = await requestJson(
+      "/api/terminals/gateway/status",
+      {},
+      "gateway status"
+    );
+    if (!gatewayStatus.success) {
+      fail("gateway status", "gateway status route did not return success");
+    }
+    pass("hikvision gateway status is readable");
+
+    log("checking hikvision gateway terminal snapshot");
+    const gatewayTerminal = await requestJson(
+      `/api/terminals/gateway/terminals/${terminal.id}`,
+      {},
+      "gateway terminal snapshot"
+    );
+    if (!gatewayTerminal.success || !gatewayTerminal.snapshot?.recent_events?.length) {
+      fail(
+        "gateway terminal snapshot",
+        "gateway terminal snapshot did not include recent events"
+      );
+    }
+    pass("hikvision gateway terminal snapshot is populated");
+
+    log("capturing hikvision gateway raw alert stream");
+    const gatewayCapture = await requestJson(
+      `/api/terminals/gateway/terminals/${terminal.id}/capture`,
+      { method: "POST" },
+      "gateway capture"
+    );
+    if (!gatewayCapture.success || !gatewayCapture.capture_id) {
+      fail("gateway capture", "gateway capture route did not return a capture id");
+    }
+    pass("hikvision gateway capture succeeds");
+
     log("checking terminal details for stored event activity");
     const terminalDetailsResponse = await request(`/dashboard/terminals/${terminal.id}`);
     await expectStatus("terminal details", terminalDetailsResponse, 200);
