@@ -306,6 +306,12 @@ function formatEventStorageCheckTime(value: Date | string) {
   return value.toISOString().slice(0, 19).replace("T", " ");
 }
 
+function createAbortError() {
+  const error = new Error("The operation was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
 export class HikvisionIsapiClient {
   readonly baseUrl: string;
   readonly username: string;
@@ -337,7 +343,23 @@ export class HikvisionIsapiClient {
     }
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const requestSignal = controller.signal;
+    let abortSource: "caller" | "timeout" | null = null;
+    const timer = setTimeout(() => {
+      abortSource = "timeout";
+      controller.abort();
+    }, this.timeoutMs);
+
+    if (options.signal?.aborted) {
+      clearTimeout(timer);
+      throw createAbortError();
+    }
+
+    const callerAbortListener = () => {
+      abortSource = "caller";
+      controller.abort();
+    };
+    options.signal?.addEventListener("abort", callerAbortListener, { once: true });
 
     try {
       log(this.logger, "debug", "hikvision.request.start", {
@@ -350,7 +372,7 @@ export class HikvisionIsapiClient {
         ...options,
         method,
         headers,
-        signal: controller.signal,
+        signal: requestSignal,
       });
 
       if (response.status === 401) {
@@ -406,9 +428,14 @@ export class HikvisionIsapiClient {
 
       return response;
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError" && abortSource === "caller") {
+        throw createAbortError();
+      }
+
       if (
         attempt < this.retries &&
-        (error instanceof TypeError || (error instanceof Error && error.name === "AbortError"))
+        (error instanceof TypeError ||
+          (error instanceof Error && error.name === "AbortError" && abortSource === "timeout"))
       ) {
         log(this.logger, "warn", "hikvision.request.retry.transport", {
           path,
@@ -425,7 +452,10 @@ export class HikvisionIsapiClient {
       }
 
       if (error instanceof Error && error.name === "AbortError") {
-        throw new HikvisionTransportError(`Hikvision request timed out for ${path}`);
+        if (abortSource === "timeout") {
+          throw new HikvisionTransportError(`Hikvision request timed out for ${path}`);
+        }
+        throw createAbortError();
       }
 
       if (error instanceof Error) {
@@ -434,6 +464,7 @@ export class HikvisionIsapiClient {
 
       throw new HikvisionTransportError(`Unknown Hikvision transport failure for ${path}`);
     } finally {
+      options.signal?.removeEventListener("abort", callerAbortListener);
       clearTimeout(timer);
     }
   }
@@ -599,9 +630,36 @@ export class HikvisionIsapiClient {
   }
 
   private shouldFallbackToVariantPath(error: unknown) {
+    if (error instanceof HikvisionTransportError && [404, 405, 501].includes(error.status ?? -1)) {
+      return true;
+    }
+
+    if (!(error instanceof HikvisionInvalidResponseError)) {
+      return false;
+    }
+
+    const details = error.details;
+    if (!details) {
+      return false;
+    }
+
+    const normalized = [
+      details.statusCode,
+      details.statusString,
+      details.subStatusCode,
+      details.errorCode,
+      details.errorMsg,
+      details.body,
+    ]
+      .filter((value) => value !== undefined && value !== null)
+      .map((value) => String(value).toLowerCase())
+      .join(" ");
+
     return (
-      error instanceof HikvisionInvalidResponseError ||
-      (error instanceof HikvisionTransportError && [404, 405, 501].includes(error.status ?? -1))
+      /not\s*support(?:ed)?/.test(normalized) ||
+      /\bunsupported\b/.test(normalized) ||
+      /not\s*found/.test(normalized) ||
+      /\bnotsupport\b/.test(normalized)
     );
   }
 
@@ -623,7 +681,9 @@ export class HikvisionIsapiClient {
   }
 
   async consumeAlertStream(options: HikvisionConsumeAlertStreamOptions = {}) {
-    const response = await this.performRequest("/ISAPI/Event/notification/alertStream");
+    const response = await this.performRequest("/ISAPI/Event/notification/alertStream", {
+      signal: options.signal,
+    });
     const reader = response.body?.getReader();
     if (!reader) {
       throw new HikvisionTransportError("Alert stream response did not expose a readable stream");
