@@ -4,7 +4,17 @@ import { requireSession } from "@/lib/api-route";
 import {
   findGatewaySupervisorTerminalSnapshot,
   refreshHikvisionTerminalGatewayNow,
+  type HikvisionTerminalGatewayTerminalSnapshot,
 } from "@/lib/hikvision-terminal-gateway-supervisor";
+
+export function buildGatewayTerminalSnapshotResponse(
+  snapshot: HikvisionTerminalGatewayTerminalSnapshot
+) {
+  return {
+    success: true,
+    snapshot,
+  };
+}
 
 export async function GET(
   request: NextRequest,
@@ -21,8 +31,5 @@ export async function GET(
     return NextResponse.json({ error: "Gateway terminal not found" }, { status: 404 });
   }
 
-  return NextResponse.json({
-    success: true,
-    terminal,
-  });
+  return NextResponse.json(buildGatewayTerminalSnapshotResponse(terminal));
 }
