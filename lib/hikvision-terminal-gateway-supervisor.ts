@@ -52,6 +52,7 @@ type HikvisionTerminalGatewaySupervisorState = {
   startedAt?: string;
   timer?: ReturnType<typeof setInterval>;
   refreshPromise?: Promise<HikvisionTerminalGatewaySupervisorStatus>;
+  initialRefreshSettled: boolean;
   lastRefreshAt?: string;
   lastError?: string;
   lastTerminalCount: number;
@@ -73,6 +74,7 @@ function isEligibleGatewayTerminal(terminal: Terminal) {
 
 function createState(): HikvisionTerminalGatewaySupervisorState {
   return {
+    initialRefreshSettled: false,
     lastTerminalCount: 0,
     lastEligibleTerminalCount: 0,
     terminalsById: new Map(),
@@ -175,6 +177,7 @@ export function createHikvisionTerminalGatewaySupervisor(
 
   async function refreshNow() {
     if (!enabled) {
+      state.initialRefreshSettled = true;
       return summarizeStatus();
     }
 
@@ -240,12 +243,14 @@ export function createHikvisionTerminalGatewaySupervisor(
           : "Failed to refresh Hikvision terminal gateway supervisor";
       return summarizeStatus();
     } finally {
+      state.initialRefreshSettled = true;
       state.refreshPromise = undefined;
     }
   }
 
   function start() {
     if (!enabled) {
+      state.initialRefreshSettled = true;
       return summarizeStatus();
     }
 
@@ -260,8 +265,29 @@ export function createHikvisionTerminalGatewaySupervisor(
       state.timer.unref?.();
     }
 
-    void refreshNow();
+    if (!state.initialRefreshSettled && !state.refreshPromise) {
+      void refreshNow();
+    }
     return summarizeStatus();
+  }
+
+  async function waitForInitialRefresh() {
+    if (!enabled) {
+      state.initialRefreshSettled = true;
+      return summarizeStatus();
+    }
+
+    start();
+
+    if (state.initialRefreshSettled) {
+      return summarizeStatus();
+    }
+
+    if (state.refreshPromise) {
+      return state.refreshPromise;
+    }
+
+    return refreshNow();
   }
 
   async function stop() {
@@ -275,12 +301,14 @@ export function createHikvisionTerminalGatewaySupervisor(
     );
     state.sessionsById.clear();
     state.sessionConnectionKeysById.clear();
+    state.initialRefreshSettled = false;
   }
 
   return {
     start,
     stop,
     refreshNow,
+    waitForInitialRefresh,
     getStatus: summarizeStatus,
     getSession(terminalId: string) {
       return state.sessionsById.get(terminalId);
@@ -295,6 +323,10 @@ const singletonSupervisor =
 
 export function ensureHikvisionTerminalGateway() {
   return singletonSupervisor.start();
+}
+
+export async function waitForHikvisionTerminalGatewayInitialRefresh() {
+  return singletonSupervisor.waitForInitialRefresh();
 }
 
 export function getHikvisionTerminalGatewayStatus() {

@@ -4,11 +4,16 @@ import { requireSession } from "@/lib/api-route";
 import type { HikvisionTerminalGatewaySessionSnapshot } from "@/lib/hikvision-terminal-gateway-session";
 import {
   buildGatewaySseHeaders,
+  ensureHikvisionTerminalGateway,
   findGatewaySupervisorTerminalSnapshot,
   formatGatewaySseComment,
   formatGatewaySseEvent,
+  getHikvisionTerminalGatewayStatus,
   getHikvisionTerminalGatewaySession,
-  refreshHikvisionTerminalGatewayNow,
+  type HikvisionTerminalGatewaySessionLike,
+  type HikvisionTerminalGatewaySupervisorStatus,
+  type HikvisionTerminalGatewayTerminalSnapshot,
+  waitForHikvisionTerminalGatewayInitialRefresh,
 } from "@/lib/hikvision-terminal-gateway-supervisor";
 
 const KEEPALIVE_INTERVAL_MS = 15_000;
@@ -19,39 +24,64 @@ export function resolveGatewayStreamSnapshotPayload(
   return snapshot;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const unauthorized = await requireSession(request);
-  if (unauthorized) return unauthorized;
+type GatewayTerminalSseSession = Pick<HikvisionTerminalGatewaySessionLike, "subscribe">;
 
-  const { id } = await params;
-  const status = await refreshHikvisionTerminalGatewayNow();
-  const terminal = findGatewaySupervisorTerminalSnapshot(status, id);
+export async function readGatewayTerminalStreamContext(
+  terminalId: string,
+  deps: {
+    ensureGateway?: () => unknown;
+    awaitGatewayInitialRefresh?: () => Promise<unknown>;
+    getGatewayStatus?: () => HikvisionTerminalGatewaySupervisorStatus;
+    getGatewaySession?: (terminalId: string) => GatewayTerminalSseSession | undefined;
+  } = {}
+): Promise<{
+  terminal?: HikvisionTerminalGatewayTerminalSnapshot;
+  session?: GatewayTerminalSseSession;
+  snapshot?: HikvisionTerminalGatewaySessionSnapshot;
+}> {
+  const ensureGateway = deps.ensureGateway || ensureHikvisionTerminalGateway;
+  const awaitGatewayInitialRefresh =
+    deps.awaitGatewayInitialRefresh || waitForHikvisionTerminalGatewayInitialRefresh;
+  const getGatewayStatus = deps.getGatewayStatus || getHikvisionTerminalGatewayStatus;
+  const getGatewaySession = deps.getGatewaySession || getHikvisionTerminalGatewaySession;
 
-  if (!terminal) {
-    return NextResponse.json({ error: "Gateway terminal not found" }, { status: 404 });
-  }
+  ensureGateway();
+  await awaitGatewayInitialRefresh();
+  const status = getGatewayStatus();
+  const terminal = findGatewaySupervisorTerminalSnapshot(status, terminalId);
+  const session = getGatewaySession(terminalId);
+  const snapshot =
+    (session as { snapshot?: () => HikvisionTerminalGatewaySessionSnapshot } | undefined)?.snapshot?.() ||
+    terminal?.session;
 
-  const session = getHikvisionTerminalGatewaySession(id);
-  const snapshot = session?.snapshot() || terminal.session;
+  return {
+    terminal,
+    session,
+    snapshot,
+  };
+}
 
-  if (!snapshot) {
-    return NextResponse.json(
-      { error: "Gateway session snapshot unavailable for terminal" },
-      { status: 409 }
-    );
-  }
-
+export function createGatewayTerminalSseStream(input: {
+  signal: AbortSignal;
+  snapshot: HikvisionTerminalGatewaySessionSnapshot;
+  session?: GatewayTerminalSseSession;
+  keepaliveIntervalMs?: number;
+  setKeepaliveInterval?: (callback: () => void, delayMs: number) => unknown;
+  clearKeepaliveInterval?: (handle: unknown) => void;
+}) {
   const encoder = new TextEncoder();
   let cancelStream: () => void = () => {};
 
-  const stream = new ReadableStream<Uint8Array>({
+  return new ReadableStream<Uint8Array>({
     start(controller) {
       let closed = false;
       let unsubscribe: (() => void) | undefined;
-      let keepalive: ReturnType<typeof setInterval> | undefined;
+      let keepaliveHandle: unknown;
+      const setKeepaliveInterval =
+        input.setKeepaliveInterval || ((callback: () => void, delayMs: number) => setInterval(callback, delayMs));
+      const clearKeepaliveInterval =
+        input.clearKeepaliveInterval ||
+        ((handle: unknown) => clearInterval(handle as ReturnType<typeof setInterval>));
 
       const close = () => {
         if (closed) {
@@ -62,12 +92,12 @@ export async function GET(
         unsubscribe?.();
         unsubscribe = undefined;
 
-        if (keepalive) {
-          clearInterval(keepalive);
-          keepalive = undefined;
+        if (keepaliveHandle !== undefined) {
+          clearKeepaliveInterval(keepaliveHandle);
+          keepaliveHandle = undefined;
         }
 
-        request.signal.removeEventListener("abort", close);
+        input.signal.removeEventListener("abort", close);
         controller.close();
       };
 
@@ -81,27 +111,54 @@ export async function GET(
         controller.enqueue(encoder.encode(chunk));
       };
 
-      request.signal.addEventListener("abort", close, { once: true });
+      input.signal.addEventListener("abort", close, { once: true });
 
-      enqueue(formatGatewaySseEvent("snapshot", resolveGatewayStreamSnapshotPayload(snapshot)));
+      enqueue(
+        formatGatewaySseEvent("snapshot", resolveGatewayStreamSnapshotPayload(input.snapshot))
+      );
 
-      if (session) {
-        unsubscribe = session.subscribe((event) => {
+      if (input.session) {
+        unsubscribe = input.session.subscribe((event) => {
           enqueue(formatGatewaySseEvent("event", event));
         });
       }
 
-      keepalive = setInterval(() => {
+      keepaliveHandle = setKeepaliveInterval(() => {
         enqueue(formatGatewaySseComment("keepalive"));
-      }, KEEPALIVE_INTERVAL_MS);
-      keepalive.unref?.();
+      }, input.keepaliveIntervalMs || KEEPALIVE_INTERVAL_MS);
     },
     cancel() {
       cancelStream();
     },
   });
+}
 
-  return new Response(stream, {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const unauthorized = await requireSession(request);
+  if (unauthorized) return unauthorized;
+
+  const { id } = await params;
+  const { terminal, session, snapshot } = await readGatewayTerminalStreamContext(id);
+
+  if (!terminal) {
+    return NextResponse.json({ error: "Gateway terminal not found" }, { status: 404 });
+  }
+
+  if (!snapshot) {
+    return NextResponse.json(
+      { error: "Gateway session snapshot unavailable for terminal" },
+      { status: 409 }
+    );
+  }
+
+  return new Response(createGatewayTerminalSseStream({
+    signal: request.signal,
+    snapshot,
+    session,
+  }), {
     headers: buildGatewaySseHeaders(),
   });
 }
