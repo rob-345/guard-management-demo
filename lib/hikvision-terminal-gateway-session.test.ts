@@ -57,6 +57,10 @@ async function waitForAbort(signal: AbortSignal | undefined) {
   });
 }
 
+async function flushAsyncWork() {
+  await new Promise((resolve) => setImmediate(resolve));
+}
+
 test("gateway session stores bounded recent events, parses multipart parts losslessly, and resolves whenReady after the first event", async () => {
   const terminal = createTerminal();
   const deliveredEvents: string[] = [];
@@ -237,6 +241,97 @@ test("gateway session notifies subscribers and unsubscribe removes them from fut
   await session.stop();
 });
 
+test("gateway session uses error before first parsed event, preserves buffered events across retries, and resets reconnect backoff after reconnect success", async () => {
+  const terminal = createTerminal({ id: "terminal-3", edge_terminal_id: "terminal-3" });
+  const sleepCalls: number[] = [];
+  const sleepResolvers: Array<() => void> = [];
+  let attempt = 0;
+
+  const session = new HikvisionTerminalGatewaySession(terminal, {
+    maxBufferedEvents: 4,
+    now: (() => {
+      const timestamps = [
+        "2026-04-21T15:00:00.000Z",
+        "2026-04-21T15:00:01.000Z",
+        "2026-04-21T15:00:02.000Z",
+        "2026-04-21T15:00:03.000Z",
+        "2026-04-21T15:00:04.000Z",
+        "2026-04-21T15:00:05.000Z",
+      ];
+      return () => timestamps.shift() || "2026-04-21T15:00:06.000Z";
+    })(),
+    sleep: async (ms) => {
+      sleepCalls.push(ms);
+      await new Promise<void>((resolve) => {
+        sleepResolvers.push(resolve);
+      });
+    },
+    consumeAlertStream: async (options: HikvisionConsumeAlertStreamOptions = {}) => {
+      attempt += 1;
+
+      if (attempt === 1) {
+        throw new Error("dial failed");
+      }
+
+      if (attempt === 2) {
+        await options.onPart?.(
+          createPart({
+            timestamp: "2026-04-21T15:00:01.500Z",
+            bodyText: JSON.stringify({
+              eventType: "AccessControllerEvent",
+              AccessControllerEvent: {
+                majorEventType: 5,
+                subEventType: 75,
+                eventDescription: "Recovered Event",
+                dateTime: "2026-04-21T15:00:01Z",
+              },
+            }),
+          })
+        );
+        throw new Error("stream dropped");
+      }
+
+      await waitForAbort(options.signal);
+    },
+  });
+
+  session.start();
+  await flushAsyncWork();
+
+  const initialFailureSnapshot = session.snapshot();
+  assert.equal(initialFailureSnapshot.stream_state, "error");
+  assert.equal(initialFailureSnapshot.connected, false);
+  assert.equal(initialFailureSnapshot.last_error, "dial failed");
+  assert.equal(initialFailureSnapshot.buffered_event_count, 0);
+  assert.deepEqual(sleepCalls, [1_000]);
+
+  sleepResolvers.shift()?.();
+  await session.whenReady();
+  await flushAsyncWork();
+
+  const reconnectFailureSnapshot = session.snapshot();
+  assert.equal(reconnectFailureSnapshot.stream_state, "reconnecting");
+  assert.equal(reconnectFailureSnapshot.connected, false);
+  assert.equal(reconnectFailureSnapshot.last_error, "stream dropped");
+  assert.equal(reconnectFailureSnapshot.last_connected_at, "2026-04-21T15:00:01.000Z");
+  assert.equal(reconnectFailureSnapshot.last_disconnected_at, "2026-04-21T15:00:03.000Z");
+  assert.equal(reconnectFailureSnapshot.buffered_event_count, 1);
+  assert.deepEqual(
+    reconnectFailureSnapshot.recent_events.map((event) => event.description),
+    ["Recovered Event"]
+  );
+  assert.deepEqual(sleepCalls, [1_000, 1_000]);
+
+  sleepResolvers.shift()?.();
+  await flushAsyncWork();
+
+  const retryingSnapshot = session.snapshot();
+  assert.equal(retryingSnapshot.stream_state, "reconnecting");
+  assert.equal(retryingSnapshot.buffered_event_count, 1);
+
+  await session.stop();
+});
+
 test("gateway supervisor discovers eligible terminals, creates and reuses sessions, and summarizes aggregate state", async () => {
   let terminals = [
     createTerminal({ id: "terminal-a", edge_terminal_id: "terminal-a", name: "Alpha" }),
@@ -339,6 +434,108 @@ test("gateway supervisor discovers eligible terminals, creates and reuses sessio
   assert.equal(refreshedStatus.terminal_count, 2);
   assert.equal(refreshedStatus.eligible_terminal_count, 2);
   assert.equal(refreshedStatus.session_count, 2);
+
+  await supervisor.stop();
+});
+
+test("gateway supervisor replaces sessions when eligible terminal connection details change and stops sessions that become ineligible", async () => {
+  let terminals = [
+    createTerminal({
+      id: "terminal-z",
+      edge_terminal_id: "terminal-z",
+      name: "Zulu",
+      ip_address: "10.0.0.1",
+      username: "admin",
+      password: "password-1",
+    }),
+  ];
+
+  const createdSessionKeys: string[] = [];
+  const stoppedSessionKeys: string[] = [];
+  let sessionCounter = 0;
+
+  const supervisor = createHikvisionTerminalGatewaySupervisor({
+    enabled: true,
+    loadTerminals: async () => terminals,
+    createSession: (terminal) => {
+      sessionCounter += 1;
+      const sessionKey = `${terminal.id}:${terminal.ip_address}:${terminal.username}:${terminal.password}:${sessionCounter}`;
+      createdSessionKeys.push(sessionKey);
+
+      return {
+        start() {
+          return undefined;
+        },
+        async stop() {
+          stoppedSessionKeys.push(sessionKey);
+        },
+        whenReady() {
+          return Promise.resolve();
+        },
+        subscribe() {
+          return () => undefined;
+        },
+        snapshot() {
+          return {
+            terminal_id: terminal.id,
+            terminal_name: terminal.name,
+            stream_state: "connected" as const,
+            connected: true,
+            last_error: undefined,
+            last_event_at: undefined,
+            last_connected_at: "2026-04-21T16:00:00.000Z",
+            last_disconnected_at: undefined,
+            buffered_event_count: 0,
+            recent_events: [],
+            summary: {
+              total_events: 0,
+              warning_event_count: 0,
+              chronology: [],
+              unique_signatures: [],
+            },
+            active_subscriber_count: 0,
+          };
+        },
+      };
+    },
+  });
+
+  await supervisor.refreshNow();
+  const firstSession = supervisor.getSession("terminal-z");
+
+  terminals = [
+    createTerminal({
+      id: "terminal-z",
+      edge_terminal_id: "terminal-z",
+      name: "Zulu",
+      ip_address: "10.0.0.9",
+      username: "admin-2",
+      password: "password-2",
+    }),
+  ];
+
+  await supervisor.refreshNow();
+  const secondSession = supervisor.getSession("terminal-z");
+
+  assert.notEqual(secondSession, firstSession);
+  assert.equal(createdSessionKeys.length, 2);
+  assert.equal(stoppedSessionKeys.length, 1);
+  assert.match(stoppedSessionKeys[0] || "", /^terminal-z:10\.0\.0\.1:admin:password-1:/);
+
+  terminals = [
+    createTerminal({
+      id: "terminal-z",
+      edge_terminal_id: "terminal-z",
+      name: "Zulu",
+      ip_address: undefined,
+    }),
+  ];
+
+  await supervisor.refreshNow();
+
+  assert.equal(supervisor.getSession("terminal-z"), undefined);
+  assert.equal(stoppedSessionKeys.length, 2);
+  assert.match(stoppedSessionKeys[1] || "", /^terminal-z:10\.0\.0\.9:admin-2:password-2:/);
 
   await supervisor.stop();
 });

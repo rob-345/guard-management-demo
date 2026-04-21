@@ -145,8 +145,9 @@ export class HikvisionTerminalGatewaySession {
     while (this.running) {
       const attemptConnectedAt = this.now();
       let sawParsedEvent = false;
+      const hadHealthyConnection = Boolean(this.lastConnectedAt);
 
-      this.streamState = this.lastConnectedAt ? "reconnecting" : "connecting";
+      this.streamState = hadHealthyConnection ? "reconnecting" : "connecting";
       this.abortController = new AbortController();
 
       try {
@@ -197,7 +198,11 @@ export class HikvisionTerminalGatewaySession {
           break;
         }
 
-        this.markDisconnected("Alert stream ended unexpectedly", sawParsedEvent);
+        this.markDisconnected(
+          "Alert stream ended unexpectedly",
+          sawParsedEvent,
+          hadHealthyConnection
+        );
       } catch (error) {
         if (!this.running) {
           break;
@@ -205,7 +210,8 @@ export class HikvisionTerminalGatewaySession {
 
         this.markDisconnected(
           error instanceof Error ? error.message : "Gateway alert stream failed",
-          sawParsedEvent
+          sawParsedEvent,
+          hadHealthyConnection
         );
       } finally {
         this.abortController = undefined;
@@ -223,12 +229,17 @@ export class HikvisionTerminalGatewaySession {
     }
   }
 
-  private markDisconnected(message: string, hadConnectedThisAttempt: boolean) {
+  private markDisconnected(
+    message: string,
+    hadConnectedThisAttempt: boolean,
+    hadHealthyConnection: boolean
+  ) {
     this.lastError = message;
-    if (hadConnectedThisAttempt || this.lastConnectedAt) {
+    if (hadConnectedThisAttempt || hadHealthyConnection) {
       this.lastDisconnectedAt = this.now();
     }
-    this.streamState = "reconnecting";
+    this.streamState =
+      hadConnectedThisAttempt || hadHealthyConnection ? "reconnecting" : "error";
   }
 
   private resolveReadyOnce() {
