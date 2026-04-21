@@ -599,7 +599,10 @@ export class HikvisionIsapiClient {
   }
 
   private shouldFallbackToVariantPath(error: unknown) {
-    return error instanceof HikvisionTransportError && [404, 405, 501].includes(error.status ?? -1);
+    return (
+      error instanceof HikvisionInvalidResponseError ||
+      (error instanceof HikvisionTransportError && [404, 405, 501].includes(error.status ?? -1))
+    );
   }
 
   private parseAlertStreamEvents(bodyText: string) {
@@ -635,6 +638,7 @@ export class HikvisionIsapiClient {
       throw new HikvisionInvalidResponseError("Alert stream boundary missing");
     }
 
+    const decoder = new TextDecoder();
     const abortHandler = () => {
       void reader.cancel("alert-stream-aborted").catch(() => undefined);
     };
@@ -650,7 +654,7 @@ export class HikvisionIsapiClient {
           continue;
         }
 
-        pendingText += Buffer.from(value).toString("utf8");
+        pendingText += decoder.decode(value, { stream: true });
         const consumed = consumeMultipartMixedText(pendingText, boundary);
         pendingText = consumed.remainder;
 
@@ -668,6 +672,23 @@ export class HikvisionIsapiClient {
 
           await options.onPart?.(alertPart);
         }
+      }
+
+      pendingText += decoder.decode();
+      const finalConsumed = consumeMultipartMixedText(pendingText, boundary);
+      for (const part of finalConsumed.parts) {
+        const bodyText = part.bodyText;
+        const parsedText = bodyText.trim();
+        const alertPart: HikvisionAlertStreamPart = {
+          timestamp: new Date().toISOString(),
+          headers: part.headers,
+          bodyText,
+          rawText: part.rawText,
+          byteLength: Buffer.byteLength(part.rawText),
+          events: this.parseAlertStreamEvents(parsedText),
+        };
+
+        await options.onPart?.(alertPart);
       }
     } finally {
       options.signal?.removeEventListener("abort", abortHandler);
