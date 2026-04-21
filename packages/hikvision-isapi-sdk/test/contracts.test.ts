@@ -209,6 +209,55 @@ Content-Type: application/json; charset="UTF-8"\r
   ]);
 });
 
+test("consumeAlertStream preserves split multibyte utf-8 characters", async () => {
+  const boundary = "MIME_boundary";
+  const payload = `--${boundary}\r
+Content-Disposition: form-data; name="AccessControllerEvent"\r
+Content-Type: application/json; charset="UTF-8"\r
+\r
+{"eventType":"AccessControllerEvent","AccessControllerEvent":{"employeeNoString":"GW-UTF8","eventDescription":"Gate 😊 open"}}\r
+--${boundary}--\r
+`;
+  const encoded = Buffer.from(payload, "utf8");
+  const emojiIndex = encoded.indexOf(Buffer.from("😊", "utf8"));
+  assert.ok(emojiIndex > 0);
+
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoded.slice(0, emojiIndex + 1));
+      controller.enqueue(encoded.slice(emojiIndex + 1));
+      controller.close();
+    },
+  });
+
+  const client = new HikvisionIsapiClient({
+    host: "127.0.0.1",
+    username: "admin",
+    password: "password",
+    fetchImpl: async () =>
+      new Response(stream, {
+        status: 200,
+        headers: {
+          "content-type": `multipart/mixed; boundary=${boundary}`,
+        },
+      }),
+  });
+
+  const parts: Array<{ bodyText: string; events: Array<{ eventDescription?: string }> }> = [];
+  await client.consumeAlertStream({
+    onPart: async (part) => {
+      parts.push({
+        bodyText: part.bodyText,
+        events: part.events,
+      });
+    },
+  });
+
+  assert.equal(parts.length, 1);
+  assert.match(parts[0]?.bodyText || "", /Gate 😊 open/);
+  assert.equal(parts[0]?.events[0]?.eventDescription, "Gate 😊 open");
+});
+
 test("helper methods call the documented capability and fallback HTTP-host endpoints", async () => {
   const seenPaths: string[] = [];
 
@@ -281,5 +330,52 @@ test("helper methods call the documented capability and fallback HTTP-host endpo
     "/ISAPI/Event/notification/httpHosts/host%201/test",
     "/ISAPI/Event/notification/httpHosts/host%202/testEventMessages",
     "/ISAPI/Event/notification/httpHosts/host%202/test",
+  ]);
+});
+
+test("helper methods fall back when the specific HTTP-host action returns a structured ISAPI failure", async () => {
+  const seenPaths: string[] = [];
+
+  const client = new HikvisionIsapiClient({
+    host: "127.0.0.1",
+    username: "admin",
+    password: "password",
+    fetchImpl: async (input, init) => {
+      const path = new URL(String(input)).pathname;
+      seenPaths.push(path);
+
+      if (path === "/ISAPI/Event/notification/httpHosts/host%203/testTheListeningHost") {
+        return new Response(
+          `<?xml version="1.0" encoding="UTF-8"?>
+<ResponseStatus>
+  <statusCode>4</statusCode>
+  <statusString>Invalid Operation</statusString>
+  <subStatusCode>notSupport</subStatusCode>
+  <errorMsg>not supported</errorMsg>
+</ResponseStatus>`,
+          {
+            status: 200,
+            headers: { "content-type": "application/xml" },
+          }
+        );
+      }
+
+      if (path === "/ISAPI/Event/notification/httpHosts/host%203/test") {
+        assert.equal(init?.method, "POST");
+        return new Response(JSON.stringify({ tested: "structured-fallback" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+
+      return new Response("unexpected path", { status: 500 });
+    },
+  });
+
+  const result = await client.testHttpHostListening("host 3");
+  assert.equal((result as { tested?: string }).tested, "structured-fallback");
+  assert.deepEqual(seenPaths, [
+    "/ISAPI/Event/notification/httpHosts/host%203/testTheListeningHost",
+    "/ISAPI/Event/notification/httpHosts/host%203/test",
   ]);
 });
