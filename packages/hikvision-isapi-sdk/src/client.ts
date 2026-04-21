@@ -19,7 +19,9 @@ import type {
   HikvisionAcsEventTotalNumResult,
   HikvisionAlertStreamChunk,
   HikvisionAlertStreamFollowResult,
+  HikvisionAlertStreamPart,
   HikvisionAlertStreamSample,
+  HikvisionConsumeAlertStreamOptions,
   HikvisionCaptureFaceResult,
   HikvisionClearAcsEventsResult,
   HikvisionClientConfig,
@@ -485,6 +487,31 @@ export class HikvisionIsapiClient {
     return envelope;
   }
 
+  private async requestObjectWithFallback(
+    paths: string[],
+    options: RequestInit = {},
+    rootKey?: string
+  ) {
+    let lastError: unknown;
+
+    for (const path of paths) {
+      try {
+        return await this.requestObject(path, options, rootKey);
+      } catch (error) {
+        lastError = error;
+        if (!this.shouldFallbackToVariantPath(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (lastError instanceof Error) {
+      throw lastError;
+    }
+
+    throw new HikvisionTransportError("Hikvision request failed");
+  }
+
   private async requestBinary(path: string, options: RequestInit = {}) {
     const response = await this.performRequest(path, options);
     const buffer = Buffer.from(await response.arrayBuffer());
@@ -569,6 +596,115 @@ export class HikvisionIsapiClient {
   async getAlertStream() {
     const envelope = await this.requestBinary("/ISAPI/Event/notification/alertStream");
     return envelope.body.toString("utf8");
+  }
+
+  private shouldFallbackToVariantPath(error: unknown) {
+    return error instanceof HikvisionTransportError && [404, 405, 501].includes(error.status ?? -1);
+  }
+
+  private parseAlertStreamEvents(bodyText: string) {
+    const trimmed = bodyText.trim();
+    if (!trimmed) {
+      return [];
+    }
+
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      return parseAcsEventRecordsFromObject(parseJsonSafe(trimmed) || {});
+    }
+
+    if (trimmed.startsWith("<")) {
+      return parseAcsEventRecordsFromXml(trimmed);
+    }
+
+    return [];
+  }
+
+  async consumeAlertStream(options: HikvisionConsumeAlertStreamOptions = {}) {
+    const response = await this.performRequest("/ISAPI/Event/notification/alertStream");
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new HikvisionTransportError("Alert stream response did not expose a readable stream");
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    const boundary = contentType.toLowerCase().includes("multipart/")
+      ? response.headers.get("content-type")?.match(/boundary="?([^=";]+)"?/i)?.[1] || null
+      : null;
+
+    if (!boundary) {
+      throw new HikvisionInvalidResponseError("Alert stream boundary missing");
+    }
+
+    const abortHandler = () => {
+      void reader.cancel("alert-stream-aborted").catch(() => undefined);
+    };
+
+    options.signal?.addEventListener("abort", abortHandler, { once: true });
+
+    let pendingText = "";
+    try {
+      while (!options.signal?.aborted) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value || value.byteLength === 0) {
+          continue;
+        }
+
+        pendingText += Buffer.from(value).toString("utf8");
+        const consumed = consumeMultipartMixedText(pendingText, boundary);
+        pendingText = consumed.remainder;
+
+        for (const part of consumed.parts) {
+          const bodyText = part.bodyText;
+          const parsedText = bodyText.trim();
+          const alertPart: HikvisionAlertStreamPart = {
+            timestamp: new Date().toISOString(),
+            headers: part.headers,
+            bodyText,
+            rawText: part.rawText,
+            byteLength: Buffer.byteLength(part.rawText),
+            events: this.parseAlertStreamEvents(parsedText),
+          };
+
+          await options.onPart?.(alertPart);
+        }
+      }
+    } finally {
+      options.signal?.removeEventListener("abort", abortHandler);
+      await reader.cancel().catch(() => undefined);
+    }
+  }
+
+  async getSubscribeEventCapabilities() {
+    return (await this.requestObject("/ISAPI/Event/notification/subscribeEventCap")).body;
+  }
+
+  async getHttpHostsCapabilities() {
+    return (await this.requestObject("/ISAPI/Event/notification/httpHosts/capabilities")).body;
+  }
+
+  async testHttpHostListening(hostId: string) {
+    const encoded = encodeURIComponent(hostId);
+    return (
+      await this.requestObjectWithFallback([
+        `/ISAPI/Event/notification/httpHosts/${encoded}/testTheListeningHost`,
+        `/ISAPI/Event/notification/httpHosts/${encoded}/test`,
+      ], {
+        method: "POST",
+      })
+    ).body;
+  }
+
+  async testHttpHostEventMessages(hostId: string) {
+    const encoded = encodeURIComponent(hostId);
+    return (
+      await this.requestObjectWithFallback([
+        `/ISAPI/Event/notification/httpHosts/${encoded}/testEventMessages`,
+        `/ISAPI/Event/notification/httpHosts/${encoded}/test`,
+      ], {
+        method: "POST",
+      })
+    ).body;
   }
 
   async getSnapshotCapabilities(streamId = "101") {

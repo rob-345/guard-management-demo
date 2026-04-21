@@ -10,6 +10,24 @@ Internal TypeScript SDK for Hikvision Face Recognition Terminals (Value Series) 
 - FDLib count, add, apply, search, and verification flows
 - webhook/httpHosts inspection, configuration, testing, upload control, and event subscription toggles
 - Node CLI for live-device troubleshooting
+- user setup and validation helpers
+- access-control event search through `AcsEvent`
+- live terminal event diagnostics through `alertStream`
+- long-lived `consumeAlertStream()` multipart consumption plus event-capability and HTTP-host helper methods
+- a CLI that is intended to be the primary terminal-debugging tool
+
+## CLI-First Rule
+
+For terminal integration work, the CLI is the source of truth.
+
+Recommended workflow:
+
+1. Run a CLI command against the real terminal.
+2. Inspect the raw output bundle under `.tmp/hikvision-cli-runs/...`.
+3. Confirm the real payload shape, event codes, and status fields.
+4. Only then update app parser logic, filters, or UI mapping.
+
+This keeps the UI secondary to confirmed device behavior.
 
 ## Configuration
 
@@ -27,6 +45,25 @@ const client = new HikvisionIsapiClient({
   retries: 1,
 });
 ```
+
+## Alert Stream APIs
+
+The SDK exposes both bounded diagnostics and long-lived multipart consumption for terminal event traffic:
+
+```ts
+await client.consumeAlertStream({
+  onPart(part) {
+    console.log(part.headers["content-disposition"], part.events);
+  },
+});
+
+const subscribeEventCap = await client.getSubscribeEventCapabilities();
+const httpHostsCap = await client.getHttpHostsCapabilities();
+await client.testHttpHostListening("1");
+await client.testHttpHostEventMessages("1");
+```
+
+The HTTP-host test helpers try the firmware-specific terminal actions first and then fall back to `/test` when the device only exposes the generic action path.
 
 ## Environment Variables
 
