@@ -223,6 +223,20 @@ export type HikvisionAcsEventMultiSearchResult = {
   }>;
 };
 
+export type HikvisionAlertStreamPart = {
+  timestamp: string;
+  headers: Record<string, string>;
+  bodyText: string;
+  rawText: string;
+  byteLength: number;
+  events: HikvisionAcsEventRecord[];
+};
+
+export type HikvisionConsumeAlertStreamOptions = {
+  signal?: AbortSignal;
+  onPart?: (part: HikvisionAlertStreamPart) => void | Promise<void>;
+};
+
 export type HikvisionAlertStreamSample = {
   success: boolean;
   contentType: string;
