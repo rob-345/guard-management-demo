@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { syncGuardToTerminals, removeGuardFromTerminals } from "@/lib/guard-terminal-sync";
 import { getCollection } from "@/lib/mongodb";
 import { resolvePublicAppBaseUrl } from "@/lib/public-origin";
+import { buildEmptyGuardTerminalValidation } from "@/lib/guard-terminal-state";
 import { getShiftBlockForSlot, getSiteShiftScheduleCollection } from "@/lib/site-shifts";
 import type {
   AssignmentTerminalSyncSummary,
@@ -296,6 +297,8 @@ export async function assignGuardToSiteShift(options: {
     removalResults: removalResult?.results,
     syncResults: syncResult?.results,
   });
+  const terminalValidationSummary =
+    syncResult?.terminal_validation || buildEmptyGuardTerminalValidation();
 
   const now = new Date().toISOString();
   if (currentAssignment) {
@@ -335,8 +338,12 @@ export async function assignGuardToSiteShift(options: {
     changed: true,
     terminal_sync: {
       summary: terminalSyncSummary,
-      removal_results: removalResult?.results || [],
-      sync_results: syncResult?.results || [],
+    },
+    terminal_validation: {
+      verified_count: terminalValidationSummary.verified_count,
+      total_terminals: terminalValidationSummary.total_terminals,
+      unknown_count: terminalValidationSummary.unknown_count,
+      failed_count: terminalValidationSummary.failed_count,
     },
   };
 }

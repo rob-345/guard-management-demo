@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getApiErrorMessage } from "@/lib/http";
-import type { Guard, Site, SiteShiftSchedule } from "@/lib/types";
+import type { Guard, GuardAssignment, Site, SiteShiftSchedule } from "@/lib/types";
 
 const assignmentSchema = z.object({
   site_id: z.string().min(1, "Choose a site"),
@@ -44,6 +44,21 @@ interface Props {
   schedules: SiteShiftSchedule[];
   onSaved?: (guard: Guard) => void;
 }
+
+type AssignmentSaveResponse = {
+  assignment?: GuardAssignment;
+  terminal_sync?: {
+    summary?: {
+      status?: string;
+    };
+  } | null;
+  terminal_validation?: {
+    verified_count?: number;
+    total_terminals?: number;
+    unknown_count?: number;
+    failed_count?: number;
+  } | null;
+};
 
 function describeShift(schedule: SiteShiftSchedule | undefined, shiftSlot: "day" | "night") {
   const block = shiftSlot === "day" ? schedule?.day_shift : schedule?.night_shift || null;
@@ -138,7 +153,7 @@ export function GuardAssignmentDialog({
         throw new Error(await getApiErrorMessage(res, "Failed to save assignment"));
       }
 
-      const payload = await res.json().catch(() => null);
+      const payload = (await res.json().catch(() => null)) as AssignmentSaveResponse | null;
       const syncStatus = payload?.terminal_sync?.summary?.status;
       if (syncStatus === "partial" || syncStatus === "failed") {
         toast.warning("Assignment saved, but some terminal updates still need attention.");
@@ -146,18 +161,31 @@ export function GuardAssignmentDialog({
         toast.success("Guard assignment updated successfully.");
       }
 
-      const refreshedGuard = await fetch(`/api/guards/${guard.id}`, {
-        cache: "no-store",
-      })
-        .then(async (response) => (response.ok ? ((await response.json()) as Guard) : null))
-        .catch(() => null);
+      if (payload?.assignment) {
+        const terminalValidation = payload.terminal_validation
+          ? {
+              verified_count: payload.terminal_validation.verified_count || 0,
+              total_terminals: payload.terminal_validation.total_terminals || 0,
+              unknown_count: payload.terminal_validation.unknown_count || 0,
+              failed_count: payload.terminal_validation.failed_count || 0,
+              validations: [],
+            }
+          : guard.terminal_validation || {
+              verified_count: 0,
+              total_terminals: 0,
+              unknown_count: 0,
+              failed_count: 0,
+              validations: [],
+            };
 
-      if (refreshedGuard?.id) {
-        onSaved?.(refreshedGuard);
-      } else if (payload?.assignment) {
         onSaved?.({
           ...guard,
           current_assignment: payload.assignment,
+          terminal_validation: terminalValidation,
+          has_terminal_enrollment: terminalValidation.total_terminals > 0,
+          facial_imprint_synced:
+            terminalValidation.total_terminals > 0 &&
+            terminalValidation.verified_count === terminalValidation.total_terminals,
         });
       }
 
