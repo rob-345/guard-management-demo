@@ -441,6 +441,34 @@ async function deleteIfPresent(path) {
   await expectStatus(`cleanup ${path}`, response, [200, 204]);
 }
 
+async function waitForGatewayTerminalSessionEvents(terminalId, options = {}) {
+  const attempts = options.attempts ?? 10;
+  const intervalMs = options.intervalMs ?? 500;
+
+  let lastSnapshot;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const payload = await requestJson(
+      `/api/terminals/gateway/terminals/${terminalId}`,
+      {},
+      "gateway terminal snapshot"
+    );
+    lastSnapshot = payload?.snapshot;
+
+    if (payload?.success && lastSnapshot?.session?.recent_events?.length) {
+      return payload;
+    }
+
+    if (attempt < attempts - 1) {
+      await delay(intervalMs);
+    }
+  }
+
+  return {
+    success: false,
+    snapshot: lastSnapshot,
+  };
+}
+
 async function main() {
   const runId = randomUUID().slice(0, 8);
   const fakeHikvision = await startFakeHikvisionServer();
@@ -783,15 +811,11 @@ async function main() {
     pass("hikvision gateway status is readable");
 
     log("checking hikvision gateway terminal snapshot");
-    const gatewayTerminal = await requestJson(
-      `/api/terminals/gateway/terminals/${terminal.id}`,
-      {},
-      "gateway terminal snapshot"
-    );
-    if (!gatewayTerminal.success || !gatewayTerminal.snapshot?.recent_events?.length) {
+    const gatewayTerminal = await waitForGatewayTerminalSessionEvents(terminal.id);
+    if (!gatewayTerminal.success || !gatewayTerminal.snapshot?.session?.recent_events?.length) {
       fail(
         "gateway terminal snapshot",
-        "gateway terminal snapshot did not include recent events"
+        "gateway terminal snapshot did not include session recent events within the bounded retry window"
       );
     }
     pass("hikvision gateway terminal snapshot is populated");
