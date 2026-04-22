@@ -14,7 +14,14 @@ const terminal: Terminal = {
 };
 
 test("bridgeGatewayEventToClockingIngest maps gateway events into the existing ingest path", async () => {
-  const seen: Array<{ source: string; minor?: string }> = [];
+  const seen: Array<{
+    source: string;
+    eventType?: string;
+    outcome?: string;
+    attendanceStatus?: string;
+    rawEventType?: string;
+    minor?: string;
+  }> = [];
 
   await bridgeGatewayEventToClockingIngest({
     terminal,
@@ -38,12 +45,23 @@ test("bridgeGatewayEventToClockingIngest maps gateway events into the existing i
     },
     enabled: true,
     ingest: async ({ source, normalizedEvent }) => {
-      seen.push({ source, minor: normalizedEvent.minor });
+      seen.push({
+        source,
+        eventType: normalizedEvent.event_type,
+        outcome: normalizedEvent.clocking_outcome,
+        attendanceStatus: normalizedEvent.attendance_status,
+        rawEventType: normalizedEvent.raw_event_type,
+        minor: normalizedEvent.minor,
+      });
       return { created: true, eventId: "event-1", eventKey: "event-key", event: {} as never };
     },
   });
 
   assert.equal(seen.length, 1);
   assert.equal(seen[0]?.source, "terminal_gateway");
+  assert.equal(seen[0]?.eventType, "clocking");
+  assert.equal(seen[0]?.outcome, "valid");
+  assert.equal(seen[0]?.attendanceStatus, undefined);
+  assert.equal(seen[0]?.rawEventType, "AccessControllerEvent");
   assert.equal(seen[0]?.minor, "75");
 });

@@ -473,7 +473,7 @@ export const clockingEventSchema = z.object({
   event_type: z.enum(["clocking", "clock_in", "clock_out", "unknown", "stranger"]),
   clocking_outcome: z.enum(["valid", "invalid", "unauthorized", "unknown"]).optional(),
   attendance_status: z.string().optional(),
-  event_source: z.enum(["terminal_poll", "shared_ingest"]).optional(),
+  event_source: z.enum(["terminal_poll", "shared_ingest", "terminal_gateway"]).optional(),
   raw_event_type: z.string().optional(),
   event_state: z.string().optional(),
   event_description: z.string().optional(),
