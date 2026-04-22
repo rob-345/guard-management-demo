@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildGatewayCaptureRouteErrorResponse,
   buildGatewayCaptureResponse,
   resolveGatewayCaptureRequestLimits,
 } from "@/app/api/terminals/gateway/terminals/[id]/capture/route";
+import { buildGatewayCaptureSummaryErrorResponse } from "@/app/api/terminals/gateway/captures/[captureId]/summary/route";
 import {
   buildGatewayTerminalSnapshotResponse,
   readGatewayTerminalSnapshot,
@@ -24,6 +26,7 @@ import {
   type HikvisionTerminalGatewaySupervisorStatus,
   type HikvisionTerminalGatewaySessionLike,
 } from "./hikvision-terminal-gateway-supervisor";
+import { InvalidGatewayCaptureIdError } from "./hikvision-terminal-gateway-capture";
 import type { Terminal } from "./types";
 
 function createTerminal(overrides: Partial<Terminal> = {}): Terminal {
@@ -168,6 +171,24 @@ test("gateway capture request limits stay hard-bounded in time and bytes", () =>
   assert.deepEqual(resolveGatewayCaptureRequestLimits({ durationMs: 100, maxBytes: 10 }), {
     timeoutMs: 1_000,
     maxBytes: 1_024,
+  });
+});
+
+test("gateway capture routes map invalid capture IDs to client errors", async () => {
+  const captureResponse = buildGatewayCaptureRouteErrorResponse(
+    new InvalidGatewayCaptureIdError("../outside")
+  );
+  assert.equal(captureResponse.status, 400);
+  assert.deepEqual(await captureResponse.json(), {
+    error: "Invalid gateway capture ID: ../outside",
+  });
+
+  const summaryResponse = buildGatewayCaptureSummaryErrorResponse(
+    new InvalidGatewayCaptureIdError("/tmp/escape")
+  );
+  assert.equal(summaryResponse.status, 400);
+  assert.deepEqual(await summaryResponse.json(), {
+    error: "Invalid gateway capture ID: /tmp/escape",
   });
 });
 

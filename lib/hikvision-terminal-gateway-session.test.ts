@@ -8,6 +8,7 @@ import type {
 
 import {
   createHikvisionTerminalGatewaySupervisor,
+  findGatewaySupervisorTerminalSnapshot,
   type HikvisionTerminalGatewaySessionLike,
 } from "./hikvision-terminal-gateway-supervisor";
 import { HikvisionTerminalGatewaySession } from "./hikvision-terminal-gateway-session";
@@ -336,6 +337,98 @@ test("gateway session stores bounded recent events, parses multipart parts lossl
   assert.equal(stoppedSnapshot.connected, false);
   assert.equal(stoppedSnapshot.active_subscriber_count, 0);
   assert.equal(stoppedSnapshot.last_disconnected_at, "2026-04-21T12:00:03.000Z");
+});
+
+test("gateway supervisor recreates a session when terminal metadata changes without credential changes", async () => {
+  const initialTerminal = createTerminal({
+    id: "terminal-metadata",
+    edge_terminal_id: "terminal-metadata",
+    name: "Front Gate",
+    site_id: "site-1",
+  });
+  const updatedTerminal = createTerminal({
+    id: "terminal-metadata",
+    edge_terminal_id: "terminal-metadata",
+    name: "Front Gate Renamed",
+    site_id: "site-2",
+  });
+
+  const createdSessions: Array<{
+    terminalName: string;
+    siteId?: string;
+    startCalls: number;
+    stopCalls: number;
+  }> = [];
+  let loadTerminals = [initialTerminal];
+
+  const supervisor = createHikvisionTerminalGatewaySupervisor({
+    enabled: true,
+    loadTerminals: async () => loadTerminals,
+    createSession: (terminal) => {
+      const record = {
+        terminalName: terminal.name,
+        siteId: terminal.site_id,
+        startCalls: 0,
+        stopCalls: 0,
+      };
+      createdSessions.push(record);
+
+      return {
+        start() {
+          record.startCalls += 1;
+        },
+        async stop() {
+          record.stopCalls += 1;
+        },
+        subscribe() {
+          return () => undefined;
+        },
+        snapshot() {
+          return {
+            terminal_id: terminal.id,
+            terminal_name: terminal.name,
+            stream_state: "connected" as const,
+            connected: true,
+            buffered_event_count: 0,
+            recent_events: [],
+            summary: {
+              total_events: 0,
+              warning_event_count: 0,
+              chronology: [],
+              unique_signatures: [],
+            },
+            active_subscriber_count: 0,
+            bridge_error_count: 0,
+          };
+        },
+        whenReady: async () => undefined,
+      } satisfies HikvisionTerminalGatewaySessionLike;
+    },
+  });
+
+  const initialStatus = await supervisor.refreshNow();
+  assert.equal(createdSessions.length, 1);
+  assert.equal(createdSessions[0]?.startCalls, 1);
+  assert.equal(createdSessions[0]?.stopCalls, 0);
+  assert.equal(
+    findGatewaySupervisorTerminalSnapshot(initialStatus, "terminal-metadata")?.session?.terminal_name,
+    "Front Gate"
+  );
+
+  loadTerminals = [updatedTerminal];
+  const refreshedStatus = await supervisor.refreshNow();
+
+  assert.equal(createdSessions.length, 2);
+  assert.equal(createdSessions[0]?.stopCalls, 1);
+  assert.equal(createdSessions[1]?.startCalls, 1);
+  assert.equal(createdSessions[1]?.siteId, "site-2");
+  assert.equal(
+    findGatewaySupervisorTerminalSnapshot(refreshedStatus, "terminal-metadata")?.session?.terminal_name,
+    "Front Gate Renamed"
+  );
+
+  await supervisor.stop();
+  assert.equal(createdSessions[1]?.stopCalls, 1);
 });
 
 test("gateway session notifies subscribers and unsubscribe removes them from future snapshots", async () => {

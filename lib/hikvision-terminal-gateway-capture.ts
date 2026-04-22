@@ -21,6 +21,21 @@ import type {
   HikvisionTerminalGatewayRawCapture,
 } from "./hikvision-terminal-gateway-types";
 
+const GATEWAY_CAPTURE_ID_PATTERN = /^[a-zA-Z0-9._-]+$/;
+
+export class InvalidGatewayCaptureIdError extends Error {
+  readonly code = "ERR_INVALID_GATEWAY_CAPTURE_ID";
+
+  constructor(captureId: string) {
+    super(`Invalid gateway capture ID: ${captureId}`);
+    this.name = "InvalidGatewayCaptureIdError";
+  }
+}
+
+export function isInvalidGatewayCaptureIdError(error: unknown): error is InvalidGatewayCaptureIdError {
+  return error instanceof InvalidGatewayCaptureIdError;
+}
+
 function sanitizeCaptureSegment(value: string) {
   return value.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "capture";
 }
@@ -29,11 +44,30 @@ export function buildGatewayCaptureId(terminalId: string, now = new Date()) {
   return `${sanitizeCaptureSegment(terminalId)}-${now.toISOString().replace(/[:.]/g, "-")}`;
 }
 
+export function assertValidGatewayCaptureId(captureId: string) {
+  if (!captureId || !GATEWAY_CAPTURE_ID_PATTERN.test(captureId)) {
+    throw new InvalidGatewayCaptureIdError(captureId);
+  }
+}
+
 export function buildGatewayCapturePaths(
   captureDirectory: string,
   captureId: string
 ): HikvisionTerminalGatewayCapturePaths {
-  const directory = path.join(captureDirectory, captureId);
+  assertValidGatewayCaptureId(captureId);
+
+  const captureRoot = path.resolve(captureDirectory);
+  const directory = path.resolve(captureRoot, captureId);
+  const relativeDirectory = path.relative(captureRoot, directory);
+
+  if (
+    relativeDirectory.startsWith("..") ||
+    path.isAbsolute(relativeDirectory) ||
+    relativeDirectory === ""
+  ) {
+    throw new InvalidGatewayCaptureIdError(captureId);
+  }
+
   return {
     directory,
     metadata_path: path.join(directory, "metadata.json"),
