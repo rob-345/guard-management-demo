@@ -13,33 +13,55 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value as Record<string, unknown>;
 }
 
+function pickString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 function toAcsEventRecord(gatewayEvent: HikvisionTerminalGatewayEvent): HikvisionAcsEventRecord {
   const nestedPayload = asRecord(gatewayEvent.nested_payload);
   const rawPayload = asRecord(gatewayEvent.raw_payload);
   const raw = nestedPayload || rawPayload || {};
 
   return {
+    employeeNo: pickString(
+      nestedPayload?.employeeNo,
+      rawPayload?.employeeNo,
+      raw.employeeNo
+    ),
     employeeNoString:
-      typeof nestedPayload?.employeeNoString === "string"
-        ? nestedPayload.employeeNoString
-        : undefined,
-    name: typeof nestedPayload?.name === "string" ? nestedPayload.name : undefined,
+      pickString(
+        nestedPayload?.employeeNoString,
+        rawPayload?.employeeNoString,
+        raw.employeeNoString
+      ),
+    name: pickString(nestedPayload?.name, rawPayload?.name, raw.name),
     major: gatewayEvent.major_event_type,
     minor: gatewayEvent.sub_event_type,
     eventTime: gatewayEvent.timestamp,
     dateTime:
-      typeof nestedPayload?.dateTime === "string" ? nestedPayload.dateTime : gatewayEvent.timestamp,
+      pickString(nestedPayload?.dateTime, rawPayload?.dateTime, raw.dateTime) ||
+      gatewayEvent.timestamp,
     eventType: gatewayEvent.event_family,
     eventState: gatewayEvent.event_state,
     eventDescription: gatewayEvent.description,
     attendanceStatus:
-      typeof nestedPayload?.attendanceStatus === "string"
-        ? nestedPayload.attendanceStatus
-        : undefined,
+      pickString(
+        nestedPayload?.attendanceStatus,
+        rawPayload?.attendanceStatus,
+        raw.attendanceStatus
+      ),
     currentVerifyMode:
-      typeof nestedPayload?.currentVerifyMode === "string"
-        ? nestedPayload.currentVerifyMode
-        : undefined,
+      pickString(
+        nestedPayload?.currentVerifyMode,
+        rawPayload?.currentVerifyMode,
+        raw.currentVerifyMode
+      ),
     cardReaderNo:
       typeof nestedPayload?.cardReaderNo === "string" ||
       typeof nestedPayload?.cardReaderNo === "number"

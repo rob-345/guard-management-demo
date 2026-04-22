@@ -20,6 +20,7 @@ test("bridgeGatewayEventToClockingIngest maps gateway events into the existing i
     outcome?: string;
     attendanceStatus?: string;
     rawEventType?: string;
+    employeeNo?: string;
     minor?: string;
   }> = [];
 
@@ -51,6 +52,7 @@ test("bridgeGatewayEventToClockingIngest maps gateway events into the existing i
         outcome: normalizedEvent.clocking_outcome,
         attendanceStatus: normalizedEvent.attendance_status,
         rawEventType: normalizedEvent.raw_event_type,
+        employeeNo: normalizedEvent.employee_no,
         minor: normalizedEvent.minor,
       });
       return { created: true, eventId: "event-1", eventKey: "event-key", event: {} as never };
@@ -63,7 +65,44 @@ test("bridgeGatewayEventToClockingIngest maps gateway events into the existing i
   assert.equal(seen[0]?.outcome, "valid");
   assert.equal(seen[0]?.attendanceStatus, undefined);
   assert.equal(seen[0]?.rawEventType, "AccessControllerEvent");
+  assert.equal(seen[0]?.employeeNo, "GW-001");
   assert.equal(seen[0]?.minor, "75");
+});
+
+test("bridgeGatewayEventToClockingIngest preserves employeeNo identifiers from gateway payload variants", async () => {
+  const seen: string[] = [];
+
+  await bridgeGatewayEventToClockingIngest({
+    terminal,
+    gatewayEvent: {
+      sequence_index: 3,
+      terminal_id: terminal.id,
+      terminal_name: terminal.name,
+      timestamp: "2026-04-21T12:10:00Z",
+      received_at: "2026-04-21T12:10:01Z",
+      event_family: "AccessControllerEvent",
+      description: "Face Authentication Completed",
+      major_event_type: 5,
+      sub_event_type: 75,
+      raw_payload: {
+        eventType: "AccessControllerEvent",
+        employeeNoString: "GW-RAW-001",
+      },
+      nested_payload: {
+        employeeNo: "GW-EMP-001",
+        currentVerifyMode: "face",
+      },
+      multipart: { headers: {}, byte_length: 128, raw_text: "" },
+      parse_warnings: [],
+    },
+    enabled: true,
+    ingest: async ({ normalizedEvent }) => {
+      seen.push(normalizedEvent.employee_no || "");
+      return { created: true, eventId: "event-3", eventKey: "event-key-3", event: {} as never };
+    },
+  });
+
+  assert.deepEqual(seen, ["GW-EMP-001"]);
 });
 
 test("bridgeGatewayEventToClockingIngest skips unsupported gateway-only events", async () => {
