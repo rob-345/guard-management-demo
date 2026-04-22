@@ -109,6 +109,63 @@ export type HikvisionDeviceInfo = {
   [key: string]: unknown;
 };
 
+export type HikvisionHttpHostNotification = {
+  id?: string;
+  url?: string;
+  protocolType?: string;
+  parameterFormatType?: string;
+  addressingFormatType?: string;
+  hostName?: string;
+  ipAddress?: string;
+  portNo?: number;
+  userName?: string;
+  password?: string;
+  httpAuthenticationMethod?: string;
+  checkResponseEnabled?: boolean;
+  [key: string]: unknown;
+};
+
+export type HikvisionHttpHostSubscribeEvent = {
+  heartbeat?: string;
+  eventMode?: string;
+  channelMode?: string;
+  eventTypes: string[];
+  pictureURLType?: string;
+  rawXml?: string;
+};
+
+export type HikvisionHttpHostDetails = {
+  id?: string;
+  url?: string;
+  protocolType?: string;
+  parameterFormatType?: string;
+  addressingFormatType?: string;
+  hostName?: string;
+  ipAddress?: string;
+  portNo?: number;
+  httpAuthenticationMethod?: string;
+  subscribeEvent?: HikvisionHttpHostSubscribeEvent;
+  rawXml?: string;
+};
+
+export type HikvisionSubscribeEventInput = {
+  eventMode?: string;
+  channelMode?: string;
+};
+
+export type HikvisionSubscribeEventResult = {
+  success: boolean;
+  subscriptionId?: string;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionHttpHostUploadCtrlResult = {
+  success: boolean;
+  hostId: string;
+  body: Record<string, unknown>;
+  rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
 export type HikvisionAcsEventSearchInput = {
   searchID?: string;
   searchResultPosition?: number;
@@ -438,4 +495,9 @@ export type HikvisionCountFacesResult = {
   terminalNo?: string;
   recordDataNumber: number;
   rawResponse: HikvisionResponseEnvelope<Record<string, unknown>>;
+};
+
+export type HikvisionWebhookTestResult = {
+  success: boolean;
+  responseText: string;
 };

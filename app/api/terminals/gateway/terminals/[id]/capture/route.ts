@@ -3,56 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   buildGatewayCaptureId,
   createGatewayCaptureMetadata,
-  isInvalidGatewayCaptureIdError,
   writeGatewayCapture,
 } from "@/lib/hikvision-terminal-gateway-capture";
 import { getHikvisionTerminalGatewayConfig } from "@/lib/hikvision-terminal-gateway-config";
+import {
+  buildGatewayCaptureResponse,
+  buildGatewayCaptureRouteErrorResponse,
+  resolveGatewayCaptureRequestLimits,
+} from "@/lib/hikvision-terminal-gateway-routes";
 import { requireAuthorizedTerminal } from "@/lib/hikvision-admin";
-import type {
-  HikvisionTerminalGatewayCaptureMetadata,
-  HikvisionTerminalGatewayEvent,
-} from "@/lib/hikvision-terminal-gateway-types";
-
-const DEFAULT_CAPTURE_DURATION_MS = 15_000;
-const MIN_CAPTURE_DURATION_MS = 1_000;
-const MAX_CAPTURE_DURATION_MS = 60_000;
-const DEFAULT_CAPTURE_MAX_BYTES = 256 * 1024;
-const MIN_CAPTURE_MAX_BYTES = 1_024;
-const MAX_CAPTURE_MAX_BYTES = 1_024 * 1_024;
-
-export function buildGatewayCaptureResponse(input: {
-  metadata: HikvisionTerminalGatewayCaptureMetadata;
-  events: HikvisionTerminalGatewayEvent[];
-  summary_markdown: string;
-}) {
-  return {
-    success: true,
-    capture_id: input.metadata.capture_id,
-    capture: {
-      metadata: input.metadata,
-      event_count: input.events.length,
-      summary_markdown: input.summary_markdown,
-    },
-  };
-}
-
-function clampCaptureDurationMs(value: unknown) {
-  const parsed = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(parsed)) {
-    return DEFAULT_CAPTURE_DURATION_MS;
-  }
-
-  return Math.max(MIN_CAPTURE_DURATION_MS, Math.min(MAX_CAPTURE_DURATION_MS, parsed));
-}
-
-function clampCaptureMaxBytes(value: unknown) {
-  const parsed = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(parsed)) {
-    return DEFAULT_CAPTURE_MAX_BYTES;
-  }
-
-  return Math.max(MIN_CAPTURE_MAX_BYTES, Math.min(MAX_CAPTURE_MAX_BYTES, parsed));
-}
 
 async function readCaptureRequestBody(request: NextRequest) {
   try {
@@ -60,24 +19,6 @@ async function readCaptureRequestBody(request: NextRequest) {
   } catch {
     return {};
   }
-}
-
-export function resolveGatewayCaptureRequestLimits(input: {
-  durationMs?: number;
-  maxBytes?: number;
-}) {
-  return {
-    timeoutMs: clampCaptureDurationMs(input.durationMs),
-    maxBytes: clampCaptureMaxBytes(input.maxBytes),
-  };
-}
-
-export function buildGatewayCaptureRouteErrorResponse(error: unknown) {
-  if (isInvalidGatewayCaptureIdError(error)) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  throw error;
 }
 
 export async function POST(

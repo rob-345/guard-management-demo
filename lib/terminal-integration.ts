@@ -27,6 +27,11 @@ export function deriveDeviceUid(deviceInfo?: Terminal["device_info"], fallback =
   );
 }
 
+export function deriveWebhookHostId(_seed: string) {
+  // The demo app treats device-side HTTP host configuration as a single managed slot.
+  return "1";
+}
+
 export function extractFaceRecognizeMode(value: unknown) {
   const payload = value as Record<string, unknown> | undefined;
   if (!payload) return undefined;

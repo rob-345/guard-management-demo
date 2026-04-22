@@ -25,6 +25,7 @@ export type ClockingEventSource =
 export type AssignmentStatus = "active" | "replaced" | "completed";
 export type AssignmentSyncStatus = "ok" | "partial" | "failed" | "not_required";
 export type TerminalStatus = "online" | "offline" | "error";
+export type TerminalWebhookDeliverySource = "device_push" | "device_test";
 export type ShiftSlot = "day" | "night";
 export type AttendanceCheckStatus =
   | "awaiting_first_check_in"
@@ -232,6 +233,14 @@ export interface Terminal {
   acs_event_time_filters_supported?: boolean;
   acs_event_time_filters_checked_at?: string;
   face_recognize_mode?: string;
+  webhook_token?: string;
+  webhook_host_id?: string;
+  webhook_url?: string;
+  webhook_status?: "unset" | "configured" | "testing" | "active" | "error";
+  webhook_subscription_id?: string;
+  webhook_subscription_status?: "unset" | "subscribed" | "unsubscribed" | "error";
+  webhook_subscription_error?: string;
+  webhook_upload_ctrl?: Record<string, unknown>;
   created_at: string;
   updated_at?: string;
   // joined
@@ -369,4 +378,17 @@ export interface GuardFaceEnrollment {
   updated_at: string;
   synced_at?: string;
   removed_at?: string;
+}
+
+export interface TerminalWebhookDelivery {
+  id: string;
+  terminal_id: string;
+  source: TerminalWebhookDeliverySource;
+  success: boolean;
+  event_type?: string;
+  employee_no?: string;
+  clocking_event_id?: string;
+  error?: string;
+  payload_preview?: string;
+  created_at: string;
 }

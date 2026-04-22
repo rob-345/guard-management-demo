@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { deriveDeviceUid, extractFaceRecognizeMode, terminalNeedsMetadataBackfill } from "./terminal-integration";
+import {
+  deriveDeviceUid,
+  deriveWebhookHostId,
+  extractFaceRecognizeMode,
+  terminalNeedsMetadataBackfill,
+} from "./terminal-integration";
 
 test("terminalNeedsMetadataBackfill returns true for placeholder device uid records", () => {
   assert.equal(
@@ -42,4 +47,9 @@ test("extractFaceRecognizeMode reads nested face mode payloads", () => {
     }),
     "normalMode"
   );
+});
+
+test("deriveWebhookHostId pins the demo app to a single managed host slot", () => {
+  assert.equal(deriveWebhookHostId("callback-token-1"), "1");
+  assert.equal(deriveWebhookHostId("callback-token-2"), "1");
 });
