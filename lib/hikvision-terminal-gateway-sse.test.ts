@@ -4,19 +4,15 @@ import test from "node:test";
 import {
   buildGatewayCaptureRouteErrorResponse,
   buildGatewayCaptureResponse,
-  resolveGatewayCaptureRequestLimits,
-} from "@/app/api/terminals/gateway/terminals/[id]/capture/route";
-import { buildGatewayCaptureSummaryErrorResponse } from "@/app/api/terminals/gateway/captures/[captureId]/summary/route";
-import {
+  buildGatewayCaptureSummaryErrorResponse,
   buildGatewayTerminalSnapshotResponse,
-  readGatewayTerminalSnapshot,
-} from "@/app/api/terminals/gateway/terminals/[id]/route";
-import { readGatewaySupervisorStatus } from "@/app/api/terminals/gateway/status/route";
-import {
   createGatewayTerminalSseStream,
+  readGatewaySupervisorStatus,
+  readGatewayTerminalSnapshot,
   readGatewayTerminalStreamContext,
+  resolveGatewayCaptureRequestLimits,
   resolveGatewayStreamSnapshotPayload,
-} from "@/app/api/terminals/gateway/terminals/[id]/stream/route";
+} from "@/lib/hikvision-terminal-gateway-route-helpers";
 
 import {
   createHikvisionTerminalGatewaySupervisor,
