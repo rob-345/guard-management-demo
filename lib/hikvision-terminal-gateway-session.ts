@@ -28,6 +28,9 @@ export type HikvisionTerminalGatewaySessionSnapshot = {
   recent_events: HikvisionTerminalGatewayEvent[];
   summary: HikvisionTerminalGatewaySummary;
   active_subscriber_count: number;
+  bridge_error_count: number;
+  last_bridge_error?: string;
+  last_bridge_error_at?: string;
 };
 
 export type HikvisionTerminalGatewaySessionSubscriber = (
@@ -55,6 +58,9 @@ export class HikvisionTerminalGatewaySession {
   private lastEventAt?: string;
   private lastConnectedAt?: string;
   private lastDisconnectedAt?: string;
+  private bridgeErrorCount = 0;
+  private lastBridgeError?: string;
+  private lastBridgeErrorAt?: string;
   private reconnectBackoffMs = INITIAL_RECONNECT_BACKOFF_MS;
   private readyResolved = false;
   private readyPromise: Promise<void>;
@@ -148,6 +154,9 @@ export class HikvisionTerminalGatewaySession {
       recent_events: recentEvents,
       summary: summarizeGatewayEvents(recentEvents),
       active_subscriber_count: this.subscribers.size,
+      bridge_error_count: this.bridgeErrorCount,
+      last_bridge_error: this.lastBridgeError,
+      last_bridge_error_at: this.lastBridgeErrorAt,
     };
   }
 
@@ -198,11 +207,15 @@ export class HikvisionTerminalGatewaySession {
               }
 
               this.notifySubscribers(event);
-              void this.bridgeGatewayEventToClockingIngest({
-                terminal: this.terminal,
-                gatewayEvent: event,
-                enabled: this.shadowBridgeEnabled,
-              }).catch(() => undefined);
+              if (this.shadowBridgeEnabled) {
+                void this.bridgeGatewayEventToClockingIngest({
+                  terminal: this.terminal,
+                  gatewayEvent: event,
+                  enabled: true,
+                }).catch((error) => {
+                  this.recordBridgeFailure(event, error);
+                });
+              }
             }
           },
         });
@@ -284,6 +297,22 @@ export class HikvisionTerminalGatewaySession {
         this.subscribers.delete(subscriber);
       }
     }
+  }
+
+  private recordBridgeFailure(event: HikvisionTerminalGatewayEvent, error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Gateway shadow bridge failed";
+    this.bridgeErrorCount += 1;
+    this.lastBridgeError = message;
+    this.lastBridgeErrorAt = this.now();
+    console.error("[hikvision-terminal-gateway-shadow-bridge]", {
+      terminal_id: this.terminal.id,
+      terminal_name: this.terminal.name,
+      sequence_index: event.sequence_index,
+      event_family: event.event_family,
+      description: event.description,
+      error: message,
+    });
   }
 
   private async waitForReconnectBackoff(ms: number) {

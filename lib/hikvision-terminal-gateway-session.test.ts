@@ -61,6 +61,147 @@ async function flushAsyncWork() {
   await new Promise((resolve) => setImmediate(resolve));
 }
 
+test("gateway session does not call the shadow bridge helper when disabled", async () => {
+  const terminal = createTerminal({ id: "terminal-bridge-off", edge_terminal_id: "terminal-bridge-off" });
+  let bridgeCalls = 0;
+
+  const session = new HikvisionTerminalGatewaySession(terminal, {
+    maxBufferedEvents: 2,
+    shadowBridgeEnabled: false,
+    bridgeGatewayEventToClockingIngest: async () => {
+      bridgeCalls += 1;
+      return null;
+    },
+    consumeAlertStream: async (options: HikvisionConsumeAlertStreamOptions = {}) => {
+      await options.onPart?.(
+        createPart({
+          timestamp: "2026-04-21T12:20:00.000Z",
+          bodyText: JSON.stringify({
+            eventType: "AccessControllerEvent",
+            AccessControllerEvent: {
+              majorEventType: 5,
+              subEventType: 75,
+              eventDescription: "Bridge Disabled Event",
+              dateTime: "2026-04-21T12:20:00Z",
+            },
+          }),
+        })
+      );
+      await waitForAbort(options.signal);
+    },
+  });
+
+  session.start();
+  await session.whenReady();
+  await flushAsyncWork();
+
+  assert.equal(bridgeCalls, 0);
+  assert.equal(session.snapshot().bridge_error_count, 0);
+
+  await session.stop();
+});
+
+test("gateway session calls the shadow bridge helper for supported events when enabled", async () => {
+  const terminal = createTerminal({ id: "terminal-bridge-on", edge_terminal_id: "terminal-bridge-on" });
+  const seen: Array<{ enabled: boolean; description: string }> = [];
+
+  const session = new HikvisionTerminalGatewaySession(terminal, {
+    maxBufferedEvents: 2,
+    shadowBridgeEnabled: true,
+    bridgeGatewayEventToClockingIngest: async ({ enabled, gatewayEvent }) => {
+      seen.push({ enabled, description: gatewayEvent.description });
+      return null;
+    },
+    consumeAlertStream: async (options: HikvisionConsumeAlertStreamOptions = {}) => {
+      await options.onPart?.(
+        createPart({
+          timestamp: "2026-04-21T12:25:00.000Z",
+          bodyText: JSON.stringify({
+            eventType: "AccessControllerEvent",
+            AccessControllerEvent: {
+              majorEventType: 5,
+              subEventType: 75,
+              eventDescription: "Bridge Enabled Event",
+              dateTime: "2026-04-21T12:25:00Z",
+            },
+          }),
+        })
+      );
+      await waitForAbort(options.signal);
+    },
+  });
+
+  session.start();
+  await session.whenReady();
+  await flushAsyncWork();
+
+  assert.deepEqual(seen, [{ enabled: true, description: "Bridge Enabled Event" }]);
+  assert.equal(session.snapshot().bridge_error_count, 0);
+
+  await session.stop();
+});
+
+test("gateway session surfaces bridge failures without breaking the stream", async () => {
+  const terminal = createTerminal({ id: "terminal-bridge-fail", edge_terminal_id: "terminal-bridge-fail" });
+  const logged: unknown[][] = [];
+  const originalConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    logged.push(args);
+  };
+
+  try {
+    const session = new HikvisionTerminalGatewaySession(terminal, {
+      maxBufferedEvents: 2,
+      now: (() => {
+        const timestamps = [
+          "2026-04-21T12:30:00.000Z",
+          "2026-04-21T12:30:01.000Z",
+          "2026-04-21T12:30:02.000Z",
+        ];
+        return () => timestamps.shift() || "2026-04-21T12:30:03.000Z";
+      })(),
+      shadowBridgeEnabled: true,
+      bridgeGatewayEventToClockingIngest: async () => {
+        throw new Error("shadow bridge failed");
+      },
+      consumeAlertStream: async (options: HikvisionConsumeAlertStreamOptions = {}) => {
+        await options.onPart?.(
+          createPart({
+            timestamp: "2026-04-21T12:30:00.000Z",
+            bodyText: JSON.stringify({
+              eventType: "AccessControllerEvent",
+              AccessControllerEvent: {
+                majorEventType: 5,
+                subEventType: 75,
+                eventDescription: "Bridge Failure Event",
+                dateTime: "2026-04-21T12:30:00Z",
+              },
+            }),
+          })
+        );
+        await waitForAbort(options.signal);
+      },
+    });
+
+    session.start();
+    await session.whenReady();
+    await flushAsyncWork();
+
+    const snapshot = session.snapshot();
+    assert.equal(snapshot.stream_state, "connected");
+    assert.equal(snapshot.connected, true);
+    assert.equal(snapshot.bridge_error_count, 1);
+    assert.equal(snapshot.last_bridge_error, "shadow bridge failed");
+    assert.equal(snapshot.last_bridge_error_at, "2026-04-21T12:30:02.000Z");
+    assert.equal(logged.length, 1);
+    assert.match(String(logged[0]?.[0] || ""), /\[hikvision-terminal-gateway-shadow-bridge\]/);
+
+    await session.stop();
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
 test("gateway session stores bounded recent events, parses multipart parts losslessly, and resolves whenReady after the first event", async () => {
   const terminal = createTerminal();
   const deliveredEvents: string[] = [];
