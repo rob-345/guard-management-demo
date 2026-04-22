@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   buildGatewayCaptureId,
   createGatewayCaptureMetadata,
+  isInvalidGatewayCaptureIdError,
   writeGatewayCapture,
 } from "@/lib/hikvision-terminal-gateway-capture";
 import { getHikvisionTerminalGatewayConfig } from "@/lib/hikvision-terminal-gateway-config";
@@ -71,6 +72,14 @@ export function resolveGatewayCaptureRequestLimits(input: {
   };
 }
 
+export function buildGatewayCaptureRouteErrorResponse(error: unknown) {
+  if (isInvalidGatewayCaptureIdError(error)) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  throw error;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -88,19 +97,23 @@ export async function POST(
 
   const capture = await authorized.client.readAlertStreamSample(limits);
 
-  const record = await writeGatewayCapture({
-    captureDirectory: getHikvisionTerminalGatewayConfig().capture_directory,
-    metadata: createGatewayCaptureMetadata({
-      captureId,
-      terminalId: authorized.terminal.id,
-      terminalName: authorized.terminal.name,
-      startedAt,
-      finishedAt: new Date().toISOString(),
-      bytesCaptured: capture.sampleBytes,
-    }),
-    responseHeaders: capture.rawHeaders,
-    rawMultipartBodyText: capture.sampleText,
-  });
+  try {
+    const record = await writeGatewayCapture({
+      captureDirectory: getHikvisionTerminalGatewayConfig().capture_directory,
+      metadata: createGatewayCaptureMetadata({
+        captureId,
+        terminalId: authorized.terminal.id,
+        terminalName: authorized.terminal.name,
+        startedAt,
+        finishedAt: new Date().toISOString(),
+        bytesCaptured: capture.sampleBytes,
+      }),
+      responseHeaders: capture.rawHeaders,
+      rawMultipartBodyText: capture.sampleText,
+    });
 
-  return NextResponse.json(buildGatewayCaptureResponse(record));
+    return NextResponse.json(buildGatewayCaptureResponse(record));
+  } catch (error) {
+    return buildGatewayCaptureRouteErrorResponse(error);
+  }
 }

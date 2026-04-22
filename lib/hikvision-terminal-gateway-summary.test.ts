@@ -6,6 +6,7 @@ import test from "node:test";
 
 import type { HikvisionTerminalGatewayEvent } from "./hikvision-terminal-gateway-types";
 import {
+  buildGatewayCapturePaths,
   createGatewayCaptureMetadata,
   lookupGatewayCaptureSummary,
   readGatewayCapture,
@@ -244,6 +245,52 @@ Content-Type: application/json; charset="UTF-8"\r
         },
       ]
     );
+  } finally {
+    await rm(tempDirectory, { recursive: true, force: true });
+  }
+});
+
+test("capture helpers reject traversal, absolute, and mixed-separator capture IDs", async () => {
+  const tempDirectory = await mkdtemp(path.join(os.tmpdir(), "hikvision-gateway-invalid-id-"));
+  const invalidCaptureIds = ["../outside", "..\\outside", "/tmp/escape", "nested/../../escape"];
+
+  try {
+    for (const captureId of invalidCaptureIds) {
+      assert.throws(
+        () => buildGatewayCapturePaths(tempDirectory, captureId),
+        /Invalid gateway capture ID/
+      );
+
+      await assert.rejects(
+        () => readGatewayCapture(tempDirectory, captureId),
+        /Invalid gateway capture ID/
+      );
+
+      await assert.rejects(
+        () => lookupGatewayCaptureSummary(tempDirectory, captureId),
+        /Invalid gateway capture ID/
+      );
+
+      await assert.rejects(
+        () =>
+          writeGatewayCapture({
+            captureDirectory: tempDirectory,
+            metadata: createGatewayCaptureMetadata({
+              captureId,
+              terminalId: "terminal-invalid",
+              terminalName: "Invalid",
+              startedAt: "2026-04-21T11:00:00.000Z",
+            }),
+            responseHeaders: {
+              "content-type": "multipart/mixed; boundary=test-boundary",
+            },
+            rawMultipartBodyText: "--test-boundary--\r\n",
+            multipartParts: [],
+            events: [],
+          }),
+        /Invalid gateway capture ID/
+      );
+    }
   } finally {
     await rm(tempDirectory, { recursive: true, force: true });
   }
