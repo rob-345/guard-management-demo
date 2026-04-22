@@ -72,9 +72,14 @@ export async function bridgeGatewayEventToClockingIngest(input: {
   }
 
   const ingest = input.ingest || ingestTerminalClockingEvent;
+  const normalizedEvent = normalizeAcsEventRecord(toAcsEventRecord(input.gatewayEvent));
+  if (normalizedEvent.event_type === "unknown") {
+    return null;
+  }
+
   return ingest({
     terminal: input.terminal,
     source: "terminal_gateway",
-    normalizedEvent: normalizeAcsEventRecord(toAcsEventRecord(input.gatewayEvent)),
+    normalizedEvent,
   });
 }

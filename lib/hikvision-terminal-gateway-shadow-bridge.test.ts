@@ -65,3 +65,34 @@ test("bridgeGatewayEventToClockingIngest maps gateway events into the existing i
   assert.equal(seen[0]?.rawEventType, "AccessControllerEvent");
   assert.equal(seen[0]?.minor, "75");
 });
+
+test("bridgeGatewayEventToClockingIngest skips unsupported gateway-only events", async () => {
+  let ingestCalls = 0;
+
+  const result = await bridgeGatewayEventToClockingIngest({
+    terminal,
+    gatewayEvent: {
+      sequence_index: 2,
+      terminal_id: terminal.id,
+      terminal_name: terminal.name,
+      timestamp: "2026-04-21T12:05:00Z",
+      received_at: "2026-04-21T12:05:01Z",
+      event_family: "DeviceStatusEvent",
+      description: "Device status updated",
+      raw_payload: { eventType: "DeviceStatusEvent" },
+      nested_payload: {
+        status: "online",
+      },
+      multipart: { headers: {}, byte_length: 64, raw_text: "" },
+      parse_warnings: [],
+    },
+    enabled: true,
+    ingest: async () => {
+      ingestCalls += 1;
+      return { created: true, eventId: "event-2", eventKey: "event-key-2", event: {} as never };
+    },
+  });
+
+  assert.equal(result, null);
+  assert.equal(ingestCalls, 0);
+});
