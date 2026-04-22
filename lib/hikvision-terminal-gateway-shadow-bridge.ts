@@ -1,10 +1,69 @@
+import type { HikvisionAcsEventRecord } from "@guard-management/hikvision-isapi-sdk";
+
 import { ingestTerminalClockingEvent } from "./clocking-event-ingest";
-import type { HikvisionGatewayNormalizedEvent } from "./hikvision-terminal-gateway-types";
+import { normalizeAcsEventRecord } from "./hikvision-event-diagnostics";
+import type { HikvisionTerminalGatewayEvent } from "./hikvision-terminal-gateway-types";
 import type { Terminal } from "./types";
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  return value as Record<string, unknown>;
+}
+
+function toAcsEventRecord(gatewayEvent: HikvisionTerminalGatewayEvent): HikvisionAcsEventRecord {
+  const nestedPayload = asRecord(gatewayEvent.nested_payload);
+  const rawPayload = asRecord(gatewayEvent.raw_payload);
+  const raw = nestedPayload || rawPayload || {};
+
+  return {
+    employeeNoString:
+      typeof nestedPayload?.employeeNoString === "string"
+        ? nestedPayload.employeeNoString
+        : undefined,
+    name: typeof nestedPayload?.name === "string" ? nestedPayload.name : undefined,
+    major: gatewayEvent.major_event_type,
+    minor: gatewayEvent.sub_event_type,
+    eventTime: gatewayEvent.timestamp,
+    dateTime:
+      typeof nestedPayload?.dateTime === "string" ? nestedPayload.dateTime : gatewayEvent.timestamp,
+    eventType: gatewayEvent.event_family,
+    eventState: gatewayEvent.event_state,
+    eventDescription: gatewayEvent.description,
+    attendanceStatus:
+      typeof nestedPayload?.attendanceStatus === "string"
+        ? nestedPayload.attendanceStatus
+        : undefined,
+    currentVerifyMode:
+      typeof nestedPayload?.currentVerifyMode === "string"
+        ? nestedPayload.currentVerifyMode
+        : undefined,
+    cardReaderNo:
+      typeof nestedPayload?.cardReaderNo === "string" ||
+      typeof nestedPayload?.cardReaderNo === "number"
+        ? nestedPayload.cardReaderNo
+        : undefined,
+    doorNo:
+      typeof nestedPayload?.doorNo === "string" || typeof nestedPayload?.doorNo === "number"
+        ? nestedPayload.doorNo
+        : undefined,
+    cardType:
+      typeof nestedPayload?.cardType === "string" || typeof nestedPayload?.cardType === "number"
+        ? nestedPayload.cardType
+        : undefined,
+    mask: typeof nestedPayload?.mask === "string" ? nestedPayload.mask : undefined,
+    faceRect: asRecord(nestedPayload?.faceRect),
+    deviceID: gatewayEvent.device_identifier,
+    terminalId: gatewayEvent.terminal_identifier,
+    raw,
+  };
+}
 
 export async function bridgeGatewayEventToClockingIngest(input: {
   terminal: Terminal;
-  gatewayEvent: HikvisionGatewayNormalizedEvent;
+  gatewayEvent: HikvisionTerminalGatewayEvent;
   enabled: boolean;
   ingest?: typeof ingestTerminalClockingEvent;
 }) {
@@ -16,31 +75,6 @@ export async function bridgeGatewayEventToClockingIngest(input: {
   return ingest({
     terminal: input.terminal,
     source: "terminal_gateway",
-    normalizedEvent: {
-      event_type: "unknown",
-      raw_event_type: input.gatewayEvent.event_family,
-      employee_no:
-        typeof input.gatewayEvent.nested_payload?.employeeNoString === "string"
-          ? input.gatewayEvent.nested_payload.employeeNoString
-          : undefined,
-      event_time: input.gatewayEvent.timestamp,
-      event_state: input.gatewayEvent.event_state,
-      event_description: input.gatewayEvent.description,
-      device_identifier: input.gatewayEvent.device_identifier,
-      terminal_identifier: input.gatewayEvent.terminal_identifier,
-      major:
-        input.gatewayEvent.major_event_type !== undefined
-          ? String(input.gatewayEvent.major_event_type)
-          : undefined,
-      minor:
-        input.gatewayEvent.sub_event_type !== undefined
-          ? String(input.gatewayEvent.sub_event_type)
-          : undefined,
-      current_verify_mode:
-        typeof input.gatewayEvent.nested_payload?.currentVerifyMode === "string"
-          ? input.gatewayEvent.nested_payload.currentVerifyMode
-          : undefined,
-      normalized_event: input.gatewayEvent.raw_payload,
-    },
+    normalizedEvent: normalizeAcsEventRecord(toAcsEventRecord(input.gatewayEvent)),
   });
 }
