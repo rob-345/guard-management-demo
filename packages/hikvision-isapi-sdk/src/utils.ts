@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 
 import type {
+  HikvisionAcsEventRecord,
   HikvisionIsapiStatus,
   HikvisionLogLevel,
   HikvisionLogger,
@@ -426,4 +427,409 @@ export function parseCaptureFaceStatus(text: string) {
     isTimeout,
     isBusy
   };
+}
+
+function findFirstNestedValue(
+  value: unknown,
+  keys: string[],
+  seen = new Set<unknown>()
+): unknown {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "object") {
+    return undefined;
+  }
+
+  if (seen.has(value)) {
+    return undefined;
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const candidate = findFirstNestedValue(item, keys, seen);
+      if (candidate !== undefined && candidate !== null && candidate !== "") {
+        return candidate;
+      }
+    }
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  for (const key of keys) {
+    const direct = record[key];
+    if (direct !== undefined && direct !== null && direct !== "") {
+      return direct;
+    }
+  }
+
+  for (const nested of Object.values(record)) {
+    const candidate = findFirstNestedValue(nested, keys, seen);
+    if (candidate !== undefined && candidate !== null && candidate !== "") {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
+function findFirstNestedString(value: unknown, keys: string[]) {
+  const candidate = findFirstNestedValue(value, keys);
+  if (typeof candidate === "string" && candidate.trim()) {
+    return candidate.trim();
+  }
+  if (typeof candidate === "number" && Number.isFinite(candidate)) {
+    return String(candidate);
+  }
+  return undefined;
+}
+
+function findFirstNestedNumber(value: unknown, keys: string[]) {
+  const candidate = findFirstNestedValue(value, keys);
+  if (typeof candidate === "number" && Number.isFinite(candidate)) {
+    return candidate;
+  }
+  if (typeof candidate === "string" && candidate.trim()) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return undefined;
+}
+
+function findFirstNestedRecord(value: unknown, keys: string[]) {
+  const candidate = findFirstNestedValue(value, keys);
+  if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
+    return candidate as Record<string, unknown>;
+  }
+  return undefined;
+}
+
+function extractAcsEventRecord(raw: Record<string, unknown>): HikvisionAcsEventRecord | null {
+  const eventType = findFirstNestedString(raw, ["eventType", "type"]);
+  const employeeNo = findFirstNestedString(raw, ["employeeNo", "employee_no"]);
+  const employeeNoString = findFirstNestedString(raw, ["employeeNoString"]);
+  const eventTime = findFirstNestedString(raw, ["eventTime", "dateTime", "time"]);
+  const major = findFirstNestedNumber(raw, ["major", "majorEventType"]);
+  const minor = findFirstNestedNumber(raw, ["minor", "subEventType"]);
+
+  const hasSignal =
+    Boolean(eventType) ||
+    Boolean(employeeNo) ||
+    Boolean(employeeNoString) ||
+    Boolean(eventTime) ||
+    major !== undefined ||
+    minor !== undefined;
+
+  if (!hasSignal) {
+    return null;
+  }
+
+  return {
+    serialNo: findFirstNestedString(raw, ["serialNo", "serialNO", "serialNumber"]),
+    employeeNo,
+    employeeNoString,
+    name: findFirstNestedString(raw, ["name"]),
+    cardNo: findFirstNestedString(raw, ["cardNo", "cardNumber"]),
+    major,
+    minor,
+    eventTime,
+    dateTime: findFirstNestedString(raw, ["dateTime", "eventTime", "time"]),
+    eventType,
+    eventState: findFirstNestedString(raw, ["eventState", "state"]),
+    eventDescription: findFirstNestedString(raw, ["eventDescription", "description"]),
+    attendanceStatus: findFirstNestedString(raw, ["attendanceStatus"]),
+    currentVerifyMode: findFirstNestedString(raw, ["currentVerifyMode"]),
+    cardReaderNo: findFirstNestedNumber(raw, ["cardReaderNo"]),
+    doorNo: findFirstNestedNumber(raw, ["doorNo"]),
+    cardType: findFirstNestedNumber(raw, ["cardType"]),
+    mask: findFirstNestedString(raw, ["mask"]),
+    faceRect: findFirstNestedRecord(raw, ["FaceRect", "faceRect"]),
+    onlyVerify: (() => {
+      const candidate = findFirstNestedValue(raw, ["onlyVerify"]);
+      if (typeof candidate === "boolean") return candidate;
+      if (typeof candidate === "string") {
+        if (candidate.toLowerCase() === "true") return true;
+        if (candidate.toLowerCase() === "false") return false;
+      }
+      return undefined;
+    })(),
+    deviceID: findFirstNestedString(raw, ["deviceID"]),
+    deviceId: findFirstNestedString(raw, ["deviceId"]),
+    terminalId: findFirstNestedString(raw, ["terminalId"]),
+    terminalID: findFirstNestedString(raw, ["terminalID"]),
+    ipAddress: findFirstNestedString(raw, ["ipAddress"]),
+    macAddress: findFirstNestedString(raw, ["macAddress"]),
+    raw,
+  };
+}
+
+function collectCandidateObjects(
+  value: unknown,
+  output: Record<string, unknown>[],
+  seen = new Set<unknown>()
+) {
+  if (value === null || value === undefined || typeof value !== "object") {
+    return;
+  }
+
+  if (seen.has(value)) {
+    return;
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectCandidateObjects(item, output, seen);
+    }
+    return;
+  }
+
+  const record = value as Record<string, unknown>;
+  output.push(record);
+
+  for (const nested of Object.values(record)) {
+    collectCandidateObjects(nested, output, seen);
+  }
+}
+
+function dedupeAcsEventRecords(records: HikvisionAcsEventRecord[]) {
+  function scoreRecord(record: HikvisionAcsEventRecord) {
+    let score = 0;
+    if (record.serialNo) score += 3;
+    if (record.eventTime || record.dateTime) score += 3;
+    if (record.employeeNo || record.employeeNoString) score += 2;
+    if (record.name) score += 1;
+    if (record.eventType) score += 1;
+    if (record.eventDescription) score += 1;
+    if (record.currentVerifyMode) score += 1;
+    return score;
+  }
+
+  function buildRecordKey(record: HikvisionAcsEventRecord) {
+    if (record.serialNo) {
+      return `serial:${record.serialNo}|major:${String(record.major ?? "")}|minor:${String(record.minor ?? "")}`;
+    }
+
+    return [
+      `major:${String(record.major ?? "")}`,
+      `minor:${String(record.minor ?? "")}`,
+      `employee:${record.employeeNo || record.employeeNoString || ""}`,
+      `time:${record.eventTime || record.dateTime || ""}`,
+      `name:${record.name || ""}`,
+    ].join("|");
+  }
+
+  const bestByKey = new Map<string, HikvisionAcsEventRecord>();
+  for (const record of records) {
+    const key = buildRecordKey(record);
+    const existing = bestByKey.get(key);
+    if (!existing || scoreRecord(record) > scoreRecord(existing)) {
+      bestByKey.set(key, record);
+    }
+  }
+
+  return [...bestByKey.values()];
+}
+
+export function parseAcsEventRecordsFromObject(value: Record<string, unknown>) {
+  const candidates: Record<string, unknown>[] = [];
+  collectCandidateObjects(value, candidates);
+
+  const records = candidates
+    .map((candidate) => extractAcsEventRecord(candidate))
+    .filter((candidate): candidate is HikvisionAcsEventRecord => Boolean(candidate));
+
+  return dedupeAcsEventRecords(records);
+}
+
+export function parseAcsEventRecordsFromXml(text: string) {
+  const blockTags = ["AcsEventInfo", "AcsEvent", "EventNotificationAlert", "AccessControllerEvent"];
+  const blocks = blockTags.flatMap((tag) => extractXmlBlocks(text, tag));
+
+  if (blocks.length === 0) {
+    const rootRecord = extractAcsEventRecord(
+      parseSimpleXml(text, [
+        "serialNo",
+        "employeeNo",
+        "employeeNoString",
+        "name",
+        "cardNo",
+        "major",
+        "majorEventType",
+        "minor",
+        "subEventType",
+        "eventTime",
+        "dateTime",
+        "eventType",
+        "eventState",
+        "eventDescription",
+        "attendanceStatus",
+        "currentVerifyMode",
+        "cardReaderNo",
+        "doorNo",
+        "cardType",
+        "mask",
+        "deviceID",
+        "deviceId",
+        "terminalId",
+        "terminalID",
+        "ipAddress",
+        "macAddress",
+      ])
+    );
+    return rootRecord ? [rootRecord] : [];
+  }
+
+  const records = blocks
+    .map((block) =>
+      extractAcsEventRecord(
+        parseSimpleXml(block, [
+          "serialNo",
+          "employeeNo",
+          "employeeNoString",
+          "name",
+          "cardNo",
+          "major",
+          "majorEventType",
+          "minor",
+          "subEventType",
+          "eventTime",
+          "dateTime",
+          "eventType",
+          "eventState",
+          "eventDescription",
+          "attendanceStatus",
+          "currentVerifyMode",
+          "cardReaderNo",
+          "doorNo",
+          "cardType",
+          "mask",
+          "deviceID",
+          "deviceId",
+          "terminalId",
+          "terminalID",
+          "ipAddress",
+          "macAddress",
+        ])
+      )
+    )
+    .filter((candidate): candidate is HikvisionAcsEventRecord => Boolean(candidate));
+
+  return dedupeAcsEventRecords(records);
+}
+
+export function consumeMultipartMixedText(
+  text: string,
+  boundary: string
+): {
+  parts: Array<{
+    headers: Record<string, string>;
+    bodyText: string;
+    rawText: string;
+  }>;
+  remainder: string;
+} {
+  const boundaryMarker = `--${boundary}`;
+  const parts: Array<{ headers: Record<string, string>; bodyText: string; rawText: string }> = [];
+
+  let remainder = text;
+  let searchStart = remainder.indexOf(boundaryMarker);
+  if (searchStart > 0) {
+    remainder = remainder.slice(searchStart);
+  }
+
+  while (remainder.startsWith(boundaryMarker)) {
+    if (remainder.startsWith(`${boundaryMarker}--`)) {
+      return { parts, remainder: "" };
+    }
+
+    const headerStart = remainder.indexOf("\r\n");
+    if (headerStart === -1) {
+      break;
+    }
+
+    const headersEnd = remainder.indexOf("\r\n\r\n");
+    if (headersEnd === -1) {
+      break;
+    }
+
+    const nextBoundaryIndex = remainder.indexOf(`\r\n${boundaryMarker}`, headersEnd + 4);
+    if (nextBoundaryIndex === -1) {
+      break;
+    }
+
+    const rawPartText = remainder.slice(0, nextBoundaryIndex + 2);
+    const headerText = remainder.slice(headerStart + 2, headersEnd);
+    const bodyText = remainder.slice(headersEnd + 4, nextBoundaryIndex);
+
+    const headers = Object.fromEntries(
+      headerText
+        .split("\r\n")
+        .map((line) => {
+          const separatorIndex = line.indexOf(":");
+          if (separatorIndex === -1) {
+            return null;
+          }
+          return [
+            line.slice(0, separatorIndex).trim().toLowerCase(),
+            line.slice(separatorIndex + 1).trim(),
+          ];
+        })
+        .filter((entry): entry is [string, string] => Boolean(entry))
+    );
+
+    parts.push({
+      headers,
+      bodyText,
+      rawText: rawPartText,
+    });
+
+    remainder = remainder.slice(nextBoundaryIndex + 2);
+  }
+
+  return { parts, remainder };
+}
+
+export function parseAcsEventRecordsFromMultipartText(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const directJsonOrXml =
+    trimmed.startsWith("{") ||
+    trimmed.startsWith("[") ||
+    trimmed.startsWith("<");
+  if (directJsonOrXml) {
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      return parseAcsEventRecordsFromObject(parseJsonSafe(trimmed) || {});
+    }
+    return parseAcsEventRecordsFromXml(trimmed);
+  }
+
+  const boundaryMatch = trimmed.match(/^--([^\r\n]+)/);
+  if (!boundaryMatch?.[1]) {
+    return [];
+  }
+
+  const consumed = consumeMultipartMixedText(trimmed, boundaryMatch[1]);
+  const records = consumed.parts.flatMap((part) => {
+    const body = part.bodyText.trim();
+    if (!body) {
+      return [];
+    }
+    if (body.startsWith("{") || body.startsWith("[")) {
+      return parseAcsEventRecordsFromObject(parseJsonSafe(body) || {});
+    }
+    if (body.startsWith("<")) {
+      return parseAcsEventRecordsFromXml(body);
+    }
+    return [];
+  });
+
+  return dedupeAcsEventRecords(records);
 }
