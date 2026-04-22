@@ -470,7 +470,7 @@ test("consumeAlertStream aborts an in-flight request", async () => {
     password: "password",
     timeoutMs: 200,
     fetchImpl: async (_input, init) => {
-      fetchSignal = init?.signal;
+      fetchSignal = init?.signal ?? undefined;
       if (fetchSignal?.aborted) {
         sawAbort = true;
         throw new DOMException("The operation was aborted", "AbortError");

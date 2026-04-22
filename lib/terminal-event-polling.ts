@@ -1,4 +1,3 @@
-import { captureTerminalSnapshotBufferFrame } from "@/lib/event-snapshots";
 import { ingestTerminalClockingEvent } from "@/lib/clocking-event-ingest";
 import { normalizeAcsEventRecord } from "@/lib/hikvision-event-diagnostics";
 import { HikvisionClient, getCachedHikvisionClient } from "@/lib/hikvision";
@@ -120,7 +119,6 @@ type PollTerminalOptions = {
   maxResults?: number;
   startTime?: string;
   endTime?: string;
-  captureSnapshotBuffer?: boolean;
 };
 
 export type TerminalEventHistoryResult = {
@@ -434,14 +432,9 @@ export async function pollTerminalEvents(
     }),
   ];
 
-  if (options.captureSnapshotBuffer !== false) {
-    tasks.push(captureTerminalSnapshotBufferFrame(terminal).catch(() => undefined));
-  }
-
   const [heartbeat, history] = (await Promise.all(tasks)) as [
     Awaited<ReturnType<typeof updateTerminalHeartbeat>>,
     Awaited<ReturnType<typeof fetchTerminalEventHistory>>,
-    unknown?,
   ];
   const ingestedEvents = [];
 

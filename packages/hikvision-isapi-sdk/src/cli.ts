@@ -391,7 +391,7 @@ function printUsage() {
 
 Groups:
   device   probe | heartbeat | info | access-capabilities | fdlib-capabilities
-  events   capabilities | count | storage | clear | search | search-multi | stream-sample | stream-follow
+  events   capabilities | count | storage | clear | search | search-multi | stream-sample | stream-follow | snapshot-reflection
   face     capture | count | search | add | apply | workflow
 
 Global flags:
@@ -408,6 +408,7 @@ Examples:
   pnpm hikvision:cli --profile office events clear
   pnpm hikvision:cli --profile office events search --major 5 --minor 75
   pnpm hikvision:cli --profile office events stream-follow --duration-seconds 20
+  pnpm hikvision:cli --profile office events snapshot-reflection --timeout-seconds 8
 `);
 }
 
@@ -653,6 +654,33 @@ async function runEventsCommand(context: CommandContext): Promise<CommandExecuti
         },
         attachments: parsed.chunks.map((chunk, index) => ({
           name: `alert-stream-chunk-${String(index + 1).padStart(2, "0")}.txt`,
+          content: chunk.text,
+        })),
+      };
+    }
+    case "snapshot-reflection": {
+      const parsed = await client.measureSnapshotAlertStreamReflection({
+        streamId: getFlag(context.args, "stream-id") || "101",
+        timeoutMs: (parseInteger(getFlag(context.args, "timeout-seconds"), 8) || 8) * 1_000,
+        armDelayMs: parseInteger(getFlag(context.args, "arm-delay-ms"), 250),
+      });
+      return {
+        summary: {
+          status: parsed.status,
+          streamId: parsed.streamId,
+          snapshotBytes: parsed.snapshotBytes,
+          firstChunkDelayMs: parsed.firstChunkDelayMs ?? null,
+          reflectionDelayMs: parsed.reflectionDelayMs ?? null,
+          reflectedEvents: parsed.reflectedEvents.length,
+          observedChunks: parsed.observedChunks.length,
+        },
+        parsed,
+        raw: {
+          followResult: parsed.followResult,
+          exchanges: context.tracer.getExchanges(),
+        },
+        attachments: parsed.followResult.chunks.map((chunk, index) => ({
+          name: `snapshot-reflection-chunk-${String(index + 1).padStart(2, "0")}.txt`,
           content: chunk.text,
         })),
       };

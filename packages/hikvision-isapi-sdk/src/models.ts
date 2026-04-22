@@ -263,6 +263,37 @@ export type HikvisionAlertStreamFollowResult = {
   rawHeaders: Record<string, string>;
 };
 
+export type HikvisionSnapshotAlertStreamReflectionObservation = {
+  timestamp: string;
+  byteLength: number;
+  eventCount: number;
+  events: Array<{
+    major?: number | string;
+    minor?: number | string;
+    employeeNo?: string;
+    eventTime?: string;
+    eventType?: string;
+    eventDescription?: string;
+  }>;
+};
+
+export type HikvisionSnapshotAlertStreamReflectionResult = {
+  status: "reflected" | "timeout";
+  streamId: string;
+  timeoutMs: number;
+  armDelayMs: number;
+  snapshotIssuedAt: string;
+  snapshotContentType: string;
+  snapshotBytes: number;
+  firstChunkObservedAt?: string;
+  firstChunkDelayMs?: number;
+  firstEventObservedAt?: string;
+  reflectionDelayMs?: number;
+  reflectedEvents: HikvisionAcsEventRecord[];
+  observedChunks: HikvisionSnapshotAlertStreamReflectionObservation[];
+  followResult: HikvisionAlertStreamFollowResult;
+};
+
 export type HikvisionHeartbeatResult = {
   success: boolean;
   checkedAt: string;

@@ -14,17 +14,13 @@ type PollAllTerminalsResponse = {
   running?: boolean;
   started_at?: string;
   interval_seconds?: number;
-  snapshot_interval_ms?: number;
   terminal_count?: number;
   last_event_poll_at?: string;
-  last_snapshot_cycle_at?: string;
   inserted_count?: number;
   duplicate_count?: number;
   fetched_count?: number;
   online_heartbeats?: number;
-  buffered_terminals?: number;
   event_poll_in_flight?: boolean;
-  snapshot_cycle_in_flight?: boolean;
   last_error?: string;
   terminals?: Array<{
     terminal_id: string;
@@ -33,8 +29,6 @@ type PollAllTerminalsResponse = {
     success?: boolean;
     error?: string;
     last_event_poll_at?: string;
-    last_snapshot_captured_at?: string;
-    frame_count?: number;
     fetched_count?: number;
     inserted_count?: number;
     duplicate_count?: number;
@@ -158,18 +152,12 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">Clocking Events</h2>
           <p className="text-sm text-muted-foreground">
-            The server now keeps a background monitor running for terminal event polling and snapshot
-            buffering, even when this page is closed.
+            The server keeps a background monitor running for terminal event polling, even when this
+            page is closed.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge
-            variant={
-              lastPoll?.event_poll_in_flight || lastPoll?.snapshot_cycle_in_flight
-                ? "secondary"
-                : "outline"
-            }
-          >
+          <Badge variant={lastPoll?.event_poll_in_flight ? "secondary" : "outline"}>
             {lastPoll?.running ? "Server monitor running" : "Starting monitor"}
           </Badge>
           <Button variant="outline" size="sm" onClick={() => void runPollNow()} disabled={polling}>
@@ -189,18 +177,10 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">
-              Events every {lastPoll?.interval_seconds ?? 1} second
-            </Badge>
-            <Badge variant="outline">
-              Snapshots every {lastPoll?.snapshot_interval_ms ?? 250} ms
-            </Badge>
+            <Badge variant="outline">Events every {lastPoll?.interval_seconds ?? 1} second</Badge>
             <Badge variant="secondary">Events {events.length}</Badge>
             {typeof lastPoll?.terminal_count === "number" ? (
               <Badge variant="secondary">Terminals {lastPoll.terminal_count}</Badge>
-            ) : null}
-            {typeof lastPoll?.buffered_terminals === "number" ? (
-              <Badge variant="secondary">Buffered {lastPoll.buffered_terminals}</Badge>
             ) : null}
             {typeof lastPoll?.inserted_count === "number" ? (
               <Badge variant="secondary">Inserted {lastPoll.inserted_count}</Badge>
@@ -212,15 +192,12 @@ export function EventsLiveClient({ initialEvents }: { initialEvents: HydratedClo
           <p className="text-sm text-muted-foreground">
             Last event poll: {formatDateTime(lastPoll?.last_event_poll_at)}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Last snapshot cycle: {formatDateTime(lastPoll?.last_snapshot_cycle_at)}
-          </p>
           {(lastPoll?.terminals ?? []).length ? (
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               {(lastPoll?.terminals ?? []).map((terminal) => (
                 <Badge key={terminal.terminal_id} variant="outline" className="max-w-full">
-                  {terminal.terminal_name} · frames {terminal.frame_count ?? 0} · last snap{" "}
-                  {formatDateTime(terminal.last_snapshot_captured_at)}
+                  {terminal.terminal_name} · {terminal.heartbeat_status || "unknown"} · last poll{" "}
+                  {formatDateTime(terminal.last_event_poll_at)}
                 </Badge>
               ))}
             </div>

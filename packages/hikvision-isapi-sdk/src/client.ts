@@ -37,6 +37,7 @@ import type {
   HikvisionFaceSearchRecord,
   HikvisionFaceSearchResult,
   HikvisionPersonInfoExtend,
+  HikvisionSnapshotAlertStreamReflectionResult,
   HikvisionResponseEnvelope,
   HikvisionUserInfoInput,
   HikvisionUpsertUserInfoResult,
@@ -304,6 +305,12 @@ function formatEventStorageCheckTime(value: Date | string) {
   }
 
   return value.toISOString().slice(0, 19).replace("T", " ");
+}
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function createAbortError() {
@@ -798,6 +805,88 @@ export class HikvisionIsapiClient {
       buffer: envelope.body,
       contentType: envelope.headers["content-type"] || "image/jpeg",
       filename: `snapshot-${streamId}.jpg`,
+    };
+  }
+
+  async measureSnapshotAlertStreamReflection(options?: {
+    streamId?: string;
+    timeoutMs?: number;
+    armDelayMs?: number;
+  }): Promise<HikvisionSnapshotAlertStreamReflectionResult> {
+    const streamId = options?.streamId || "101";
+    const timeoutMs = options?.timeoutMs ?? 8_000;
+    const armDelayMs = options?.armDelayMs ?? 250;
+    let snapshotIssuedAt: string | undefined;
+    let firstChunkObservedAt: string | undefined;
+    let firstEventObservedAt: string | undefined;
+    let reflectedEvents: HikvisionAcsEventRecord[] = [];
+    const observedChunks: HikvisionSnapshotAlertStreamReflectionResult["observedChunks"] = [];
+
+    const followPromise = this.followAlertStream({
+      durationMs: timeoutMs,
+      onChunk: async (chunk) => {
+        if (!snapshotIssuedAt) {
+          return;
+        }
+
+        if (Date.parse(chunk.timestamp) < Date.parse(snapshotIssuedAt)) {
+          return;
+        }
+
+        observedChunks.push({
+          timestamp: chunk.timestamp,
+          byteLength: chunk.byteLength,
+          eventCount: chunk.events.length,
+          events: chunk.events.map((event) => ({
+            major: event.major,
+            minor: event.minor,
+            employeeNo: event.employeeNo || event.employeeNoString,
+            eventTime: event.eventTime || event.dateTime,
+            eventType: event.eventType,
+            eventDescription: event.eventDescription,
+          })),
+        });
+
+        if (!firstChunkObservedAt) {
+          firstChunkObservedAt = chunk.timestamp;
+        }
+
+        if (!firstEventObservedAt && chunk.events.length > 0) {
+          firstEventObservedAt = chunk.timestamp;
+          reflectedEvents = chunk.events;
+        }
+      },
+    });
+
+    if (armDelayMs > 0) {
+      await delay(armDelayMs);
+    }
+
+    snapshotIssuedAt = new Date().toISOString();
+    const snapshot = await this.getSnapshot(streamId);
+    const followResult = await followPromise;
+
+    return {
+      status: firstEventObservedAt ? "reflected" : "timeout",
+      streamId,
+      timeoutMs,
+      armDelayMs,
+      snapshotIssuedAt,
+      snapshotContentType: snapshot.contentType,
+      snapshotBytes: snapshot.buffer.length,
+      firstChunkObservedAt,
+      firstChunkDelayMs:
+        firstChunkObservedAt !== undefined
+          ? Date.parse(firstChunkObservedAt) - Date.parse(snapshotIssuedAt)
+          : undefined,
+      firstEventObservedAt,
+      reflectionDelayMs:
+        firstEventObservedAt !== undefined
+          ? Date.parse(firstEventObservedAt) - Date.parse(snapshotIssuedAt)
+          : undefined,
+      reflectedEvents,
+      observedChunks,
+      followResult,
     };
   }
 

@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { parseCliArgs, resolveProfileEnv } from "../src/cli";
+import { parseCliArgs, resolveProfileEnv, runCli } from "../src/cli";
 import { createTracingFetch } from "../src/debug";
+import { HikvisionIsapiClient } from "../src/client";
 
 test("parseCliArgs reads grouped commands and repeated flags", () => {
   const parsed = parseCliArgs([
@@ -24,6 +25,21 @@ test("parseCliArgs reads grouped commands and repeated flags", () => {
   assert.deepEqual(parsed.flags.major, ["5"]);
   assert.deepEqual(parsed.flags.minors, ["75,76", "80"]);
   assert.equal(parsed.booleans["show-tokens"], true);
+});
+
+test("parseCliArgs reads the snapshot-reflection diagnostic command", () => {
+  const parsed = parseCliArgs([
+    "events",
+    "snapshot-reflection",
+    "--timeout-seconds",
+    "8",
+    "--stream-id",
+    "102",
+  ]);
+
+  assert.deepEqual(parsed.positionals, ["events", "snapshot-reflection"]);
+  assert.deepEqual(parsed.flags["timeout-seconds"], ["8"]);
+  assert.deepEqual(parsed.flags["stream-id"], ["102"]);
 });
 
 test("resolveProfileEnv prefers named profile values", () => {
@@ -72,3 +88,109 @@ test("createTracingFetch captures raw request and response text", async () => {
   assert.equal(exchanges[0]?.response?.bodyText, "{\"ok\":true}");
   assert.equal(exchanges[0]?.request.headers.authorization, "***redacted***");
 });
+
+test(
+  "runCli dispatches the snapshot-reflection diagnostic command",
+  { concurrency: false },
+  async () => {
+  const originalMeasure = HikvisionIsapiClient.prototype.measureSnapshotAlertStreamReflection;
+  const originalLog = console.log;
+  const originalError = console.error;
+  const calls: Array<{ streamId?: string; timeoutMs?: number; armDelayMs?: number }> = [];
+
+  console.log = () => undefined;
+  console.error = () => undefined;
+
+  HikvisionIsapiClient.prototype.measureSnapshotAlertStreamReflection = async (options = {}) => {
+    calls.push(options);
+    return {
+      status: "reflected",
+      streamId: options.streamId || "101",
+      timeoutMs: options.timeoutMs ?? 8_000,
+      armDelayMs: options.armDelayMs ?? 250,
+      snapshotIssuedAt: "2026-04-22T06:00:00.000Z",
+      snapshotContentType: "image/jpeg",
+      snapshotBytes: 1234,
+      firstChunkObservedAt: "2026-04-22T06:00:01.000Z",
+      firstChunkDelayMs: 1000,
+      firstEventObservedAt: "2026-04-22T06:00:01.000Z",
+      reflectionDelayMs: 1000,
+      reflectedEvents: [
+        {
+          major: 5,
+          minor: 75,
+          employeeNo: "GW-001",
+          eventTime: "2026-04-22T06:00:01.000Z",
+          raw: {},
+        },
+      ],
+      observedChunks: [
+        {
+          timestamp: "2026-04-22T06:00:01.000Z",
+          byteLength: 128,
+          eventCount: 1,
+          events: [
+            {
+              major: 5,
+              minor: 75,
+              employeeNo: "GW-001",
+              eventTime: "2026-04-22T06:00:01.000Z",
+              eventType: "AccessControllerEvent",
+              eventDescription: "Face Authentication Completed",
+            },
+          ],
+        },
+      ],
+      followResult: {
+        success: true,
+        contentType: "multipart/mixed; boundary=boundary",
+        durationMs: 1000,
+        totalBytes: 128,
+        chunks: [
+          {
+            timestamp: "2026-04-22T06:00:01.000Z",
+            byteLength: 128,
+            text: "chunk",
+            events: [],
+          },
+        ],
+        rawHeaders: {},
+      },
+    };
+  };
+
+  try {
+    const exitCode = await runCli([
+      "--host",
+      "192.168.0.179",
+      "--username",
+      "admin",
+      "--password",
+      "secret",
+      "--output",
+      "summary",
+      "events",
+      "snapshot-reflection",
+      "--timeout-seconds",
+      "8",
+      "--stream-id",
+      "102",
+      "--arm-delay-ms",
+      "500",
+    ]);
+
+    assert.equal(exitCode, 0);
+    assert.deepEqual(calls, [
+      {
+        streamId: "102",
+        timeoutMs: 8_000,
+        armDelayMs: 500,
+      },
+    ]);
+  } finally {
+    HikvisionIsapiClient.prototype.measureSnapshotAlertStreamReflection = originalMeasure;
+    console.log = originalLog;
+    console.error = originalError;
+  }
+  }
+);

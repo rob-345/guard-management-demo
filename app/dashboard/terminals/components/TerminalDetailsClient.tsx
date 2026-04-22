@@ -7,7 +7,6 @@ import {
   Activity,
   ArrowLeft,
   FileCode2,
-  Fingerprint,
   MoreHorizontal,
   PencilLine,
   PlugZap,
@@ -52,7 +51,6 @@ import type { ClockingEvent, Site, Terminal } from "@/lib/types";
 
 import { TerminalAddDialog } from "./TerminalAddDialog";
 import { TerminalEventTable } from "./TerminalEventTable";
-import { TerminalSnapshotCard } from "./TerminalSnapshotCard";
 
 interface Props {
   terminal: Terminal;
@@ -626,25 +624,7 @@ export function TerminalDetailsClient({ terminal: initialTerminal, site: initial
           </Button>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
-          <TerminalSnapshotCard
-            terminal={terminal}
-            title="Camera Snapshot"
-            description={`Live snapshot feed proxied from the terminal's configured stream${terminal.snapshot_stream_id ? ` (${terminal.snapshot_stream_id})` : ""}.`}
-            className="h-fit"
-            mediaViewportClassName="aspect-[4/5] min-h-0"
-            imageClassName="object-cover"
-            actions={
-              <Button asChild variant="secondary">
-                <Link href={`/dashboard/guards?register=1&source_terminal=${terminal.id}`}>
-                  <Fingerprint className="mr-2 h-4 w-4" />
-                  Register Guard
-                </Link>
-              </Button>
-            }
-          />
-
-          <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Snapshot Context</CardTitle>
@@ -696,7 +676,6 @@ export function TerminalDetailsClient({ terminal: initialTerminal, site: initial
                 </div>
               </CardContent>
             </Card>
-          </div>
         </div>
 
         <TerminalAddDialog

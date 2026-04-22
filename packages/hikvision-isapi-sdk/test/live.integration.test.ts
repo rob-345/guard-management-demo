@@ -18,6 +18,8 @@ const requiredEnv = [
 
 const missingEnv = requiredEnv.filter((key) => !process.env[key]);
 const live = missingEnv.length === 0;
+const liveSnapshotReflection =
+  live && process.env.HIKVISION_TEST_SNAPSHOT_REFLECTION_REQUIRED === "1";
 
 function findLanIpv4Address() {
   for (const interfaces of Object.values(os.networkInterfaces())) {
@@ -169,6 +171,27 @@ test("live alert stream diagnostic sample", { skip: !live }, async () => {
   assert.ok(sample.sampleBytes >= 0);
   assert.ok(typeof sample.sampleText === "string");
 });
+
+test(
+  "live snapshot command can measure alertStream reflection delay",
+  { skip: !liveSnapshotReflection },
+  async () => {
+    const client = createClient();
+    const result = await client.measureSnapshotAlertStreamReflection({
+      streamId: process.env.HIKVISION_TEST_SNAPSHOT_STREAM_ID || "101",
+      timeoutMs: 8_000,
+    });
+
+    assert.ok(result.snapshotIssuedAt);
+    assert.ok(["reflected", "timeout"].includes(result.status));
+    assert.ok(result.snapshotBytes >= 0);
+
+    if (result.status === "reflected") {
+      assert.ok((result.reflectionDelayMs ?? -1) >= 0);
+      assert.ok(result.reflectedEvents.length > 0);
+    }
+  }
+);
 
 test("live face add, apply, search, verify, and cleanup", { skip: !live }, async () => {
   const client = createClient();

@@ -1,14 +1,9 @@
-import {
-  getTerminalSnapshotBufferSummary,
-  scheduleTerminalSnapshotBufferCapture,
-} from "./event-snapshots";
 import { getCollection } from "./mongodb";
 import { pollTerminalEvents } from "./terminal-event-polling";
 import type { PollTerminalEventsResult } from "./terminal-event-polling";
 import type { Terminal } from "./types";
 
 export const TERMINAL_LIVE_MONITOR_EVENT_INTERVAL_MS = 1_000;
-export const TERMINAL_LIVE_MONITOR_SNAPSHOT_INTERVAL_MS = 250;
 const TERMINAL_LIVE_MONITOR_TERMINAL_CACHE_TTL_MS = 1_000;
 
 export type TerminalLiveMonitorTerminalStatus = {
@@ -18,8 +13,6 @@ export type TerminalLiveMonitorTerminalStatus = {
   success?: boolean;
   error?: string;
   last_event_poll_at?: string;
-  last_snapshot_captured_at?: string;
-  frame_count?: number;
   fetched_count?: number;
   inserted_count?: number;
   duplicate_count?: number;
@@ -30,17 +23,13 @@ export type TerminalLiveMonitorStatus = {
   running: boolean;
   started_at?: string;
   interval_seconds: number;
-  snapshot_interval_ms: number;
   event_poll_in_flight: boolean;
-  snapshot_cycle_in_flight: boolean;
   last_event_poll_at?: string;
-  last_snapshot_cycle_at?: string;
   terminal_count: number;
   online_heartbeats: number;
   inserted_count: number;
   duplicate_count: number;
   fetched_count: number;
-  buffered_terminals: number;
   last_error?: string;
   terminals: TerminalLiveMonitorTerminalStatus[];
 };
@@ -48,12 +37,9 @@ export type TerminalLiveMonitorStatus = {
 type TerminalLiveMonitorState = {
   startedAt?: string;
   eventTimer?: ReturnType<typeof setInterval>;
-  snapshotTimer?: ReturnType<typeof setInterval>;
   lastEventPollAt?: string;
-  lastSnapshotCycleAt?: string;
   lastError?: string;
   eventPollPromise?: Promise<PollTerminalEventsResult[]>;
-  snapshotCyclePromise?: Promise<TerminalLiveMonitorTerminalStatus[]>;
   terminalCacheLoadedAtMs?: number;
   terminalCache?: Terminal[];
   terminalsById: Map<string, TerminalLiveMonitorTerminalStatus>;
@@ -85,16 +71,11 @@ function summarizeMonitorStatus(): TerminalLiveMonitorStatus {
   );
 
   return {
-    running: Boolean(
-      terminalLiveMonitorState.eventTimer && terminalLiveMonitorState.snapshotTimer
-    ),
+    running: Boolean(terminalLiveMonitorState.eventTimer),
     started_at: terminalLiveMonitorState.startedAt,
     interval_seconds: TERMINAL_LIVE_MONITOR_EVENT_INTERVAL_MS / 1_000,
-    snapshot_interval_ms: TERMINAL_LIVE_MONITOR_SNAPSHOT_INTERVAL_MS,
     event_poll_in_flight: Boolean(terminalLiveMonitorState.eventPollPromise),
-    snapshot_cycle_in_flight: Boolean(terminalLiveMonitorState.snapshotCyclePromise),
     last_event_poll_at: terminalLiveMonitorState.lastEventPollAt,
-    last_snapshot_cycle_at: terminalLiveMonitorState.lastSnapshotCycleAt,
     terminal_count: terminals.length,
     online_heartbeats: terminals.filter((terminal) => terminal.heartbeat_status === "online")
       .length,
@@ -110,7 +91,6 @@ function summarizeMonitorStatus(): TerminalLiveMonitorStatus {
       (total, terminal) => total + (terminal.fetched_count || 0),
       0
     ),
-    buffered_terminals: terminals.filter((terminal) => (terminal.frame_count || 0) > 0).length,
     last_error: terminalLiveMonitorState.lastError,
     terminals,
   };
@@ -179,7 +159,6 @@ async function runEventPollCycle() {
         try {
           const result = await pollTerminalEvents(terminal, {
             allEvents: true,
-            captureSnapshotBuffer: false,
           });
 
           upsertTerminalStatus(terminal, {
@@ -235,43 +214,6 @@ async function runEventPollCycle() {
   }
 }
 
-async function runSnapshotCycle() {
-  if (terminalLiveMonitorState.snapshotCyclePromise) {
-    return terminalLiveMonitorState.snapshotCyclePromise;
-  }
-
-  const promise = (async () => {
-    const terminals = await loadMonitorTerminals();
-    const results = terminals.map((terminal: Terminal) => {
-      const scheduled = scheduleTerminalSnapshotBufferCapture(terminal);
-      const summary = getTerminalSnapshotBufferSummary(terminal.id);
-
-      return upsertTerminalStatus(terminal, {
-        success: scheduled || summary.frame_count > 0,
-        error: undefined,
-        last_snapshot_captured_at: summary.latest_captured_at,
-        frame_count: summary.frame_count,
-      });
-    });
-
-    terminalLiveMonitorState.lastSnapshotCycleAt = new Date().toISOString();
-    return results;
-  })();
-
-  terminalLiveMonitorState.snapshotCyclePromise = promise;
-
-  try {
-    return await promise;
-  } catch (error) {
-    terminalLiveMonitorState.lastSnapshotCycleAt = new Date().toISOString();
-    terminalLiveMonitorState.lastError =
-      error instanceof Error ? error.message : "Terminal snapshot cycle failed";
-    return [];
-  } finally {
-    terminalLiveMonitorState.snapshotCyclePromise = undefined;
-  }
-}
-
 export function ensureTerminalLiveMonitor() {
   if (!terminalLiveMonitorState.startedAt) {
     terminalLiveMonitorState.startedAt = new Date().toISOString();
@@ -283,13 +225,6 @@ export function ensureTerminalLiveMonitor() {
     }, TERMINAL_LIVE_MONITOR_EVENT_INTERVAL_MS);
   }
 
-  if (!terminalLiveMonitorState.snapshotTimer) {
-    terminalLiveMonitorState.snapshotTimer = setInterval(() => {
-      void runSnapshotCycle();
-    }, TERMINAL_LIVE_MONITOR_SNAPSHOT_INTERVAL_MS);
-  }
-
-  void runSnapshotCycle();
   void runEventPollCycle();
 
   return summarizeMonitorStatus();
@@ -297,7 +232,7 @@ export function ensureTerminalLiveMonitor() {
 
 export async function refreshTerminalLiveMonitorNow() {
   ensureTerminalLiveMonitor();
-  await Promise.all([runSnapshotCycle(), runEventPollCycle()]);
+  await runEventPollCycle();
   return summarizeMonitorStatus();
 }
 

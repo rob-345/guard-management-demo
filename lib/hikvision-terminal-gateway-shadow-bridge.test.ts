@@ -34,8 +34,8 @@ test("bridgeGatewayEventToClockingIngest maps gateway events into the existing i
       received_at: "2026-04-21T12:00:01Z",
       event_family: "AccessControllerEvent",
       description: "Access Controller Event",
-      major_event_type: 5,
-      sub_event_type: 75,
+      major_event_type: "5",
+      sub_event_type: "75",
       raw_payload: { eventType: "AccessControllerEvent" },
       nested_payload: {
         employeeNoString: "GW-001",
@@ -82,8 +82,8 @@ test("bridgeGatewayEventToClockingIngest preserves employeeNo identifiers from g
       received_at: "2026-04-21T12:10:01Z",
       event_family: "AccessControllerEvent",
       description: "Face Authentication Completed",
-      major_event_type: 5,
-      sub_event_type: 75,
+      major_event_type: "5",
+      sub_event_type: "75",
       raw_payload: {
         eventType: "AccessControllerEvent",
         employeeNoString: "GW-RAW-001",

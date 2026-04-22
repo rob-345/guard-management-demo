@@ -112,6 +112,7 @@ Grouped commands:
   - `search-multi`
   - `stream-sample`
   - `stream-follow`
+  - `snapshot-reflection`
 - `face`
   - `capture`
   - `count`
@@ -178,6 +179,7 @@ Capture raw alert-stream output:
 ```bash
 pnpm hikvision:cli --profile office events stream-sample --timeout-ms 5000 --max-bytes 8192
 pnpm hikvision:cli --profile office events stream-follow --duration-seconds 20
+pnpm hikvision:cli --profile office events snapshot-reflection --timeout-seconds 8 --stream-id 101
 ```
 
 Face-library operations:
@@ -205,8 +207,9 @@ When clocking behavior is unclear:
 3. `pnpm hikvision:cli --profile office events search --major 5 --minor 75`
 4. `pnpm hikvision:cli --profile office events search-multi --major 5 --minors 75,76,80,94,104`
 5. `pnpm hikvision:cli --profile office events stream-sample`
-6. Inspect the run bundle in `.tmp/hikvision-cli-runs/...`
-7. Only after confirming the raw payloads should you update app-side filters or UI mapping
+6. `pnpm hikvision:cli --profile office events snapshot-reflection --timeout-seconds 8`
+7. Inspect the run bundle in `.tmp/hikvision-cli-runs/...`
+8. Only after confirming the raw payloads should you update app-side filters or UI mapping
 
 ## Face Workflow Example
 
@@ -278,6 +281,12 @@ Expected result shape:
 - Prefer `events search-multi` over assuming the device will accept one broad multi-filter request.
 - If `AcsEvent` stays strict, capture `alertStream` output and compare the raw event codes before adjusting app filters.
 
+### Snapshot reflection diagnostic
+
+- The snapshot reflection probe issues `GET /ISAPI/Streaming/channels/<streamId>/picture` and watches `GET /ISAPI/Event/notification/alertStream` for any post-snapshot event activity within the time window.
+- This is a diagnostic, not a guaranteed firmware contract. Some devices may emit a related `alertStream` event, while others may time out with no observable reflection.
+- The CLI records the raw followed chunks so you can inspect whether the observed event looks causally related to the snapshot request.
+
 ## Guide-Grounded Behavior vs Implementation Assumptions
 
 ### Grounded in the Hikvision ISAPI guide and collection
@@ -290,6 +299,7 @@ Expected result shape:
 - face apply or upsert uses `PUT /ISAPI/Intelligent/FDLib/FDSetUp?format=json`
 - access-control event history uses `POST /ISAPI/AccessControl/AcsEvent?format=json`
 - alert stream uses `GET /ISAPI/Event/notification/alertStream`
+- snapshot probing uses `GET /ISAPI/Streaming/channels/<streamId>/picture`
 - success is determined by HTTP success plus ISAPI status fields when present
 
 ### Implementation assumptions

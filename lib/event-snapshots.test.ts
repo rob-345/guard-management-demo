@@ -2,11 +2,35 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  captureClockingEventSnapshot,
   isFaceAuthenticationClockingEvent,
-  selectClosestTerminalSnapshotBufferEntry,
-  TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS,
-  TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS,
 } from "@/lib/event-snapshots";
+import type { ClockingEvent, Terminal } from "@/lib/types";
+
+const terminal: Terminal = {
+  id: "terminal-1",
+  edge_terminal_id: "TERM-1",
+  name: "Front Gate",
+  site_id: "site-1",
+  status: "online",
+  created_at: "2026-03-30T10:00:00Z",
+};
+
+function buildClockingEvent(
+  overrides: Partial<ClockingEvent> = {}
+): ClockingEvent {
+  return {
+    id: "event-1",
+    terminal_id: terminal.id,
+    site_id: terminal.site_id,
+    event_type: "clocking",
+    clocking_outcome: "valid",
+    minor: "75",
+    event_time: "2026-03-30T10:00:01.000Z",
+    created_at: "2026-03-30T10:00:02.000Z",
+    ...overrides,
+  };
+}
 
 test("isFaceAuthenticationClockingEvent detects face-auth clocking minors", () => {
   assert.equal(
@@ -19,94 +43,79 @@ test("isFaceAuthenticationClockingEvent detects face-auth clocking minors", () =
   );
 });
 
-test("selectClosestTerminalSnapshotBufferEntry chooses the nearest buffered frame", () => {
-  const match = selectClosestTerminalSnapshotBufferEntry(
-    [
-      {
-        id: "snap-1",
-        snapshot_file_id: "file-1",
-        snapshot_filename: "snap-1.jpg",
-        captured_at: "2026-03-30T10:00:00.000Z",
-      },
-      {
-        id: "snap-2",
-        snapshot_file_id: "file-2",
-        snapshot_filename: "snap-2.jpg",
-        captured_at: "2026-03-30T10:00:01.000Z",
-      },
-      {
-        id: "snap-3",
-        snapshot_file_id: "file-3",
-        snapshot_filename: "snap-3.jpg",
-        captured_at: "2026-03-30T10:00:02.000Z",
-      },
-    ],
-    "2026-03-30T10:00:01.400Z"
-  );
+test("captureClockingEventSnapshot stores a fresh terminal snapshot for a qualifying event", async () => {
+  const seenUploads: Array<{
+    filename: string;
+    contentType: string;
+    bucketName?: string;
+    size: number;
+  }> = [];
 
-  assert.equal(match?.id, "snap-2");
+  const metadata = await captureClockingEventSnapshot({
+    terminal,
+    event: buildClockingEvent(),
+    now: () => "2026-03-30T10:00:03.000Z",
+    getSnapshot: async () => ({
+      buffer: Buffer.from("snapshot-bytes"),
+      contentType: "image/jpeg",
+      filename: "snapshot-101.jpg",
+      streamId: "101",
+    }),
+    uploadSnapshot: async (buffer, filename, contentType, bucketName) => {
+      seenUploads.push({
+        filename,
+        contentType,
+        bucketName,
+        size: buffer.byteLength,
+      });
+      return "file-1";
+    },
+  });
+
+  assert.deepEqual(metadata, {
+    snapshot_file_id: "file-1",
+    snapshot_filename: "front-gate-event-1-2026-03-30t10-00-03-000z.jpg",
+    snapshot_mime_type: "image/jpeg",
+    snapshot_size: Buffer.byteLength("snapshot-bytes"),
+    snapshot_captured_at: "2026-03-30T10:00:03.000Z",
+  });
+  assert.deepEqual(seenUploads, [
+    {
+      filename: "front-gate-event-1-2026-03-30t10-00-03-000z.jpg",
+      contentType: "image/jpeg",
+      bucketName: "event_snapshots",
+      size: Buffer.byteLength("snapshot-bytes"),
+    },
+  ]);
 });
 
-test("selectClosestTerminalSnapshotBufferEntry can choose a later snapshot when it is closer", () => {
-  const match = selectClosestTerminalSnapshotBufferEntry(
-    [
-      {
-        id: "snap-before",
-        snapshot_file_id: "file-before",
-        snapshot_filename: "before.jpg",
-        captured_at: "2026-03-30T10:00:01.000Z",
-      },
-      {
-        id: "snap-after",
-        snapshot_file_id: "file-after",
-        snapshot_filename: "after.jpg",
-        captured_at: "2026-03-30T10:00:02.000Z",
-      },
-    ],
-    "2026-03-30T10:00:01.900Z"
-  );
+test("captureClockingEventSnapshot skips non-face-authentication events", async () => {
+  let snapshotCalls = 0;
+  let uploadCalls = 0;
 
-  assert.equal(match?.id, "snap-after");
-});
+  const metadata = await captureClockingEventSnapshot({
+    terminal,
+    event: buildClockingEvent({
+      event_type: "unknown",
+      minor: "1",
+      event_description: "Door open",
+    }),
+    getSnapshot: async () => {
+      snapshotCalls += 1;
+      return {
+        buffer: Buffer.from("unused"),
+        contentType: "image/jpeg",
+        filename: "unused.jpg",
+        streamId: "101",
+      };
+    },
+    uploadSnapshot: async () => {
+      uploadCalls += 1;
+      return "unused";
+    },
+  });
 
-test("selectClosestTerminalSnapshotBufferEntry can bias matching slightly after a second-level event timestamp", () => {
-  const match = selectClosestTerminalSnapshotBufferEntry(
-    [
-      {
-        id: "snap-near-event",
-        snapshot_file_id: "file-near-event",
-        snapshot_filename: "near-event.jpg",
-        captured_at: "2026-03-30T10:00:10.629Z",
-      },
-      {
-        id: "snap-compensated",
-        snapshot_file_id: "file-compensated",
-        snapshot_filename: "compensated.jpg",
-        captured_at: "2026-03-30T10:00:17.165Z",
-      },
-    ],
-    "2026-03-30T10:00:11Z",
-    TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS,
-    TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS
-  );
-
-  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_TARGET_OFFSET_MS, 6000);
-  assert.equal(match?.id, "snap-compensated");
-});
-
-test("selectClosestTerminalSnapshotBufferEntry rejects stale buffered frames", () => {
-  const match = selectClosestTerminalSnapshotBufferEntry(
-    [
-      {
-        id: "snap-1",
-        snapshot_file_id: "file-1",
-        snapshot_filename: "snap-1.jpg",
-        captured_at: "2026-03-30T10:00:00.000Z",
-      },
-    ],
-    "2026-03-30T10:00:10.500Z"
-  );
-
-  assert.equal(TERMINAL_SNAPSHOT_BUFFER_MATCH_WINDOW_MS, 5000);
-  assert.equal(match, null);
+  assert.equal(metadata, undefined);
+  assert.equal(snapshotCalls, 0);
+  assert.equal(uploadCalls, 0);
 });

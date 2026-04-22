@@ -2,12 +2,6 @@ import type { ClockingEventSource, Terminal } from "./types";
 
 const MAX_LIVE_EVENT_TRACES = 50;
 
-export type LiveEventSnapshotCandidate = {
-  entry_id: string;
-  captured_at: string;
-  delta_ms: number;
-};
-
 export type LiveClockingEventTrace = {
   event_id: string;
   event_key: string;
@@ -23,18 +17,13 @@ export type LiveClockingEventTrace = {
   event_time: string;
   ingested_at: string;
   event_to_ingest_ms?: number;
-  snapshot_match_status: "pending" | "matched" | "no_match" | "skipped" | "error";
-  snapshot_match_started_at?: string;
-  snapshot_match_finished_at?: string;
-  snapshot_match_duration_ms?: number;
-  snapshot_match_target_offset_ms?: number;
-  buffer_frame_count?: number;
-  buffer_candidates?: LiveEventSnapshotCandidate[];
-  matched_snapshot_entry_id?: string;
-  matched_snapshot_captured_at?: string;
-  matched_snapshot_delta_ms?: number;
+  snapshot_capture_status: "pending" | "captured" | "skipped" | "error";
+  snapshot_capture_started_at?: string;
+  snapshot_capture_finished_at?: string;
+  snapshot_capture_duration_ms?: number;
   snapshot_file_id?: string;
-  snapshot_match_error?: string;
+  snapshot_captured_at?: string;
+  snapshot_capture_error?: string;
   snapshot_skip_reason?: string;
   finalized_at?: string;
   created_at: string;
@@ -125,7 +114,7 @@ export function startLiveClockingEventTrace(input: {
     event_time: input.eventTime,
     ingested_at: ingestedAt,
     event_to_ingest_ms: toDeltaMs(ingestedAt, input.eventTime),
-    snapshot_match_status: "pending",
+    snapshot_capture_status: "pending",
     created_at: ingestedAt,
     updated_at: ingestedAt,
   }));
@@ -148,7 +137,7 @@ export function annotateLiveClockingEventTrace(
         event_type: "unknown",
         event_time: now,
         ingested_at: now,
-        snapshot_match_status: "pending",
+        snapshot_capture_status: "pending",
         created_at: now,
         ...patch,
         updated_at: now,

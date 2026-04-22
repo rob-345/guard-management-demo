@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import { reconcileGuardAttendanceForGuard } from "./attendance";
 import {
+  captureClockingEventSnapshot,
   isFaceAuthenticationClockingEvent,
-  matchClosestBufferedSnapshotToClockingEvent,
 } from "./event-snapshots";
 import type { NormalizedHikvisionTerminalEvent } from "./hikvision-event-diagnostics";
 import {
@@ -20,6 +20,31 @@ import type {
   GuardFaceEnrollment,
   Terminal,
 } from "./types";
+
+type ClockingEventCollectionLike = Pick<
+  Awaited<ReturnType<typeof getCollection<ClockingEvent>>>,
+  "findOne" | "insertOne" | "updateOne"
+>;
+
+type TerminalCollectionLike = Pick<
+  Awaited<ReturnType<typeof getCollection<Terminal>>>,
+  "updateOne"
+>;
+
+type ClockingEventIngestDeps = {
+  now?: () => string;
+  eventsCollection?: ClockingEventCollectionLike;
+  guardsCollection?: Awaited<ReturnType<typeof getCollection<Guard>>>;
+  enrollmentsCollection?: Awaited<
+    ReturnType<typeof getCollection<GuardFaceEnrollment>>
+  >;
+  terminalsCollection?: TerminalCollectionLike;
+  resolveGuardByEmployeeNo?: typeof resolveGuardByEmployeeNo;
+  reconcileGuardAttendanceForGuard?: typeof reconcileGuardAttendanceForGuard;
+  captureClockingEventSnapshot?: typeof captureClockingEventSnapshot;
+  startLiveClockingEventTrace?: typeof startLiveClockingEventTrace;
+  finalizeLiveClockingEventTrace?: typeof finalizeLiveClockingEventTrace;
+};
 
 function buildClockingEventKey(input: {
   terminalId: string;
@@ -52,13 +77,40 @@ function normalizeClockingEventTime(value?: string) {
   return new Date(parsed).toISOString();
 }
 
+function toDurationMs(finishedAt?: string, startedAt?: string) {
+  if (!finishedAt || !startedAt) {
+    return undefined;
+  }
+
+  const finishedMs = Date.parse(finishedAt);
+  const startedMs = Date.parse(startedAt);
+  if (!Number.isFinite(finishedMs) || !Number.isFinite(startedMs)) {
+    return undefined;
+  }
+
+  return finishedMs - startedMs;
+}
+
 export async function ingestTerminalClockingEvent(input: {
   terminal: Terminal;
   normalizedEvent: NormalizedHikvisionTerminalEvent;
   source: ClockingEventSource;
+  deps?: ClockingEventIngestDeps;
 }) {
   const terminal = input.terminal;
   const normalizedEvent = input.normalizedEvent;
+  const deps = input.deps || {};
+  const now = deps.now || (() => new Date().toISOString());
+  const resolveGuard =
+    deps.resolveGuardByEmployeeNo || resolveGuardByEmployeeNo;
+  const reconcileAttendance =
+    deps.reconcileGuardAttendanceForGuard || reconcileGuardAttendanceForGuard;
+  const captureSnapshot =
+    deps.captureClockingEventSnapshot || captureClockingEventSnapshot;
+  const startTrace =
+    deps.startLiveClockingEventTrace || startLiveClockingEventTrace;
+  const finalizeTrace =
+    deps.finalizeLiveClockingEventTrace || finalizeLiveClockingEventTrace;
   const eventType = normalizedEvent.event_type || "unknown";
   const eventTime = normalizeClockingEventTime(normalizedEvent.event_time);
   const employeeNo = normalizedEvent.employee_no;
@@ -70,10 +122,11 @@ export async function ingestTerminalClockingEvent(input: {
   });
 
   const [events, guards, enrollments, terminals] = await Promise.all([
-    getCollection<ClockingEvent>("clocking_events"),
-    getCollection<Guard>("guards"),
-    getCollection<GuardFaceEnrollment>("guard_face_enrollments"),
-    getCollection<Terminal>("terminals"),
+    deps.eventsCollection || getCollection<ClockingEvent>("clocking_events"),
+    deps.guardsCollection || getCollection<Guard>("guards"),
+    deps.enrollmentsCollection ||
+      getCollection<GuardFaceEnrollment>("guard_face_enrollments"),
+    deps.terminalsCollection || getCollection<Terminal>("terminals"),
   ]);
 
   const existing = await events.findOne({ event_key: eventKey });
@@ -84,7 +137,7 @@ export async function ingestTerminalClockingEvent(input: {
         $set: {
           last_seen: eventTime,
           status: "online",
-          updated_at: new Date().toISOString(),
+          updated_at: now(),
         },
       }
     );
@@ -98,7 +151,7 @@ export async function ingestTerminalClockingEvent(input: {
   }
 
   const guardProfile = employeeNo
-    ? await resolveGuardByEmployeeNo(guards, enrollments, employeeNo, terminal.id)
+    ? await resolveGuard(guards, enrollments, employeeNo, terminal.id)
     : null;
 
   const eventId = uuidv4();
@@ -121,12 +174,12 @@ export async function ingestTerminalClockingEvent(input: {
     terminal_identifier: normalizedEvent.terminal_identifier,
     event_key: eventKey,
     event_time: eventTime,
-    created_at: new Date().toISOString(),
+    created_at: now(),
   };
 
   const shouldTraceEvent = isFaceAuthenticationClockingEvent(event);
   if (shouldTraceEvent) {
-    startLiveClockingEventTrace({
+    startTrace({
       eventId,
       eventKey,
       terminal,
@@ -147,7 +200,7 @@ export async function ingestTerminalClockingEvent(input: {
       $set: {
         last_seen: eventTime,
         status: "online",
-        updated_at: new Date().toISOString(),
+        updated_at: now(),
       },
     }
   );
@@ -167,9 +220,41 @@ export async function ingestTerminalClockingEvent(input: {
 
   followUpTasks.push(
     (async () => {
+      let snapshotCaptureStartedAt: string | undefined;
+
       try {
-        snapshotMetadata = await matchClosestBufferedSnapshotToClockingEvent(event);
+        if (input.source !== "terminal_gateway") {
+          if (shouldTraceEvent) {
+            const finishedAt = now();
+            finalizeTrace(event.id, {
+              snapshot_capture_status: "skipped",
+              snapshot_capture_finished_at: finishedAt,
+              snapshot_skip_reason: `${input.source} events do not trigger automatic snapshots`,
+            });
+          }
+          return;
+        }
+
+        snapshotCaptureStartedAt = now();
+        snapshotMetadata = await captureSnapshot({
+          terminal,
+          event,
+        });
+
         if (!snapshotMetadata) {
+          if (shouldTraceEvent) {
+            const finishedAt = now();
+            finalizeTrace(event.id, {
+              snapshot_capture_status: "skipped",
+              snapshot_capture_started_at: snapshotCaptureStartedAt,
+              snapshot_capture_finished_at: finishedAt,
+              snapshot_capture_duration_ms: toDurationMs(
+                finishedAt,
+                snapshotCaptureStartedAt
+              ),
+              snapshot_skip_reason: "Snapshot helper returned no image",
+            });
+          }
           return;
         }
 
@@ -179,22 +264,44 @@ export async function ingestTerminalClockingEvent(input: {
             $set: snapshotMetadata,
           }
         );
-      } catch (error) {
+
         if (shouldTraceEvent) {
-          finalizeLiveClockingEventTrace(event.id, {
-            snapshot_match_status: "error",
-            snapshot_match_error:
-              error instanceof Error ? error.message : "Snapshot matching failed",
+          const finishedAt = now();
+          finalizeTrace(event.id, {
+            snapshot_capture_status: "captured",
+            snapshot_capture_started_at: snapshotCaptureStartedAt,
+            snapshot_capture_finished_at: finishedAt,
+            snapshot_capture_duration_ms: toDurationMs(
+              finishedAt,
+              snapshotCaptureStartedAt
+            ),
+            snapshot_file_id: snapshotMetadata.snapshot_file_id,
+            snapshot_captured_at: snapshotMetadata.snapshot_captured_at,
           });
         }
-        // We keep the event even if snapshot matching fails.
+      } catch (error) {
+        if (shouldTraceEvent) {
+          const finishedAt = now();
+          finalizeTrace(event.id, {
+            snapshot_capture_status: "error",
+            snapshot_capture_started_at: snapshotCaptureStartedAt,
+            snapshot_capture_finished_at: finishedAt,
+            snapshot_capture_duration_ms: toDurationMs(
+              finishedAt,
+              snapshotCaptureStartedAt
+            ),
+            snapshot_capture_error:
+              error instanceof Error ? error.message : "Snapshot capture failed",
+          });
+        }
+        // We keep the event even if snapshot capture fails.
       }
     })()
   );
 
   if (event.guard_id) {
     followUpTasks.push(
-      reconcileGuardAttendanceForGuard({
+      reconcileAttendance({
         guardId: event.guard_id,
         siteId: event.site_id,
       }).catch(() => undefined)
